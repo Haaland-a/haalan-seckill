@@ -1058,3 +1058,9 @@ Caused by: java.io.EOFException: null
 21:19:07:412  INFO 33544 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
 21:19:17:622  INFO 33544 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
 21:19:17:625  INFO 33544 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+21:21:16:879  WARN 33544 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+21:21:16:879  WARN 33544 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+21:21:16:887  WARN 33544 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+21:21:16:901  WARN 33544 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+21:21:17:054  INFO 33544 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+21:21:17:069  INFO 33544 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.

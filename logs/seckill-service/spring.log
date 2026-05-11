@@ -4149,3 +4149,23 @@ Caused by: com.rabbitmq.client.ShutdownSignalException: channel error; protocol 
 21:19:17:663  INFO 28476 --- [http-nio-8085-exec-8] c.h.s.s.impl.SeckillExecuteServiceImpl   : MQ消息已投递, messageId=23374f6fe3ff47908384498f66702ca4, orderNo=SK2053827284934692864
 21:19:17:664  INFO 28476 --- [http-nio-8085-exec-8] c.h.s.s.impl.SeckillExecuteServiceImpl   : 订单超时消息已发送: SK2053827284934692864
 21:19:17:665  INFO 28476 --- [http-nio-8085-exec-8] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀成功, userId=1, orderNo=SK2053827284934692864, messageId=23374f6fe3ff47908384498f66702ca4
+21:21:16:882  WARN 28476 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+21:21:16:884  WARN 28476 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+21:21:16:887  WARN 28476 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+21:21:16:895  WARN 28476 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+21:21:17:094  INFO 28476 --- [SpringContextShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+21:21:17:107  INFO 28476 --- [SpringContextShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+21:21:17:247  INFO 28476 --- [SpringContextShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+21:21:17:287  INFO 28476 --- [SpringContextShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+21:21:17:466  INFO 28476 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0x2cc55c36, L:/192.168.100.1:62989 ! R:/192.168.100.133:8099]
+21:21:17:466  INFO 28476 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0x2cc55c36, L:/192.168.100.1:62989 ! R:/192.168.100.133:8099]
+21:21:17:466  INFO 28476 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x2cc55c36, L:/192.168.100.1:62989 ! R:/192.168.100.133:8099]
+21:21:17:467  INFO 28476 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x2cc55c36, L:/192.168.100.1:62989 ! R:/192.168.100.133:8099]
+21:21:17:467  INFO 28476 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x2cc55c36, L:/192.168.100.1:62989 ! R:/192.168.100.133:8099]) will closed
+21:21:17:467  INFO 28476 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x2cc55c36, L:/192.168.100.1:62989 ! R:/192.168.100.133:8099]) will closed
+21:21:17:468  INFO 28476 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0xe588a2c4, L:/192.168.100.1:62994 ! R:/192.168.100.133:8099]
+21:21:17:468  INFO 28476 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0xe588a2c4, L:/192.168.100.1:62994 ! R:/192.168.100.133:8099]
+21:21:17:469  INFO 28476 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xe588a2c4, L:/192.168.100.1:62994 ! R:/192.168.100.133:8099]
+21:21:17:469  INFO 28476 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xe588a2c4, L:/192.168.100.1:62994 ! R:/192.168.100.133:8099]
+21:21:17:469  INFO 28476 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xe588a2c4, L:/192.168.100.1:62994 ! R:/192.168.100.133:8099]) will closed
+21:21:17:469  INFO 28476 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xe588a2c4, L:/192.168.100.1:62994 ! R:/192.168.100.133:8099]) will closed
