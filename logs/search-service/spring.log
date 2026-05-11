@@ -32,3 +32,235 @@
 22:17:38:846  WARN 22200 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
 22:17:39:410  INFO 22200 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
 22:17:39:427  INFO 22200 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+15:11:46:622  INFO 24644 --- [main] c.h.search.SearchServiceApplication      : The following 1 profile is active: "local"
+15:11:47:784  INFO 24644 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+15:11:47:789  INFO 24644 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+15:11:47:831  INFO 24644 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 21 ms. Found 0 Redis repository interfaces.
+15:11:48:166  WARN 24644 --- [main] o.m.s.mapper.ClassPathMapperScanner      : No MyBatis mapper was found in '[com.haalan.search]' package. Please check your configuration.
+15:11:48:290  INFO 24644 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=82b567c2-e1cc-3182-b586-d5997f737617
+15:11:49:419  INFO 24644 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8084 (http)
+15:11:49:466  INFO 24644 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+15:11:49:467  INFO 24644 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+15:11:50:017  INFO 24644 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+15:11:50:018  INFO 24644 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3366 ms
+15:11:51:825  INFO 24644 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+15:11:54:279  INFO 24644 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:11:56:075  INFO 24644 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+15:11:56:128  INFO 24644 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+15:11:58:338  INFO 24644 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:11:58:689  INFO 24644 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8084 (http) with context path ''
+15:11:58:725  INFO 24644 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+15:11:58:726  INFO 24644 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+15:11:58:921  INFO 24644 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP search-service 192.168.131.1:8084 register finished
+15:12:00:853  INFO 24644 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:12:00:854  INFO 24644 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+15:12:00:859  INFO 24644 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+15:12:00:908  INFO 24644 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+15:12:01:067  INFO 24644 --- [main] c.h.search.SearchServiceApplication      : Started SearchServiceApplication in 22.826 seconds (JVM running for 24.448)
+15:12:01:092  INFO 24644 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service, group=DEFAULT_GROUP
+15:12:01:092  INFO 24644 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service.yaml, group=DEFAULT_GROUP
+15:12:01:094  INFO 24644 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service-local.yaml, group=DEFAULT_GROUP
+15:12:04:337  WARN 24644 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+15:12:04:337  WARN 24644 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+15:12:04:338  WARN 24644 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+15:12:04:338  WARN 24644 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+15:12:04:387  INFO 24644 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+15:12:04:400  INFO 24644 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+15:12:18:489  INFO 6908 --- [main] c.h.search.SearchServiceApplication      : The following 1 profile is active: "local"
+15:12:19:513  INFO 6908 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+15:12:19:517  INFO 6908 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+15:12:19:548  INFO 6908 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 14 ms. Found 0 Redis repository interfaces.
+15:12:19:751  WARN 6908 --- [main] o.m.s.mapper.ClassPathMapperScanner      : No MyBatis mapper was found in '[com.haalan.search]' package. Please check your configuration.
+15:12:19:865  INFO 6908 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=82b567c2-e1cc-3182-b586-d5997f737617
+15:12:20:576  INFO 6908 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8084 (http)
+15:12:20:592  INFO 6908 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+15:12:20:593  INFO 6908 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+15:12:20:837  INFO 6908 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+15:12:20:837  INFO 6908 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2329 ms
+15:12:21:950  INFO 6908 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+15:12:24:135  INFO 6908 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:12:25:121  INFO 6908 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+15:12:25:139  INFO 6908 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+15:12:27:087  INFO 6908 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:12:27:268  INFO 6908 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8084 (http) with context path ''
+15:12:27:286  INFO 6908 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+15:12:27:286  INFO 6908 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+15:12:27:430  INFO 6908 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP search-service 192.168.131.1:8084 register finished
+15:12:28:975  INFO 6908 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:12:28:976  INFO 6908 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+15:12:28:981  INFO 6908 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+15:12:29:019  INFO 6908 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+15:12:29:142  INFO 6908 --- [main] c.h.search.SearchServiceApplication      : Started SearchServiceApplication in 17.808 seconds (JVM running for 19.764)
+15:12:29:159  INFO 6908 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service, group=DEFAULT_GROUP
+15:12:29:160  INFO 6908 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service.yaml, group=DEFAULT_GROUP
+15:12:29:161  INFO 6908 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service-local.yaml, group=DEFAULT_GROUP
+15:18:04:152  WARN 6908 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+15:18:04:152  WARN 6908 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+15:18:04:159  WARN 6908 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+15:18:04:164  WARN 6908 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+15:18:04:327  INFO 6908 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+15:18:04:336  INFO 6908 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+15:18:21:487  INFO 29116 --- [main] c.h.search.SearchServiceApplication      : The following 1 profile is active: "local"
+15:18:23:156  INFO 29116 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+15:18:23:167  INFO 29116 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+15:18:23:266  INFO 29116 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 0 Redis repository interfaces.
+15:18:23:717  WARN 29116 --- [main] o.m.s.mapper.ClassPathMapperScanner      : No MyBatis mapper was found in '[com.haalan.search]' package. Please check your configuration.
+15:18:23:896  INFO 29116 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=82b567c2-e1cc-3182-b586-d5997f737617
+15:18:24:941  INFO 29116 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8084 (http)
+15:18:24:966  INFO 29116 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+15:18:24:967  INFO 29116 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+15:18:25:266  INFO 29116 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+15:18:25:266  INFO 29116 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3744 ms
+15:18:26:773  INFO 29116 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+15:18:29:391  INFO 29116 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:18:30:389  INFO 29116 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+15:18:30:404  INFO 29116 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+15:18:32:240  INFO 29116 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:18:32:466  INFO 29116 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8084 (http) with context path ''
+15:18:32:491  INFO 29116 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+15:18:32:492  INFO 29116 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+15:18:32:647  INFO 29116 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP search-service 192.168.131.1:8084 register finished
+15:18:34:396  INFO 29116 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+15:18:34:396  INFO 29116 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+15:18:34:401  INFO 29116 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+15:18:34:446  INFO 29116 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+15:18:34:597  INFO 29116 --- [main] c.h.search.SearchServiceApplication      : Started SearchServiceApplication in 22.433 seconds (JVM running for 24.04)
+15:18:34:623  INFO 29116 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service, group=DEFAULT_GROUP
+15:18:34:625  INFO 29116 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service.yaml, group=DEFAULT_GROUP
+15:18:34:625  INFO 29116 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service-local.yaml, group=DEFAULT_GROUP
+16:44:58:063  WARN 29116 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+16:44:58:061  WARN 29116 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+16:44:58:088  WARN 29116 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+16:44:58:117  WARN 29116 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+16:44:58:864  INFO 29116 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+16:44:58:883  INFO 29116 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+16:45:25:944  INFO 4664 --- [main] c.h.search.SearchServiceApplication      : The following 1 profile is active: "local"
+16:45:27:649  INFO 4664 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+16:45:27:656  INFO 4664 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+16:45:27:716  INFO 4664 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 0 Redis repository interfaces.
+16:45:28:076  WARN 4664 --- [main] o.m.s.mapper.ClassPathMapperScanner      : No MyBatis mapper was found in '[com.haalan.search]' package. Please check your configuration.
+16:45:28:218  INFO 4664 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=82b567c2-e1cc-3182-b586-d5997f737617
+16:45:29:189  INFO 4664 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8084 (http)
+16:45:29:210  INFO 4664 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+16:45:29:212  INFO 4664 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+16:45:29:590  INFO 4664 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+16:45:29:590  INFO 4664 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3621 ms
+16:45:31:470  INFO 4664 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+16:45:35:502  INFO 4664 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+16:45:36:951  INFO 4664 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+16:45:36:970  INFO 4664 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+16:45:39:147  INFO 4664 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+16:45:39:404  INFO 4664 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8084 (http) with context path ''
+16:45:39:436  INFO 4664 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+16:45:39:436  INFO 4664 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+16:45:39:601  INFO 4664 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP search-service 192.168.131.1:8084 register finished
+16:45:41:338  INFO 4664 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+16:45:41:338  INFO 4664 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+16:45:41:343  INFO 4664 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+16:45:41:380  INFO 4664 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+16:45:41:529  INFO 4664 --- [main] c.h.search.SearchServiceApplication      : Started SearchServiceApplication in 25.222 seconds (JVM running for 27.198)
+16:45:41:554  INFO 4664 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service, group=DEFAULT_GROUP
+16:45:41:555  INFO 4664 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service.yaml, group=DEFAULT_GROUP
+16:45:41:556  INFO 4664 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service-local.yaml, group=DEFAULT_GROUP
+16:56:50:974  WARN 4664 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+16:56:50:975  WARN 4664 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+16:56:50:985  WARN 4664 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+16:56:50:992  WARN 4664 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+16:56:51:232  INFO 4664 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+16:56:51:246  INFO 4664 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+16:57:23:270  INFO 25608 --- [main] c.h.search.SearchServiceApplication      : The following 1 profile is active: "local"
+16:57:24:331  INFO 25608 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+16:57:24:337  INFO 25608 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+16:57:24:381  INFO 25608 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 13 ms. Found 0 Redis repository interfaces.
+16:57:24:579  WARN 25608 --- [main] o.m.s.mapper.ClassPathMapperScanner      : No MyBatis mapper was found in '[com.haalan.search]' package. Please check your configuration.
+16:57:24:682  INFO 25608 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=82b567c2-e1cc-3182-b586-d5997f737617
+16:57:25:386  INFO 25608 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8084 (http)
+16:57:25:405  INFO 25608 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+16:57:25:406  INFO 25608 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+16:57:25:780  INFO 25608 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+16:57:25:781  INFO 25608 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2486 ms
+16:57:27:530  INFO 25608 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+16:57:30:543  INFO 25608 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+16:57:31:478  INFO 25608 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+16:57:31:488  INFO 25608 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+16:57:33:229  INFO 25608 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+16:57:33:403  INFO 25608 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8084 (http) with context path ''
+16:57:33:424  INFO 25608 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+16:57:33:425  INFO 25608 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+16:57:33:568  INFO 25608 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP search-service 192.168.131.1:8084 register finished
+16:57:35:157  INFO 25608 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+16:57:35:158  INFO 25608 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+16:57:35:162  INFO 25608 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+16:57:35:190  INFO 25608 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+16:57:35:295  INFO 25608 --- [main] c.h.search.SearchServiceApplication      : Started SearchServiceApplication in 21.008 seconds (JVM running for 23.022)
+16:57:35:312  INFO 25608 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service, group=DEFAULT_GROUP
+16:57:35:313  INFO 25608 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service.yaml, group=DEFAULT_GROUP
+16:57:35:313  INFO 25608 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service-local.yaml, group=DEFAULT_GROUP
+20:11:57:485  WARN 25608 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+20:11:57:485  WARN 25608 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+20:11:57:514  WARN 25608 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+20:11:57:534  WARN 25608 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+20:11:57:872  INFO 25608 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+20:11:57:888  INFO 25608 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+20:12:19:120  INFO 4952 --- [main] c.h.search.SearchServiceApplication      : The following 1 profile is active: "local"
+20:12:20:951  INFO 4952 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+20:12:20:960  INFO 4952 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+20:12:21:066  INFO 4952 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 50 ms. Found 0 Redis repository interfaces.
+20:12:22:008  WARN 4952 --- [main] o.m.s.mapper.ClassPathMapperScanner      : No MyBatis mapper was found in '[com.haalan.search]' package. Please check your configuration.
+20:12:22:204  INFO 4952 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=82b567c2-e1cc-3182-b586-d5997f737617
+20:12:23:404  INFO 4952 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8084 (http)
+20:12:23:427  INFO 4952 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+20:12:23:428  INFO 4952 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+20:12:23:803  INFO 4952 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+20:12:23:804  INFO 4952 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4653 ms
+20:12:25:938  INFO 4952 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+20:12:28:871  INFO 4952 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:12:29:951  INFO 4952 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+20:12:29:965  INFO 4952 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+20:12:32:013  INFO 4952 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:12:32:201  INFO 4952 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8084 (http) with context path ''
+20:12:32:224  INFO 4952 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+20:12:32:224  INFO 4952 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+20:12:32:383  INFO 4952 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP search-service 192.168.131.1:8084 register finished
+20:12:34:114  INFO 4952 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:12:34:115  INFO 4952 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+20:12:34:120  INFO 4952 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+20:12:34:162  INFO 4952 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+20:12:34:302  INFO 4952 --- [main] c.h.search.SearchServiceApplication      : Started SearchServiceApplication in 23.567 seconds (JVM running for 25.501)
+20:12:34:327  INFO 4952 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service, group=DEFAULT_GROUP
+20:12:34:328  INFO 4952 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service.yaml, group=DEFAULT_GROUP
+20:12:34:329  INFO 4952 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service-local.yaml, group=DEFAULT_GROUP
+20:47:35:576  WARN 4952 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+20:47:35:576  WARN 4952 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+20:47:35:593  WARN 4952 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+20:47:35:601  WARN 4952 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+20:47:35:941  INFO 4952 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+20:47:35:952  INFO 4952 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+20:48:24:040  INFO 15556 --- [main] c.h.search.SearchServiceApplication      : The following 1 profile is active: "local"
+20:48:25:635  INFO 15556 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+20:48:25:640  INFO 15556 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+20:48:25:690  INFO 15556 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 21 ms. Found 0 Redis repository interfaces.
+20:48:26:065  WARN 15556 --- [main] o.m.s.mapper.ClassPathMapperScanner      : No MyBatis mapper was found in '[com.haalan.search]' package. Please check your configuration.
+20:48:26:235  INFO 15556 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=82b567c2-e1cc-3182-b586-d5997f737617
+20:48:27:200  INFO 15556 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8084 (http)
+20:48:27:220  INFO 15556 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+20:48:27:221  INFO 15556 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+20:48:27:636  INFO 15556 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+20:48:27:636  INFO 15556 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3568 ms
+20:48:29:530  INFO 15556 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+20:48:32:484  INFO 15556 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:48:33:744  INFO 15556 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+20:48:33:760  INFO 15556 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+20:48:35:818  INFO 15556 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:48:36:076  INFO 15556 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8084 (http) with context path ''
+20:48:36:105  INFO 15556 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+20:48:36:106  INFO 15556 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+20:48:36:266  INFO 15556 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP search-service 192.168.131.1:8084 register finished
+20:48:38:319  INFO 15556 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:48:38:320  INFO 15556 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+20:48:38:325  INFO 15556 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+20:48:38:383  INFO 15556 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+20:48:38:575  INFO 15556 --- [main] c.h.search.SearchServiceApplication      : Started SearchServiceApplication in 22.717 seconds (JVM running for 24.517)
+20:48:38:604  INFO 15556 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service, group=DEFAULT_GROUP
+20:48:38:605  INFO 15556 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service.yaml, group=DEFAULT_GROUP
+20:48:38:606  INFO 15556 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=search-service-local.yaml, group=DEFAULT_GROUP

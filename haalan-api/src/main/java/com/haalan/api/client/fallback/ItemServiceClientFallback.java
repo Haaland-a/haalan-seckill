@@ -3,7 +3,6 @@ package com.haalan.api.client.fallback;
 import com.haalan.api.client.ItemServiceClient;
 import com.haalan.api.domain.dto.ProductStringDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
-import com.haalan.api.domain.vo.ProductDetailVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
@@ -19,16 +18,16 @@ public class ItemServiceClientFallback implements FallbackFactory<ItemServiceCli
 	public ItemServiceClient create(Throwable cause) {
 		return new ItemServiceClient() {
 			//弃用
-			@Override
-			public ProductDetailVO getProductDetail(Long spuId) {
-				log.error("调用 item-service 获取商品详情失败, spuId: {}", spuId, cause);
-				//  返回兜底数据
-				ProductDetailVO vo = new ProductDetailVO();
-				vo.setSpuId(spuId);
-				vo.setSpuName("商品信息获取失败");
-
-				return vo;
-			}
+//			@Override
+//			public ProductDetailVO getProductDetail(Long spuId) {
+//				log.error("调用 item-service 获取商品详情失败, spuId: {}", spuId, cause);
+//				//  返回兜底数据
+//				ProductDetailVO vo = new ProductDetailVO();
+//				vo.setSpuId(spuId);
+//				vo.setSpuName("商品信息获取失败");
+//
+//				return vo;
+			//	}
 
 			@Override
 			public ProductStringDTO getCode(Long skuId) {

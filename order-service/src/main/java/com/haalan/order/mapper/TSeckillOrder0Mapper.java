@@ -1,7 +1,8 @@
 package com.haalan.order.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.haalan.order.domain.po.TSeckillOrder0;
+import com.haalan.order.domain.po.TSeckillOrder;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
@@ -11,6 +12,7 @@ import com.haalan.order.domain.po.TSeckillOrder0;
  * @author haaland
  * @since 2026-05-11
  */
-public interface TSeckillOrder0Mapper extends BaseMapper<TSeckillOrder0> {
+@Mapper
+public interface TSeckillOrder0Mapper extends BaseMapper<TSeckillOrder> {
 
 }

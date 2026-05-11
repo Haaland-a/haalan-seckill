@@ -43,6 +43,11 @@ public class SeckillOrderMessage implements Serializable {
 	private Long activityId;
 
 	/**
+	 * 商品sku
+	 */
+	private Long skuId;
+
+	/**
 	 * 秒杀商品ID
 	 */
 	private Long seckillProductId;
@@ -51,6 +56,11 @@ public class SeckillOrderMessage implements Serializable {
 	 * 购买数量
 	 */
 	private Integer quantity;
+
+	/**
+	 * 秒杀价格
+	 */
+	private BigDecimal seckillPrice;
 
 	/**
 	 * 订单总金额

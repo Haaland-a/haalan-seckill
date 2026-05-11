@@ -3,11 +3,11 @@ package com.haalan.seckill.service.impl;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
-import cn.hutool.json.ObjectMapper;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.seckill.config.RabbitConstants;
 import com.haalan.seckill.config.SeckillConstants;
 import com.haalan.seckill.domain.dto.SeckillExecuteRequestDTO;
+import com.haalan.seckill.domain.po.OrderTimeoutMessage;
 import com.haalan.seckill.domain.po.SeckillOrderMessage;
 import com.haalan.seckill.domain.vo.SeckillExecuteResultVO;
 import com.haalan.seckill.domain.vo.SeckillOrderVO;
@@ -15,6 +15,7 @@ import com.haalan.seckill.domain.vo.SeckillQueueVO;
 import com.haalan.seckill.service.ISeckillExecuteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.core.io.ClassPathResource;
@@ -38,19 +39,9 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 
 	private final StringRedisTemplate redisTemplate;
 
-	private static final DefaultRedisScript<Long> SECKILL_EXECUTE_SCRIPT = new DefaultRedisScript<>();
-
 	private final RabbitTemplate rabbitTemplate;
 
-	static {
-		SECKILL_EXECUTE_SCRIPT.setScriptSource(
-				new ResourceScriptSource(new ClassPathResource("lua/tempfile.lua"))
-		);
-		SECKILL_EXECUTE_SCRIPT.setResultType(Long.class);
-	}
-
-	private final ObjectMapper objectMapper;
-
+	private static final DefaultRedisScript<Long> SECKILL_EXECUTE_SCRIPT = new DefaultRedisScript<>();
 
 	static {
 		SECKILL_EXECUTE_SCRIPT.setScriptSource(
@@ -58,6 +49,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 		);
 		SECKILL_EXECUTE_SCRIPT.setResultType(Long.class);
 	}
+
 
 	@Override
 	public SeckillExecuteResultVO execute(Long userId, SeckillExecuteRequestDTO request) {
@@ -134,7 +126,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 
 			// ============ 第十层：可靠消息投递 ============
 			String messageId = UUID.fastUUID().toString(true);
-			SeckillOrderMessage message = buildOrderMessage(messageId, preOrderNo, userId,
+			SeckillOrderMessage message = buildOrderMessage(messageId, preOrderNo, userId, product,
 					request, totalAmount);
 
 			// 关键步骤：先持久化消息记录到Redis，再发送MQ
@@ -146,7 +138,12 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 						messageId, preOrderNo);
 				// 此时仍返回成功，因为库存已扣减，订单已生成
 			}
-
+			// ============ 第十一层：发送订单超时延迟队列 ============
+			boolean timeMessageSent = sendTimeoutMessage(message);
+			if (!timeMessageSent) {
+				// 消息发送失败，但已记录在Redis中，由定时任务补偿
+				log.error("MQ消息发送失败，此订单无法mq异步定义超时时间 {}", messageId);
+			}
 			// ============ 更新幂等状态 ============
 			setIdempotentResult(idempotentKey, "SUCCESS:" + preOrderNo);
 
@@ -195,23 +192,23 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 
 			// 步骤2: 发送MQ消息（带确认）
 			CorrelationData correlationData = new CorrelationData(message.getMessageId());
-			//写了配置项
-//            correlationData.getFuture().addCallback(
-//                    confirm -> {
-//                        if (confirm.isAck()) {
-//                            String pendingMsgKey = SeckillConstants.SECKILL_PENDING_MSG_PREFIX
-//                                    + correlationData.getId();
-//                            redisTemplate.delete(pendingMsgKey);
-//                            log.info("MQ消息已确认，删除待确认记录, messageId={}", correlationData.getId());
-//                        } else {
-//                            log.error("MQ消息发送失败, messageId={}, reason={}",
-//                                    correlationData.getId(), confirm.getReason());
-//                        }
-//                    },
-//                    ex -> {
-//                        log.error("MQ消息确认异常, messageId={}", correlationData.getId(), ex);
-//                    }
-//            );
+			//发送成功删除待确认消息
+			correlationData.getFuture().addCallback(
+					confirm -> {
+						if (confirm.isAck()) {
+							String pendingMsgKey = RabbitConstants.SECKILL_PENDING_MSG_PREFIX
+									+ correlationData.getId();
+							redisTemplate.delete(pendingMsgKey);
+							log.info("MQ消息已确认，删除待确认记录, messageId={}", correlationData.getId());
+						} else {
+							log.error("MQ消息发送失败, messageId={}, reason={}",
+									correlationData.getId(), confirm.getReason());
+						}
+					},
+					ex -> {
+						log.error("MQ消息确认异常, messageId={}", correlationData.getId(), ex);
+					}
+			);
 			// 发送消息
 			rabbitTemplate.convertAndSend(
 					RabbitConstants.SECKILL_ORDER_EXCHANGE,  // 交换机
@@ -232,10 +229,35 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 	}
 
 	/**
+	 * 发送订单超时消息到延时队列
+	 */
+	private Boolean sendTimeoutMessage(SeckillOrderMessage Message) {
+		OrderTimeoutMessage timeoutMsg = new OrderTimeoutMessage();
+		timeoutMsg.setOrderNo(Message.getPreOrderNo());
+		timeoutMsg.setActivityId(Message.getActivityId());
+		timeoutMsg.setSeckillProductId(Message.getSeckillProductId());
+		timeoutMsg.setSkuId(Message.getSkuId());
+		timeoutMsg.setUserId(Message.getUserId());
+		timeoutMsg.setQuantity(Message.getQuantity());
+
+		// 发送到延时队列（没有交换机，直接发队列）
+		// 使用默认回调函数
+		try {
+			rabbitTemplate.convertAndSend(RabbitConstants.ORDER_TIMEOUT_QUEUE, timeoutMsg);
+			log.info("订单超时消息已发送: {}", Message.getPreOrderNo());
+			return true;
+		} catch (AmqpException e) {
+			log.error("发送订单超时消息异常: {}", Message.getPreOrderNo(), e);
+			return false;
+		}
+	}
+
+	/**
 	 * 构建订单消息
 	 */
 	private SeckillOrderMessage buildOrderMessage(String messageId, String preOrderNo,
 												  Long userId,
+												  Map<String, String> product,
 												  SeckillExecuteRequestDTO request,
 												  BigDecimal totalAmount) {
 		return SeckillOrderMessage.builder()
@@ -244,7 +266,11 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				.userId(userId)
 				.requestId(request.getRequestId())
 				.activityId(request.getActivityId())
+				.skuId(request.getSkuId())
 				.seckillProductId(request.getSeckillProductId())
+				.seckillPrice(
+						new BigDecimal(product.get("seckillPrice"))
+				)
 				.quantity(request.getQuantity())
 				.totalAmount(totalAmount)
 				.createTime(LocalDateTime.now())

@@ -1,13 +1,19 @@
 package com.haalan.seckill.config;
 
-import com.haalan.seckill.mqcallback.MqConfirmCallback;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -23,6 +29,9 @@ public class RabbitMQConfig {
 	@Bean
 	public Queue seckillOrderQueue() {
 		return QueueBuilder.durable(RabbitConstants.SECKILL_ORDER_QUEUE)
+				// 配置死信交换机
+				.deadLetterExchange(RabbitConstants.SECKILL_ORDER_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.SECKILL_ORDER_DLX_ROUTINGKEY)
 				.build();
 	}
 
@@ -34,25 +43,29 @@ public class RabbitMQConfig {
 				.with(RabbitConstants.SECKILL_ORDER_ROUTING_KEY);
 	}
 
-	@Bean
-	public Binding bindingDetail() {
-		return BindingBuilder.bind(seckillOrderQueue())
-				.to(seckillOrderExchange())
-				.with(RabbitConstants.SECKILL_ORDER_DETAIL_KEY);
-	}
-
-
 	// 配置消息转换器
 	@Bean
-	public Jackson2JsonMessageConverter messageConverter() {
-		return new Jackson2JsonMessageConverter();
+	public MessageConverter messageConverter() {
+		// 1. 先配置ObjectMapper
+		ObjectMapper objectMapper = new ObjectMapper();
+		// 支持 LocalDateTime
+		objectMapper.registerModule(new JavaTimeModule());
+		// 不转时间戳
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+		// 2. 创建Jackson2JsonMessageConverter并设置自定义的ObjectMapper
+		Jackson2JsonMessageConverter jackson2JsonMessageConverter = new Jackson2JsonMessageConverter(objectMapper);
+		// 配置自动创建消息id
+		jackson2JsonMessageConverter.setCreateMessageIds(true);
+
+		return jackson2JsonMessageConverter;
 	}
 
 	// 配置RabbitTemplate
 	@Bean
-	public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+	public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter) {
 		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(messageConverter());
+		rabbitTemplate.setMessageConverter(messageConverter);
 
 		// 开启发送确认
 		rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
@@ -77,13 +90,86 @@ public class RabbitMQConfig {
 		return rabbitTemplate;
 	}
 
+
+	// 死信交换机
 	@Bean
-	// 添加MqConfirmCallback, 两个参数只要收到消息就会删除那个redis存的无用信息
-	public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory,
-										 MqConfirmCallback confirmCallback) {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setConfirmCallback(confirmCallback);
-		// ...其他配置
-		return rabbitTemplate;
+	public DirectExchange deadLetterExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_ORDER_DLX_EXCHANGE);
+	}
+
+	// 死信队列
+	@Bean
+	public Queue deadLetterQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_ORDER_DLX_QUEUE).build();
+	}
+
+	// 死信绑定
+	@Bean
+	public Binding deadLetterBinding() {
+		return BindingBuilder.bind(deadLetterQueue())
+				.to(deadLetterExchange())
+				.with(RabbitConstants.SECKILL_ORDER_DLX_ROUTINGKEY);
+	}
+
+	// ================================计时器=============================================
+
+	// 订单超时死信
+	@Bean
+	public DirectExchange orderTimeoutDlxExchange() {
+		return new DirectExchange(RabbitConstants.ORDER_TIMEOUT_DLX_EXCHANGE);
+	}
+
+	// 订单超时死信队列
+// 订单超时死信队列（加死信，兜底）
+	@Bean
+	public Queue orderTimeoutDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.ORDER_TIMEOUT_DLX_QUEUE)
+				.deadLetterExchange(RabbitConstants.ORDER_TIMEOUT_BACKUP_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY)
+				.build();
+	}
+
+	// 订单超时绑定
+	@Bean
+	public Binding orderTimeoutDlxBinding() {
+		return BindingBuilder.bind(orderTimeoutDlxQueue())
+				.to(orderTimeoutDlxExchange())
+				.with(RabbitConstants.ORDER_TIMEOUT_DLX_ROUTING_KEY);
+	}
+
+	/**
+	 * 延时队列（消息在这里等待15分钟后过期，自动转到死信队列）
+	 */
+	@Bean
+	public Queue orderTimeoutQueue() {
+		Map<String, Object> args = new HashMap<>();
+		// 消息过期后发送到死信交换机
+		args.put("x-dead-letter-exchange", RabbitConstants.ORDER_TIMEOUT_DLX_EXCHANGE);
+		args.put("x-dead-letter-routing-key", RabbitConstants.ORDER_TIMEOUT_DLX_ROUTING_KEY);
+		// 消息过期时间：15分钟 = 900000毫秒
+		args.put("x-message-ttl", 90);
+		return new Queue(RabbitConstants.ORDER_TIMEOUT_QUEUE, true, false, false, args);
+	}
+
+	// ==================== 订单超时死信队列（失败后转到备用死信） ====================
+
+	// 订单超时备用死信交换机
+	@Bean
+	public DirectExchange orderTimeoutBackupDlxExchange() {
+		return new DirectExchange(RabbitConstants.ORDER_TIMEOUT_BACKUP_DLX_EXCHANGE);
+	}
+
+	// 订单超时备用死信队列（人工处理 / 告警）
+	@Bean
+	public Queue orderTimeoutBackupDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.ORDER_TIMEOUT_BACKUP_DLX_QUEUE).build();
+	}
+
+	// 备用死信绑定
+	@Bean
+	public Binding orderTimeoutBackupDlxBinding() {
+		return BindingBuilder.bind(orderTimeoutBackupDlxQueue())
+				.to(orderTimeoutBackupDlxExchange())
+				.with(RabbitConstants.ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY);
 	}
 }
