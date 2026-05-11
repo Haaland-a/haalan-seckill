@@ -1,0 +1,355 @@
+20:28:49:554  INFO 7788 --- [main] c.h.seckill.SeckillServiceApplication    : The following 1 profile is active: "local"
+20:28:51:194  INFO 7788 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+20:28:51:200  INFO 7788 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+20:28:51:259  INFO 7788 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 34 ms. Found 0 Redis repository interfaces.
+20:28:51:678  INFO 7788 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=92694f3e-e0c3-3c39-a1e5-190f28be28ab
+20:28:51:782  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration' of type [io.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:783  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'springApplicationContextProvider' of type [io.seata.spring.boot.autoconfigure.provider.SpringApplicationContextProvider] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:783  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'io.seata.spring.boot.autoconfigure.SeataAutoConfiguration' of type [io.seata.spring.boot.autoconfigure.SeataAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:844  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'failureHandler' of type [io.seata.tm.api.DefaultFailureHandlerImpl] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:848  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.commons.config.CommonsConfigAutoConfiguration' of type [org.springframework.cloud.commons.config.CommonsConfigAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:851  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerDefaultMappingsProviderAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerDefaultMappingsProviderAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:852  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'loadBalancerClientsDefaultsMappingsProvider' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerDefaultMappingsProviderAutoConfiguration$$Lambda$598/0x000002f41c66d878] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:853  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'defaultsBindHandlerAdvisor' of type [org.springframework.cloud.commons.config.DefaultsBindHandlerAdvisor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:857  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'springCloudAlibabaConfiguration' of type [io.seata.spring.boot.autoconfigure.properties.SpringCloudAlibabaConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:858  INFO 7788 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'seataProperties' of type [io.seata.spring.boot.autoconfigure.properties.SeataProperties] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:51:860  INFO 7788 --- [main] i.s.s.b.a.SeataAutoConfiguration         : Automatically configure Seata
+20:28:51:958  INFO 7788 --- [main] io.seata.config.ConfigurationFactory     : load Configuration from :Spring Configuration
+20:28:51:965  INFO 7788 --- [main] io.seata.config.ConfigurationFactory     : load Configuration from :Spring Configuration
+20:28:52:584  INFO 7788 --- [main] i.s.s.a.GlobalTransactionScanner         : Initializing Global Transaction Clients ... 
+20:28:52:720  INFO 7788 --- [main] i.s.core.rpc.netty.NettyClientBootstrap  : NettyClientBootstrap has started
+20:28:52:762  INFO 7788 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+20:28:52:762  INFO 7788 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+20:28:53:100  INFO 7788 --- [main] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:28:53:209  INFO 7788 --- [main] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:TMROLE,address:192.168.100.133:8099,msg:< RegisterTMRequest{applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:28:53:536  WARN 7788 --- [NettyClientSelector_TMROLE_1_1] ServiceLoader$InnerEnhancedServiceLoader : Load [io.seata.serializer.hessian.HessianSerializer] class fail. com/caucho/hessian/io/AbstractHessianOutput
+20:28:53:591  INFO 7788 --- [main] i.s.c.rpc.netty.TmNettyRemotingClient    : register TM success. client version:1.6.1, server version:1.6.1,channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 - R:/192.168.100.133:8099]
+20:28:53:596  INFO 7788 --- [main] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 113 ms, version:1.6.1,role:TMROLE,channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 - R:/192.168.100.133:8099]
+20:28:53:598  INFO 7788 --- [main] i.s.s.a.GlobalTransactionScanner         : Transaction Manager Client is initialized. applicationId[seckill-service] txServiceGroup[haalan]
+20:28:53:625  INFO 7788 --- [main] io.seata.rm.datasource.AsyncWorker       : Async Commit Buffer Limit: 10000
+20:28:53:626  INFO 7788 --- [main] i.s.rm.datasource.xa.ResourceManagerXA   : ResourceManagerXA init ...
+20:28:53:641  INFO 7788 --- [main] i.s.core.rpc.netty.NettyClientBootstrap  : NettyClientBootstrap has started
+20:28:53:642  INFO 7788 --- [main] i.s.s.a.GlobalTransactionScanner         : Resource Manager is initialized. applicationId[seckill-service] txServiceGroup[haalan]
+20:28:53:642  INFO 7788 --- [main] i.s.s.a.GlobalTransactionScanner         : Global Transaction Clients are initialized. 
+20:28:54:421  INFO 7788 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8085 (http)
+20:28:54:437  INFO 7788 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+20:28:54:437  INFO 7788 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+20:28:54:760  INFO 7788 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+20:28:54:761  INFO 7788 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5174 ms
+20:28:55:665  INFO 7788 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+20:28:56:201  INFO 7788 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+20:28:56:359  INFO 7788 --- [main] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:28:56:360  INFO 7788 --- [main] i.s.c.rpc.netty.RmNettyRemotingClient    : RM will register :jdbc:mysql://192.168.100.133:3306/seckill-db
+20:28:56:360  INFO 7788 --- [main] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:RMROLE,address:192.168.100.133:8099,msg:< RegisterRMRequest{resourceIds='jdbc:mysql://192.168.100.133:3306/seckill-db', applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:28:56:380  INFO 7788 --- [main] i.s.c.rpc.netty.RmNettyRemotingClient    : register RM success. client version:1.6.1, server version:1.6.1,channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 - R:/192.168.100.133:8099]
+20:28:56:380  INFO 7788 --- [main] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 18 ms, version:1.6.1,role:RMROLE,channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 - R:/192.168.100.133:8099]
+20:28:57:092  INFO 7788 --- [main] o.s.c.openfeign.FeignClientFactoryBean   : For 'item-service' URL not provided. Will try picking an instance via load-balancing.
+20:28:57:561  INFO 7788 --- [main] i.s.s.a.GlobalTransactionScanner         : Bean[com.haalan.seckill.service.impl.TSeckillProductServiceImpl$$EnhancerBySpringCGLIB$$1514c254] with name [TSeckillProductServiceImpl] would use interceptor [io.seata.spring.annotation.GlobalTransactionalInterceptor]
+20:28:57:567  INFO 7788 --- [main] i.s.s.a.GlobalTransactionScanner         : Bean[com.haalan.seckill.service.impl.TSeckillPreheatServiceImpl] with name [TSeckillPreheatServiceImpl] would use interceptor [io.seata.spring.annotation.GlobalTransactionalInterceptor]
+20:28:59:941  INFO 7788 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:29:00:631  INFO 7788 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+20:29:00:647  INFO 7788 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+20:29:02:588  INFO 7788 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:29:02:787  INFO 7788 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8085 (http) with context path ''
+20:29:02:791  INFO 7788 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+20:29:02:791  INFO 7788 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+20:29:02:915  INFO 7788 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP seckill-service 192.168.131.1:8085 register finished
+20:29:04:445  INFO 7788 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:29:04:445  INFO 7788 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+20:29:04:449  INFO 7788 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+20:29:04:483  INFO 7788 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+20:29:04:757  INFO 7788 --- [main] c.h.seckill.SeckillServiceApplication    : Started SeckillServiceApplication in 23.881 seconds (JVM running for 25.652)
+20:29:04:765  INFO 7788 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=seckill-service.yaml, group=DEFAULT_GROUP
+20:29:04:766  INFO 7788 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=seckill-service-local.yaml, group=DEFAULT_GROUP
+20:29:04:767  INFO 7788 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=seckill-service, group=DEFAULT_GROUP
+20:29:16:502  INFO 7788 --- [http-nio-8085-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+20:29:16:502  INFO 7788 --- [http-nio-8085-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+20:29:16:504  INFO 7788 --- [http-nio-8085-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+20:29:16:540 DEBUG 7788 --- [http-nio-8085-exec-1] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:29:16:659  INFO 7788 --- [http-nio-8085-exec-1] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:29:17:270  INFO 7788 --- [http-nio-8085-exec-1] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_f141998c22134780b0884dd785bc17a9, value=1:1:2, ttl=60000s
+20:29:17:271  INFO 7788 --- [http-nio-8085-exec-1] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_f141998c22134780b0884dd785bc17a9
+20:29:25:094 DEBUG 7788 --- [http-nio-8085-exec-2] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:29:25:112  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=8, activityId=1, seckillProductId=2
+20:29:25:122  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.SeckillExecuteServiceImpl   : 一次性令牌验证并消费成功, token=st_f141998c22134780b0884dd785bc17a9, userId=1
+20:29:25:144  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.SeckillExecuteServiceImpl   : 执行Lua脚本扣减库存, keys=[seckill:stock:1:2, seckill:buy:1, seckill:limit:activity:1, seckill:limit:1:2], args=[4, 1, 1, 2]
+20:29:25:268  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.SeckillExecuteServiceImpl   : 库存扣减结果: result=-1, activityId=1, productId=2, userId=1, quantity=4
+20:29:25:273  WARN 7788 --- [http-nio-8085-exec-2] c.h.c.config.GlobalExceptionHandler      : 业务异常: 库存不足
+20:29:52:989 DEBUG 7788 --- [http-nio-8085-exec-4] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:29:52:991  INFO 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:29:52:997  INFO 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_7642cfb701b946a48dc648974c331d84, value=1:1:2, ttl=60000s
+20:29:52:997  INFO 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_7642cfb701b946a48dc648974c331d84
+20:29:59:264 DEBUG 7788 --- [http-nio-8085-exec-3] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:29:59:266  INFO 7788 --- [http-nio-8085-exec-3] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:29:59:270  WARN 7788 --- [http-nio-8085-exec-3] c.h.s.s.impl.SeckillExecuteServiceImpl   : 令牌商品不匹配, token=st_7642cfb701b946a48dc648974c331d84, tokenProductId=2, requestProductId=1
+20:29:59:271  WARN 7788 --- [http-nio-8085-exec-3] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效
+20:30:03:003 DEBUG 7788 --- [http-nio-8085-exec-5] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:30:03:006  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:30:03:011  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_0c8ea806e526432ab41ba3623bc32a8d, value=1:1:2, ttl=60000s
+20:30:03:011  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_0c8ea806e526432ab41ba3623bc32a8d
+20:30:11:633 DEBUG 7788 --- [http-nio-8085-exec-6] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:30:11:635  INFO 7788 --- [http-nio-8085-exec-6] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:30:11:637  WARN 7788 --- [http-nio-8085-exec-6] c.h.s.s.impl.SeckillExecuteServiceImpl   : 令牌商品不匹配, token=st_0c8ea806e526432ab41ba3623bc32a8d, tokenProductId=2, requestProductId=1
+20:30:11:638  WARN 7788 --- [http-nio-8085-exec-6] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效
+20:30:20:385 DEBUG 7788 --- [http-nio-8085-exec-7] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:30:20:387  INFO 7788 --- [http-nio-8085-exec-7] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:30:20:390  INFO 7788 --- [http-nio-8085-exec-7] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_3e813048fea140e6b6bbf98d635063b1, value=1:1:2, ttl=60000s
+20:30:20:390  INFO 7788 --- [http-nio-8085-exec-7] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_3e813048fea140e6b6bbf98d635063b1
+20:30:34:830 DEBUG 7788 --- [http-nio-8085-exec-8] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:30:34:832  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:30:34:836  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_28d5b279bb894e14a4feb29cbe9d0882, value=1:1:2, ttl=60000s
+20:30:34:836  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_28d5b279bb894e14a4feb29cbe9d0882
+20:30:41:644 DEBUG 7788 --- [http-nio-8085-exec-9] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:30:41:645  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:30:41:648  WARN 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 令牌商品不匹配, token=st_28d5b279bb894e14a4feb29cbe9d0882, tokenProductId=2, requestProductId=1
+20:30:41:648  WARN 7788 --- [http-nio-8085-exec-9] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效
+20:32:49:449 DEBUG 7788 --- [http-nio-8085-exec-1] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:32:49:454  INFO 7788 --- [http-nio-8085-exec-1] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:32:49:474  WARN 7788 --- [http-nio-8085-exec-1] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_28d5b279bb894e14a4feb29cbe9d0882, userId=1
+20:32:49:475  WARN 7788 --- [http-nio-8085-exec-1] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:32:51:422 DEBUG 7788 --- [http-nio-8085-exec-2] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:32:51:424  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:32:51:427  WARN 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_28d5b279bb894e14a4feb29cbe9d0882, userId=1
+20:32:51:427  WARN 7788 --- [http-nio-8085-exec-2] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:32:52:736 DEBUG 7788 --- [http-nio-8085-exec-4] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:32:52:738  INFO 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:32:52:741  WARN 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_28d5b279bb894e14a4feb29cbe9d0882, userId=1
+20:32:52:741  WARN 7788 --- [http-nio-8085-exec-4] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:32:54:203 DEBUG 7788 --- [http-nio-8085-exec-3] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:32:54:204  INFO 7788 --- [http-nio-8085-exec-3] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:32:54:208  WARN 7788 --- [http-nio-8085-exec-3] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_28d5b279bb894e14a4feb29cbe9d0882, userId=1
+20:32:54:208  WARN 7788 --- [http-nio-8085-exec-3] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:33:00:533 DEBUG 7788 --- [http-nio-8085-exec-5] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:33:00:535  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:33:00:539  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_5f1d18c94649401d8b95ef5e22c0c7df, value=1:1:2, ttl=60000s
+20:33:00:539  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_5f1d18c94649401d8b95ef5e22c0c7df
+20:33:06:889 DEBUG 7788 --- [http-nio-8085-exec-6] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:33:06:891  INFO 7788 --- [http-nio-8085-exec-6] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:33:06:893  WARN 7788 --- [http-nio-8085-exec-6] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_5f1d18c94649401d8b95ef5e22c0c7df, userId=1
+20:33:06:894  WARN 7788 --- [http-nio-8085-exec-6] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:33:20:535 DEBUG 7788 --- [http-nio-8085-exec-7] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:33:20:537  INFO 7788 --- [http-nio-8085-exec-7] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:33:20:539  WARN 7788 --- [http-nio-8085-exec-7] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_5f1d18c94649401d8b95ef5e22c0c7df, userId=1
+20:33:20:540  WARN 7788 --- [http-nio-8085-exec-7] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:33:24:050 DEBUG 7788 --- [http-nio-8085-exec-8] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:33:24:051  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:33:24:055  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_854ba27da94d4c6d95bca3391265ceed, value=1:1:2, ttl=60000s
+20:33:24:055  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_854ba27da94d4c6d95bca3391265ceed
+20:33:36:117 DEBUG 7788 --- [http-nio-8085-exec-9] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:33:36:118  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:34:05:650  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0x8ddb4875, L:/192.168.100.1:57431 - R:/192.168.100.133:8099] read idle.
+20:34:05:651  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0xc9bd0043, L:/192.168.100.1:57440 - R:/192.168.100.133:8099] read idle.
+20:34:05:652  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 - R:/192.168.100.133:8099]
+20:34:05:652  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 - R:/192.168.100.133:8099]
+20:34:05:653  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xc9bd0043, L:/192.168.100.1:57440 - R:/192.168.100.133:8099]) will closed
+20:34:05:653  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x8ddb4875, L:/192.168.100.1:57431 - R:/192.168.100.133:8099]) will closed
+20:35:27:875  WARN 7788 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1m22s221ms88µs200ns).
+20:35:27:883  WARN 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_854ba27da94d4c6d95bca3391265ceed, userId=1
+20:35:27:888  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]) will closed
+20:35:27:888  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]) will closed
+20:35:27:890  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]
+20:35:27:889  WARN 7788 --- [http-nio-8085-exec-9] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:35:27:890  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]
+20:35:27:890  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]
+20:35:27:890  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]
+20:35:27:891  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]
+20:35:27:891  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]
+20:35:27:891  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]) will closed
+20:35:27:891  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]) will closed
+20:35:27:891  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]) will closed
+20:35:27:892  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]) will closed
+20:35:27:892  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]
+20:35:27:893  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]
+20:35:27:892  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]
+20:35:27:893  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]
+20:35:27:894  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]) will closed
+20:35:27:894  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]
+20:35:27:894  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xc9bd0043, L:/192.168.100.1:57440 ! R:/192.168.100.133:8099]) will closed
+20:35:27:894  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]
+20:35:27:894  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]) will closed
+20:35:27:894  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x8ddb4875, L:/192.168.100.1:57431 ! R:/192.168.100.133:8099]) will closed
+20:35:31:074  WARN 7788 --- [timeoutChecker_2_1] i.s.c.r.netty.NettyClientChannelManager  : channel null is not active after long wait, close it.
+20:35:31:075  INFO 7788 --- [timeoutChecker_2_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:35:31:075  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : RM will register :jdbc:mysql://192.168.100.133:3306/seckill-db
+20:35:31:075  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:RMROLE,address:192.168.100.133:8099,msg:< RegisterRMRequest{resourceIds='jdbc:mysql://192.168.100.133:3306/seckill-db', applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:35:31:091  WARN 7788 --- [timeoutChecker_1_1] i.s.c.r.netty.NettyClientChannelManager  : channel null is not active after long wait, close it.
+20:35:31:091  INFO 7788 --- [timeoutChecker_1_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:35:31:091  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:TMROLE,address:192.168.100.133:8099,msg:< RegisterTMRequest{applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:35:31:096  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : register RM success. client version:1.6.1, server version:1.6.1,channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 - R:/192.168.100.133:8099]
+20:35:31:096  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 17 ms, version:1.6.1,role:RMROLE,channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 - R:/192.168.100.133:8099]
+20:35:31:097  INFO 7788 --- [timeoutChecker_1_1] i.s.c.rpc.netty.TmNettyRemotingClient    : register TM success. client version:1.6.1, server version:1.6.1,channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 - R:/192.168.100.133:8099]
+20:35:31:097  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 4 ms, version:1.6.1,role:TMROLE,channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 - R:/192.168.100.133:8099]
+20:35:34:928 DEBUG 7788 --- [http-nio-8085-exec-10] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:35:34:933  INFO 7788 --- [http-nio-8085-exec-10] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:36:03:415  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0xdde9e02b, L:/192.168.100.1:49420 - R:/192.168.100.133:8099] read idle.
+20:36:03:416  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 - R:/192.168.100.133:8099]
+20:36:03:416  WARN 7788 --- [http-nio-8085-exec-10] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_854ba27da94d4c6d95bca3391265ceed, userId=1
+20:36:03:418  WARN 7788 --- [http-nio-8085-exec-10] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:36:03:417  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdde9e02b, L:/192.168.100.1:49420 - R:/192.168.100.133:8099]) will closed
+20:36:03:419  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0x9a7ffaf3, L:/192.168.100.1:49421 - R:/192.168.100.133:8099] read idle.
+20:36:03:419  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]) will closed
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 - R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x9a7ffaf3, L:/192.168.100.1:49421 - R:/192.168.100.133:8099]) will closed
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]) will closed
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]) will closed
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]) will closed
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]) will closed
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]) will closed
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]
+20:36:03:420  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]
+20:36:03:421  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]) will closed
+20:36:03:421  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]) will closed
+20:36:03:421  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdde9e02b, L:/192.168.100.1:49420 ! R:/192.168.100.133:8099]) will closed
+20:36:03:421  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x9a7ffaf3, L:/192.168.100.1:49421 ! R:/192.168.100.133:8099]) will closed
+20:36:03:640  INFO 7788 --- [timeoutChecker_2_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:36:03:640  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : RM will register :jdbc:mysql://192.168.100.133:3306/seckill-db
+20:36:03:640  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:RMROLE,address:192.168.100.133:8099,msg:< RegisterRMRequest{resourceIds='jdbc:mysql://192.168.100.133:3306/seckill-db', applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:36:03:670  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : register RM success. client version:1.6.1, server version:1.6.1,channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 - R:/192.168.100.133:8099]
+20:36:03:670  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 27 ms, version:1.6.1,role:RMROLE,channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 - R:/192.168.100.133:8099]
+20:36:05:548 DEBUG 7788 --- [http-nio-8085-exec-1] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:36:05:550  INFO 7788 --- [http-nio-8085-exec-1] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:36:12:344  WARN 7788 --- [http-nio-8085-exec-1] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_854ba27da94d4c6d95bca3391265ceed, userId=1
+20:36:12:345  WARN 7788 --- [http-nio-8085-exec-1] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:36:12:708  INFO 7788 --- [timeoutChecker_1_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:36:12:709  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:TMROLE,address:192.168.100.133:8099,msg:< RegisterTMRequest{applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:36:12:715  INFO 7788 --- [timeoutChecker_1_1] i.s.c.rpc.netty.TmNettyRemotingClient    : register TM success. client version:1.6.1, server version:1.6.1,channel:[id: 0x373ba554, L:/192.168.100.1:54177 - R:/192.168.100.133:8099]
+20:36:12:715  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 5 ms, version:1.6.1,role:TMROLE,channel:[id: 0x373ba554, L:/192.168.100.1:54177 - R:/192.168.100.133:8099]
+20:36:42:403 DEBUG 7788 --- [http-nio-8085-exec-2] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:36:42:407  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=2
+20:36:42:415  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_c6a68ad22da14de5b87cc152e605d16f, value=1:1:2, ttl=60000s
+20:36:42:415  INFO 7788 --- [http-nio-8085-exec-2] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=2, token=st_c6a68ad22da14de5b87cc152e605d16f
+20:36:54:193 DEBUG 7788 --- [http-nio-8085-exec-4] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:36:54:194  INFO 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=1
+20:36:54:199  INFO 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_c3c70cd194ab49f48f751f2be810f794, value=1:1:1, ttl=60000s
+20:36:54:200  INFO 7788 --- [http-nio-8085-exec-4] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=1, token=st_c3c70cd194ab49f48f751f2be810f794
+20:37:13:053 DEBUG 7788 --- [http-nio-8085-exec-3] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:37:13:057  INFO 7788 --- [http-nio-8085-exec-3] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:37:13:060  WARN 7788 --- [http-nio-8085-exec-3] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_c3c70cd194ab49f48f751f2be810f794, userId=1
+20:37:13:062  WARN 7788 --- [http-nio-8085-exec-3] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:37:38:651 DEBUG 7788 --- [http-nio-8085-exec-5] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:37:38:653  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=1
+20:37:38:665  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_59c7d3bcf6da435797ae0fe1d1afff74, value=1:1:1, ttl=60000s
+20:37:38:666  INFO 7788 --- [http-nio-8085-exec-5] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=1, token=st_59c7d3bcf6da435797ae0fe1d1afff74
+20:37:45:375 DEBUG 7788 --- [http-nio-8085-exec-6] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:37:45:377  INFO 7788 --- [http-nio-8085-exec-6] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:37:52:506  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0xdd27afe7, L:/192.168.100.1:63288 - R:/192.168.100.133:8099] read idle.
+20:37:52:507  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 - R:/192.168.100.133:8099]
+20:37:52:507  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdd27afe7, L:/192.168.100.1:63288 - R:/192.168.100.133:8099]) will closed
+20:37:52:509  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]) will closed
+20:37:52:509  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]
+20:37:52:510  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]
+20:37:52:510  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]
+20:37:52:510  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]) will closed
+20:37:52:510  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]) will closed
+20:37:52:510  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]
+20:37:52:510  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]
+20:37:52:510  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]
+20:37:52:511  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]) will closed
+20:37:52:511  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xdd27afe7, L:/192.168.100.1:63288 ! R:/192.168.100.133:8099]) will closed
+20:38:26:063  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0x373ba554, L:/192.168.100.1:54177 - R:/192.168.100.133:8099] read idle.
+20:38:26:064  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x373ba554, L:/192.168.100.1:54177 - R:/192.168.100.133:8099]
+20:38:26:064  INFO 7788 --- [timeoutChecker_2_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:38:26:064  WARN 7788 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=52s651ms848µs900ns).
+20:38:26:064  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x373ba554, L:/192.168.100.1:54177 - R:/192.168.100.133:8099]) will closed
+20:38:26:065  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]) will closed
+20:38:26:065  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : RM will register :jdbc:mysql://192.168.100.133:3306/seckill-db
+20:38:26:065  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]
+20:38:26:065  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]
+20:38:26:065  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]
+20:38:26:066  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]) will closed
+20:38:26:066  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:RMROLE,address:192.168.100.133:8099,msg:< RegisterRMRequest{resourceIds='jdbc:mysql://192.168.100.133:3306/seckill-db', applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:38:26:066  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]) will closed
+20:38:26:066  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]
+20:38:26:066  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]
+20:38:26:066  WARN 7788 --- [http-nio-8085-exec-6] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀令牌不存在或已被使用, token=st_59c7d3bcf6da435797ae0fe1d1afff74, userId=1
+20:38:26:066  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]
+20:38:26:066  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]) will closed
+20:38:26:066  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x373ba554, L:/192.168.100.1:54177 ! R:/192.168.100.133:8099]) will closed
+20:38:26:072  WARN 7788 --- [http-nio-8085-exec-6] c.h.c.config.GlobalExceptionHandler      : 业务异常: 秒杀令牌无效或已被使用
+20:38:26:107  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : register RM success. client version:1.6.1, server version:1.6.1,channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 - R:/192.168.100.133:8099]
+20:38:26:107  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 37 ms, version:1.6.1,role:RMROLE,channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 - R:/192.168.100.133:8099]
+20:38:29:243  WARN 7788 --- [timeoutChecker_1_1] i.s.c.r.netty.NettyClientChannelManager  : channel null is not active after long wait, close it.
+20:38:29:243  INFO 7788 --- [timeoutChecker_1_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:38:29:243  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:TMROLE,address:192.168.100.133:8099,msg:< RegisterTMRequest{applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:38:29:246  INFO 7788 --- [timeoutChecker_1_1] i.s.c.rpc.netty.TmNettyRemotingClient    : register TM success. client version:1.6.1, server version:1.6.1,channel:[id: 0xf82562ef, L:/192.168.100.1:61580 - R:/192.168.100.133:8099]
+20:38:29:247  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 3 ms, version:1.6.1,role:TMROLE,channel:[id: 0xf82562ef, L:/192.168.100.1:61580 - R:/192.168.100.133:8099]
+20:39:39:856 DEBUG 7788 --- [http-nio-8085-exec-8] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:39:39:862  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 开始生成秒杀令牌, userId=1, activityId=1, seckillProductId=1
+20:39:39:868  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 令牌已存储到Redis, token=st_078f90887f684b91bbb8a35e70a59492, value=1:1:1, ttl=60000s
+20:39:39:868  INFO 7788 --- [http-nio-8085-exec-8] c.h.s.s.impl.TSeckillTokenServiceImpl    : 一次性秒杀令牌生成成功, userId=1, activityId=1, seckillProductId=1, token=st_078f90887f684b91bbb8a35e70a59492
+20:39:46:416 DEBUG 7788 --- [http-nio-8085-exec-9] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+20:39:46:425  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始执行秒杀, userId=1, requestId=100, activityId=1, seckillProductId=1
+20:39:46:428  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始验证秒杀令牌, userId=1, token=st_078f90887f684b91bbb8a35e70a59492
+20:39:46:428  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 开始验证秒杀令牌, seckill:token:st_078f90887f684b91bbb8a35e70a59492
+20:40:17:940  WARN 7788 --- [HikariPool-1 housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=51s872ms75µs100ns).
+20:40:17:941  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0x7326a0e9, L:/192.168.100.1:61567 - R:/192.168.100.133:8099] read idle.
+20:40:17:941  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 - R:/192.168.100.133:8099]
+20:40:17:941  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x7326a0e9, L:/192.168.100.1:61567 - R:/192.168.100.133:8099]) will closed
+20:40:17:942  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel [id: 0xf82562ef, L:/192.168.100.1:61580 - R:/192.168.100.133:8099] read idle.
+20:40:17:942  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xf82562ef, L:/192.168.100.1:61580 - R:/192.168.100.133:8099]
+20:40:17:942  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xf82562ef, L:/192.168.100.1:61580 - R:/192.168.100.133:8099]) will closed
+20:40:17:942  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]) will closed
+20:40:17:942  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]) will closed
+20:40:17:942  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]
+20:40:17:942  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]
+20:40:17:942  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]) will closed
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]) will closed
+20:40:17:943  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]) will closed
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]) will closed
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]) will closed
+20:40:17:943  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0xf82562ef, L:/192.168.100.1:61580 ! R:/192.168.100.133:8099]) will closed
+20:40:17:943  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]
+20:40:17:944  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]
+20:40:17:944  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]) will closed
+20:40:17:945  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x7326a0e9, L:/192.168.100.1:61567 ! R:/192.168.100.133:8099]) will closed
+20:40:17:951  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 一次性令牌验证并消费成功, token=st_078f90887f684b91bbb8a35e70a59492, userId=1
+20:40:17:970  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 执行Lua脚本扣减库存, keys=[seckill:stock:1:1, seckill:buy:1, seckill:limit:activity:1, seckill:limit:1:1], args=[4, 1, 1, 1]
+20:40:17:972  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 库存扣减结果: result=24, activityId=1, productId=1, userId=1, quantity=4
+20:40:17:981  INFO 7788 --- [http-nio-8085-exec-9] c.h.s.s.impl.SeckillExecuteServiceImpl   : 秒杀预订单订单创建成功, userId=1, orderNo=SK20260510204017666ad1, seckillProductId=1
+20:40:22:707  INFO 7788 --- [timeoutChecker_1_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:40:22:707  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:TMROLE,address:192.168.100.133:8099,msg:< RegisterTMRequest{applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:40:22:710  INFO 7788 --- [timeoutChecker_1_1] i.s.c.rpc.netty.TmNettyRemotingClient    : register TM success. client version:1.6.1, server version:1.6.1,channel:[id: 0x0acc103e, L:/192.168.100.1:54750 - R:/192.168.100.133:8099]
+20:40:22:711  INFO 7788 --- [timeoutChecker_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 2 ms, version:1.6.1,role:TMROLE,channel:[id: 0x0acc103e, L:/192.168.100.1:54750 - R:/192.168.100.133:8099]
+20:40:23:640  INFO 7788 --- [timeoutChecker_2_1] i.s.c.r.netty.NettyClientChannelManager  : will connect to 192.168.100.133:8099
+20:40:23:641  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : RM will register :jdbc:mysql://192.168.100.133:3306/seckill-db
+20:40:23:641  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : NettyPool create channel to transactionRole:RMROLE,address:192.168.100.133:8099,msg:< RegisterRMRequest{resourceIds='jdbc:mysql://192.168.100.133:3306/seckill-db', applicationId='seckill-service', transactionServiceGroup='haalan'} >
+20:40:23:662  INFO 7788 --- [timeoutChecker_2_1] i.s.c.rpc.netty.RmNettyRemotingClient    : register RM success. client version:1.6.1, server version:1.6.1,channel:[id: 0x345b86d6, L:/192.168.100.1:54752 - R:/192.168.100.133:8099]
+20:40:23:662  INFO 7788 --- [timeoutChecker_2_1] i.s.core.rpc.netty.NettyPoolableFactory  : register success, cost 18 ms, version:1.6.1,role:RMROLE,channel:[id: 0x345b86d6, L:/192.168.100.1:54752 - R:/192.168.100.133:8099]
+22:17:38:822  WARN 7788 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+22:17:38:822  WARN 7788 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+22:17:38:832  WARN 7788 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+22:17:38:847  WARN 7788 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+22:17:39:426  INFO 7788 --- [SpringContextShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+22:17:39:460  INFO 7788 --- [SpringContextShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+22:17:39:547  INFO 7788 --- [SpringContextShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+22:17:39:573  INFO 7788 --- [SpringContextShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+22:17:39:872  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0x0acc103e, L:/192.168.100.1:54750 ! R:/192.168.100.133:8099]
+22:17:39:873  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0x0acc103e, L:/192.168.100.1:54750 ! R:/192.168.100.133:8099]
+22:17:39:874  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x0acc103e, L:/192.168.100.1:54750 ! R:/192.168.100.133:8099]
+22:17:39:874  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x0acc103e, L:/192.168.100.1:54750 ! R:/192.168.100.133:8099]
+22:17:39:874  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : channel inactive: [id: 0x345b86d6, L:/192.168.100.1:54752 ! R:/192.168.100.133:8099]
+22:17:39:874  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.netty.NettyClientChannelManager  : return to pool, rm channel:[id: 0x345b86d6, L:/192.168.100.1:54752 ! R:/192.168.100.133:8099]
+22:17:39:875  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x0acc103e, L:/192.168.100.1:54750 ! R:/192.168.100.133:8099]) will closed
+22:17:39:875  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : channel valid false,channel:[id: 0x345b86d6, L:/192.168.100.1:54752 ! R:/192.168.100.133:8099]
+22:17:39:875  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.core.rpc.netty.NettyPoolableFactory  : will destroy channel:[id: 0x345b86d6, L:/192.168.100.1:54752 ! R:/192.168.100.133:8099]
+22:17:39:875  INFO 7788 --- [NettyClientSelector_TMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x0acc103e, L:/192.168.100.1:54750 ! R:/192.168.100.133:8099]) will closed
+22:17:39:875  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x345b86d6, L:/192.168.100.1:54752 ! R:/192.168.100.133:8099]) will closed
+22:17:39:875  INFO 7788 --- [NettyClientSelector_RMROLE_1_1] i.s.c.r.n.AbstractNettyRemotingClient    : ChannelHandlerContext(AbstractNettyRemotingClient$ClientHandler#0, [id: 0x345b86d6, L:/192.168.100.1:54752 ! R:/192.168.100.133:8099]) will closed

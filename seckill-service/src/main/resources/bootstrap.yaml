@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: seckill-service
+  profiles:
+    active: dev
+  feign:
+    circuitbreaker:
+      enabled: true
+  cloud:
+    nacos:
+      server-addr: 192.168.100.133:8848
+      config:
+        file-extension: yaml # 文件后缀名
+        shared-configs: # 共享配置
+          - dataId: share-jdbc.yaml # 共享mybatis配置
+          - dataId: share-log.yaml # 共享日志配置
+          - dataId: share-swagger.yaml # 共享 swagger 配置
+          - dataId: share-redis.yaml
+          - dataId: share-seata.yaml
+          - dataId: rabbit.yaml

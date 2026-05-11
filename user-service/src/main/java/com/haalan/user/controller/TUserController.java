@@ -1,0 +1,115 @@
+package com.haalan.user.controller;
+
+import com.haalan.common.domain.R;
+import com.haalan.common.utils.UserContext;
+import com.haalan.user.domain.dto.LoginDTO;
+import com.haalan.user.domain.dto.TUserDTO;
+import com.haalan.user.domain.dto.UserAddressDTO;
+import com.haalan.user.domain.vo.*;
+import com.haalan.user.service.TUserService;
+import com.haalan.user.service.UserAddressService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@Api(tags = "用户管理")
+@RestController
+@RequestMapping("/api/user")
+@RequiredArgsConstructor
+@Slf4j
+public class TUserController {
+
+	private final TUserService tUserService;
+	private final UserAddressService userAddressService;
+
+	@ApiOperation(value = "用户注册")
+	@PostMapping("/register")
+	public R<TUserVO> register(@RequestBody TUserDTO userDTO) {
+		TUserVO tUserVO = tUserService.register(userDTO);
+		log.info("用户注册成功 {}", tUserVO);
+		return R.success("注册成功", tUserVO);
+	}
+
+	@ApiOperation(value = "用户登录")
+	@PostMapping("/login")
+	public R<LoginVO> login(@RequestBody LoginDTO loginDTO) {
+		LoginVO loginVO = tUserService.login(loginDTO);
+		log.info("用户登录成功 {}", loginVO);
+		return R.success("登录成功", loginVO);
+	}
+
+	@ApiOperation(value = "获取用户信息")
+	@GetMapping("/info")
+	public R<UserInfoVO> getUserInfo() {
+		Long userId = UserContext.getUser();
+		UserInfoVO userInfoVO = tUserService.getUserInfo(userId);
+		log.info("获取用户信息成功, userId: {}", userId);
+		return R.success(userInfoVO);
+	}
+
+	@ApiOperation(value = "修改用户信息")
+	@PutMapping("/info")
+	public R<String> updateUserInfo(@RequestBody UserInfoVO userInfoVO) {
+		Long userId = UserContext.getUser();
+		userInfoVO.setUserId(userId);
+		tUserService.updateUserInfo(userInfoVO);
+		log.info("修改用户信息成功, userId: {}", userId);
+		return R.success("修改成功");
+	}
+
+	@ApiOperation(value = "添加收货地址")
+	@PostMapping("/address")
+	public R<AddressVO> addAddress(@RequestBody UserAddressDTO addressDTO) {
+		Long userId = UserContext.getUser();
+		AddressVO addressVO = userAddressService.addAddress(userId, addressDTO);
+		log.info("添加收货地址成功, userId: {}, addressId: {}", userId, addressVO.getAddressId());
+		return R.success("添加成功", addressVO);
+	}
+
+	@ApiOperation(value = "查询用户收货地址列表")
+	@GetMapping("/address")
+	public R<List<UserAddressVO>> getUserAddresses() {
+		Long userId = UserContext.getUser();
+		List<UserAddressVO> addresses = userAddressService.getUserAddresses(userId);
+		log.info("查询用户地址列表成功, userId: {}, count: {}", userId, addresses.size());
+		return R.success(addresses);
+	}
+
+	@ApiOperation(value = "修改收货地址")
+	@PutMapping("/address/{addressId}")
+	public R<Void> updateAddress(
+			@PathVariable Long addressId,
+			@RequestBody UserAddressDTO addressDTO) {
+		Long userId = UserContext.getUser();
+		userAddressService.updateAddress(userId, addressId, addressDTO);
+		return R.success("修改成功", null);
+	}
+
+	@ApiOperation(value = "删除收货地址")
+	@DeleteMapping("/address/{addressId}")
+	public R<Void> deleteAddress(@PathVariable Long addressId) {
+		Long userId = UserContext.getUser();
+		userAddressService.deleteAddress(userId, addressId);
+		return R.success("删除成功", null);
+	}
+
+	@ApiOperation(value = "退出登录")
+	@PostMapping("/logout")
+	public R<Void> logout() {
+		Long userId = UserContext.getUser();
+		log.info("退出登录接口被调用, userId from UserContext: {}", userId);
+
+		if (userId == null) {
+			return R.error("未登录或Token无效");
+		}
+
+		tUserService.logout(userId);
+		log.info("用户退出登录, userId: {}", userId);
+		return R.success("退出成功", null);
+	}
+
+}

@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.haalan.common.config.MyBatisConfig,\
+  com.haalan.common.config.JsonConfig,\
+  com.haalan.common.config.MvcConfig,\
+  com.haalan.common.config.ExceptionHandlerAutoConfiguration

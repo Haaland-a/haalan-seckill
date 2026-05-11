@@ -1,0 +1,24 @@
+15:14:36:448  INFO 30972 --- [main] com.haalan.item.ProductSyncToEsTest      : The following 1 profile is active: "local"
+15:14:37:464  INFO 30972 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+15:14:37:470  INFO 30972 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+15:14:37:529  INFO 30972 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 35 ms. Found 0 Redis repository interfaces.
+15:14:37:902  INFO 30972 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=2417e42c-e0c4-30be-9a17-fde23baf49d5
+15:14:43:491  INFO 30972 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+15:14:44:641  INFO 30972 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+15:14:44:645  INFO 30972 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+15:14:44:684  INFO 30972 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+15:14:44:885  INFO 30972 --- [main] com.haalan.item.ProductSyncToEsTest      : Started ProductSyncToEsTest in 12.962 seconds (JVM running for 14.721)
+15:14:44:912  INFO 30972 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service.yaml, group=DEFAULT_GROUP
+15:14:44:913  INFO 30972 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service-local.yaml, group=DEFAULT_GROUP
+15:14:44:913  INFO 30972 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service, group=DEFAULT_GROUP
+15:14:45:607  INFO 30972 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+15:14:45:920  INFO 30972 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+15:14:45:928 DEBUG 30972 --- [main] c.h.item.mapper.TSkuMapper.selectList    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time FROM t_sku
+15:14:45:962 DEBUG 30972 --- [main] c.h.item.mapper.TSkuMapper.selectList    : ==> Parameters: 
+15:14:46:003 DEBUG 30972 --- [main] c.h.item.mapper.TSkuMapper.selectList    : <==      Total: 22
+15:14:46:742  WARN 30972 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+15:14:46:742  WARN 30972 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+15:14:46:743  WARN 30972 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+15:14:46:744  WARN 30972 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+15:14:46:887  INFO 30972 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+15:14:46:894  INFO 30972 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.

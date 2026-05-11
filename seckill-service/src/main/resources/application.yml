@@ -1,0 +1,16 @@
+server:
+  port: 8085
+feign:
+  okhttp:
+    enabled: true # 开启OKHttp连接池支持
+  sentinel:
+    enabled: true # 开启Feign对Sentinel的整合
+haalan:
+  swagger:
+    title: haalan秒杀管理商品接口文档
+    description: 哈兰接口文档
+    email: 417376585@qq.com
+    contact: lyc
+    package: com.haalan.seckill.controller
+  db:
+    database: seckill-db

@@ -1,0 +1,12 @@
+haalan:
+  db:
+    host: mysql8
+    pw: 123456
+    user: root
+  redis:
+    host: redis
+    password: 123456
+  es:
+    host: es
+  stoken:
+    timeout: 60

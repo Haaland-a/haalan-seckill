@@ -1,0 +1,142 @@
+20:28:41:044  INFO 18592 --- [main] com.haalan.gateway.GatewayApplication    : The following 1 profile is active: "local"
+20:28:42:036  INFO 18592 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+20:28:42:042  INFO 18592 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+20:28:42:089  INFO 18592 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 18 ms. Found 0 Redis repository interfaces.
+20:28:42:412  INFO 18592 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=1806b51e-e9ce-3d9a-932f-85797421154e
+20:28:42:518  INFO 18592 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:42:519  INFO 18592 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig' of type [org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration$ReactorDeferringLoadBalancerFilterConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:42:523  INFO 18592 --- [main] trationDelegate$BeanPostProcessorChecker : Bean 'reactorDeferringLoadBalancerExchangeFilterFunction' of type [org.springframework.cloud.client.loadbalancer.reactive.DeferringLoadBalancerExchangeFilterFunction] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+20:28:44:580  INFO 18592 --- [main] c.h.gateway.routers.DynamicRouteLoader   : 开始加载路由信息
+20:28:44:614  INFO 18592 --- [main] c.h.gateway.routers.DynamicRouteLoader   : 更新路由信息：[    
+    {
+        "id": "user",
+        "predicates": [{
+            "name": "Path",
+            "args": {"_genkey_0":"/api/user/**", "_genkey_1":"/api/addresses/**"}
+        }],
+        "filters": [],
+        "uri": "lb://user-service"
+    }, 
+     {
+        "id": "search",
+        "predicates": [{
+            "name": "Path",
+            "args": {"_genkey_0":"/api/product/search",
+                    "_genkey_1":"/api/product/search/**"}
+        }],
+        "filters": [],
+        "uri": "lb://search-service"
+    },  
+    {
+        "id": "item",
+        "predicates": [{
+            "name": "Path",
+            "args": {"_genkey_0":"/api/admin/sku/**", 
+                    "_genkey_1":"/api/category/**",
+                    "_genkey_2":"/api/product/**",
+                    "_genkey_3":"/api/admin/spu/**"}
+        }],
+        "filters": [],
+        "uri": "lb://item-service"
+    },
+        {
+        "id": "seckill",
+        "predicates": [{
+            "name": "Path",
+            "args": {"_genkey_0":"/api/admin/seckill/**",
+                    "_genkey_1":"/api/seckill/**"}
+        }],
+        "filters": [],
+        "uri": "lb://seckill-service"
+    }    
+]
+20:28:44:744  INFO 18592 --- [main] c.h.gateway.routers.DynamicRouteLoader   : 更新完成
+20:28:44:744  INFO 18592 --- [main] c.h.gateway.routers.DynamicRouteLoader   : 加载路由信息完成
+20:28:46:676  INFO 18592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:28:49:656  INFO 18592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:28:50:104  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [After]
+20:28:50:104  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Before]
+20:28:50:104  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Between]
+20:28:50:104  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Cookie]
+20:28:50:105  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Header]
+20:28:50:105  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Host]
+20:28:50:105  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Method]
+20:28:50:105  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Path]
+20:28:50:105  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Query]
+20:28:50:105  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [ReadBody]
+20:28:50:105  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [RemoteAddr]
+20:28:50:106  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [XForwardedRemoteAddr]
+20:28:50:106  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [Weight]
+20:28:50:106  INFO 18592 --- [main] o.s.c.g.r.RouteDefinitionRouteLocator    : Loaded RoutePredicateFactory [CloudFoundryRouteService]
+20:28:52:285  INFO 18592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:28:52:298  INFO 18592 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+20:28:52:894  INFO 18592 --- [main] o.s.b.web.embedded.netty.NettyWebServer  : Netty started on port 8080
+20:28:54:589  INFO 18592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:28:56:463  INFO 18592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+20:28:56:488  INFO 18592 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+20:28:56:489  INFO 18592 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+20:28:56:635  INFO 18592 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP gateway 192.168.131.1:8080 register finished
+20:28:56:714  INFO 18592 --- [main] com.haalan.gateway.GatewayApplication    : Started GatewayApplication in 23.911 seconds (JVM running for 26.336)
+20:28:56:721  INFO 18592 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=gateway.yaml, group=DEFAULT_GROUP
+20:28:56:722  INFO 18592 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=gateway, group=DEFAULT_GROUP
+20:28:56:723  INFO 18592 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=gateway-local.yaml, group=DEFAULT_GROUP
+20:29:15:770  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:29:16:183  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:29:25:067  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:29:25:072  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:29:52:978  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:29:52:980  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:29:59:258  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:29:59:260  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:30:02:996  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:30:02:998  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:30:11:627  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:30:11:629  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:30:20:379  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:30:20:382  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:30:34:821  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:30:34:823  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:30:41:638  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:30:41:640  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:32:49:369  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:32:49:375  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:32:51:417  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:32:51:419  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:32:52:731  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:32:52:733  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:32:54:197  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:32:54:199  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:33:00:528  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:33:00:530  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:33:06:883  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:33:06:886  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:33:20:530  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:33:20:532  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:33:24:044  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:33:24:046  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:33:36:111  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:33:36:113  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:35:34:905  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:35:34:912  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:36:05:544  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:36:05:545  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:36:42:389  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:36:42:393  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:36:54:187  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:36:54:189  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:37:13:042  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:37:13:046  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:37:38:637  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:37:38:641  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:37:45:370  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:37:45:372  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:39:39:813  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:39:39:823  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+20:39:46:409  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户信息：JwtTool.TokenPayload(userId=1, version=7)
+20:39:46:412  INFO 18592 --- [reactor-http-nio-3] c.h.gateway.filter.AuthGlobalFilter      : 用户1 Token校验通过，版本: 7
+22:17:38:805  WARN 18592 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+22:17:38:805  WARN 18592 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+22:17:38:819  WARN 18592 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+22:17:38:833  WARN 18592 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+22:17:39:210  INFO 18592 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+22:17:39:227  INFO 18592 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
