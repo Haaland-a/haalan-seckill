@@ -1,4 +1,4 @@
-package com.haalan.order.domain.po;
+package com.haalan.common.domain.mq;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,6 +41,7 @@ public class SeckillOrderMessage implements Serializable {
 	 * 活动ID
 	 */
 	private Long activityId;
+
 	/**
 	 * 商品sku
 	 */
@@ -55,6 +56,7 @@ public class SeckillOrderMessage implements Serializable {
 	 * 购买数量
 	 */
 	private Integer quantity;
+
 	/**
 	 * 秒杀价格
 	 */

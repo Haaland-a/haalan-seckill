@@ -3,8 +3,8 @@ package com.haalan.order.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.api.client.ItemServiceClient;
-import com.haalan.order.domain.po.OrderTimeoutMessage;
-import com.haalan.order.domain.po.SeckillOrderMessage;
+import com.haalan.common.domain.mq.OrderTimeoutMessage;
+import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.order.domain.po.TSeckillOrder;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.service.ITSeckillOrder0Service;
@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 	public static final String SECKILL_ACTIVITY_LIMIT_PREFIX = "seckill:limit:activity:";
 
 	private final RedisTemplate<String, Object> redisTemplate;
+	private final StringRedisTemplate stringRedisTemplate;
 
 	private static final DefaultRedisScript<Long> ROLLBACK_SCRIPT = new DefaultRedisScript<>();
 
@@ -142,24 +144,21 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 		List<String> keys = Arrays.asList(
 				stockKey,
 				buyKey,
-				productLimitKey,
-				activityLimitKey
+				activityLimitKey,  // KEYS[3]: 活动限购key
+				productLimitKey    // KEYS[4]: 商品限购key
 		);
-
-		// 修改这里：传递完整的 field 名称
-		String productField = "product:" + message.getSeckillProductId();
-		String activityField = "activity:" + message.getActivityId();
 
 		Object[] args = {
 				String.valueOf(message.getQuantity()),
-				productField,      // ← 改成完整 field
-				activityField      // ← 改成完整 field
+				String.valueOf(message.getSeckillProductId()),
+				String.valueOf(message.getActivityId())
 		};
 
 		log.info("执行回滚Lua脚本, keys={}, args={}, orderNo={}",
 				keys, args, message.getOrderNo());
 
-		Long result = redisTemplate.execute(ROLLBACK_SCRIPT, keys, args);
+		// 使用 StringRedisTemplate 执行 Lua 脚本，避免 JSON 序列化问题
+		Long result = stringRedisTemplate.execute(ROLLBACK_SCRIPT, keys, args);
 
 		if (result == null || result != 0) {
 			log.error("回滚脚本执行失败, result={}, orderNo={}", result, message.getOrderNo());

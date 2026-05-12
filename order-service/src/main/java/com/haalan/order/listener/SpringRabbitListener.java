@@ -1,8 +1,8 @@
 package com.haalan.order.listener;
 
+import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.common.utils.UserContext;
 import com.haalan.order.config.RabbitConstants;
-import com.haalan.order.domain.po.SeckillOrderMessage;
 import com.haalan.order.service.ITSeckillOrder0Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

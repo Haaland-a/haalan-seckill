@@ -1,4 +1,4 @@
-package com.haalan.seckill.domain.po;
+package com.haalan.common.domain.mq;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

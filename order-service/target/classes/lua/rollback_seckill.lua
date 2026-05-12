@@ -1,8 +1,8 @@
 -- 秒杀订单回滚脚本
 -- KEYS[1]: 库存key (seckill:stock:{activityId}:{seckillProductId})
 -- KEYS[2]: 用户购买记录key (seckill:buy:{userId})
--- KEYS[3]: 商品限购key (seckill:limit:{userId}:{seckillProductId})
--- KEYS[4]: 活动限购key (seckill:limit:activity:{activityId})
+-- KEYS[3]: 活动限购key (seckill:limit:activity:{activityId})
+-- KEYS[4]: 商品限购key (seckill:limit:{userId}:{seckillProductId})
 -- ARGV[1]: 回滚数量
 -- ARGV[2]: 商品ID (用于构建field)
 -- ARGV[3]: 活动ID (用于构建field)
@@ -46,15 +46,13 @@ if activityBuy then
     end
 end
 
--- 4. 释放商品限购名额（删除记录，表示该用户当前没有购买）
--- 注意：如果限购是累计购买数量，这里不需要处理
--- 因为限购key是临时存储用户本次购买的令牌，超时释放即可
-if KEYS[3] and redis.call('exists', KEYS[3]) == 1 then
+-- 4. 释放活动限购名额
+if redis.call('exists', KEYS[3]) == 1 then
     redis.call('del', KEYS[3])
 end
 
--- 5. 释放活动限购名额
-if KEYS[4] and redis.call('exists', KEYS[4]) == 1 then
+-- 5. 释放商品限购名额
+if redis.call('exists', KEYS[4]) == 1 then
     redis.call('del', KEYS[4])
 end
 

@@ -12,6 +12,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,8 @@ import java.util.Map;
 @Configuration
 public class RabbitMQConfig {
 
+	@Resource
+	private MQProperties mqProperties;
 	// 交换机
 	@Bean
 	public TopicExchange seckillOrderExchange() {
@@ -147,7 +150,7 @@ public class RabbitMQConfig {
 		args.put("x-dead-letter-exchange", RabbitConstants.ORDER_TIMEOUT_DLX_EXCHANGE);
 		args.put("x-dead-letter-routing-key", RabbitConstants.ORDER_TIMEOUT_DLX_ROUTING_KEY);
 		// 消息过期时间：15分钟 = 900000毫秒
-		args.put("x-message-ttl", 90);
+		args.put("x-message-ttl", mqProperties.getTimeOut());
 		return new Queue(RabbitConstants.ORDER_TIMEOUT_QUEUE, true, false, false, args);
 	}
 
@@ -171,5 +174,62 @@ public class RabbitMQConfig {
 		return BindingBuilder.bind(orderTimeoutBackupDlxQueue())
 				.to(orderTimeoutBackupDlxExchange())
 				.with(RabbitConstants.ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY);
+	}
+
+	// ==================== 用户行为日志相关配置 ====================
+
+	/**
+	 * 日志交换机（Topic类型，支持灵活路由）
+	 */
+	@Bean
+	public TopicExchange seckillLogExchange() {
+		return new TopicExchange(RabbitConstants.SECKILL_LOG_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 日志队列（带死信，处理失败的消息可以重发或人工处理）
+	 */
+	@Bean
+	public Queue seckillLogQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_LOG_QUEUE)
+				.deadLetterExchange(RabbitConstants.SECKILL_LOG_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.SECKILL_LOG_DLX_ROUTING_KEY)
+				.build();
+	}
+
+	/**
+	 * 日志交换机与队列绑定
+	 */
+	@Bean
+	public Binding seckillLogBinding() {
+		return BindingBuilder.bind(seckillLogQueue())
+				.to(seckillLogExchange())
+				.with(RabbitConstants.SECKILL_LOG_ROUTING_KEY);
+	}
+
+	/**
+	 * 日志死信交换机
+	 */
+	@Bean
+	public DirectExchange seckillLogDlxExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_LOG_DLX_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 日志死信队列（处理失败的消息会到这里，可以重发或人工处理）
+	 */
+	@Bean
+	public Queue seckillLogDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_LOG_DLX_QUEUE).build();
+	}
+
+	/**
+	 * 日志死信绑定
+	 */
+	@Bean
+	public Binding seckillLogDlxBinding() {
+		return BindingBuilder.bind(seckillLogDlxQueue())
+				.to(seckillLogDlxExchange())
+				.with(RabbitConstants.SECKILL_LOG_DLX_ROUTING_KEY);
 	}
 }

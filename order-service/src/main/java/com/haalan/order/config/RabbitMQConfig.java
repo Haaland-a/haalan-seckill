@@ -12,6 +12,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,8 @@ import java.util.Map;
 @Configuration
 public class RabbitMQConfig {
 
+	@Resource
+	private MQProperties mqProperties;
 	// 交换机
 	@Bean
 	public TopicExchange seckillOrderExchange() {
@@ -147,7 +150,7 @@ public class RabbitMQConfig {
 		args.put("x-dead-letter-exchange", RabbitConstants.ORDER_TIMEOUT_DLX_EXCHANGE);
 		args.put("x-dead-letter-routing-key", RabbitConstants.ORDER_TIMEOUT_DLX_ROUTING_KEY);
 		// 消息过期时间：15分钟 = 900000毫秒
-		args.put("x-message-ttl", 90);
+		args.put("x-message-ttl", mqProperties.getTimeOut());
 		return new Queue(RabbitConstants.ORDER_TIMEOUT_QUEUE, true, false, false, args);
 	}
 

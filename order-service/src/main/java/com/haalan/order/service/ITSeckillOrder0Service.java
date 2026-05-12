@@ -1,8 +1,8 @@
 package com.haalan.order.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.haalan.order.domain.po.OrderTimeoutMessage;
-import com.haalan.order.domain.po.SeckillOrderMessage;
+import com.haalan.common.domain.mq.OrderTimeoutMessage;
+import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.order.domain.po.TSeckillOrder;
 
 /**

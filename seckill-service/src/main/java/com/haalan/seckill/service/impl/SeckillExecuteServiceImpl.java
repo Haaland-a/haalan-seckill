@@ -3,18 +3,22 @@ package com.haalan.seckill.service.impl;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
+import com.haalan.common.domain.mq.OrderTimeoutMessage;
+import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.common.exception.BizIllegalException;
+import com.haalan.common.utils.WebUtils;
 import com.haalan.seckill.config.RabbitConstants;
 import com.haalan.seckill.config.SeckillConstants;
 import com.haalan.seckill.domain.dto.SeckillExecuteRequestDTO;
-import com.haalan.seckill.domain.po.OrderTimeoutMessage;
-import com.haalan.seckill.domain.po.SeckillOrderMessage;
+import com.haalan.seckill.domain.po.SeckillUserLogMessage;
 import com.haalan.seckill.domain.vo.SeckillExecuteResultVO;
 import com.haalan.seckill.domain.vo.SeckillOrderVO;
 import com.haalan.seckill.domain.vo.SeckillQueueVO;
+import com.haalan.seckill.domain.vo.SeckillResultVO;
 import com.haalan.seckill.service.ISeckillExecuteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -23,7 +27,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -51,6 +57,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 	}
 
 
+	@Transactional
 	@Override
 	public SeckillExecuteResultVO execute(Long userId, SeckillExecuteRequestDTO request) {
 		String requestId = request.getRequestId();
@@ -84,6 +91,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 		}
 
 		try {
+			LocalDateTime startTime = LocalDateTime.now();
 			// ============ 第二层：令牌验证 ============
 			validateSeckillToken(userId, request.getSeckillToken(), activityId, seckillProductId);
 
@@ -103,15 +111,38 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			checkUserPurchaseLimit(userId, activityId, seckillProductId, quantity);
 
 			// ============ 第八层：原子性库存扣减 ============
-			Long result = executeStockDecrement(activityId, seckillProductId, userId, quantity);
+			Long stockResult = executeStockDecrement(activityId, seckillProductId, userId, quantity);
 
-			if (result == -1) {
+			LocalDateTime executeStockEndTime = LocalDateTime.now();
+			//花费 时间
+			int costTimeDecrement = executeStockEndTime.getNano() - startTime.getNano();
+			log.info("库存扣减结束, requestId={}, costTime={}", requestId, costTimeDecrement);
+
+
+			// ============用户操作日志记录============
+			// 根据库存扣减结果确定action和failReason
+			String action;
+			String failReason = null;
+			if (stockResult == -1) {
+				action = "FAIL";
+				failReason = "STOCK_NOT_ENOUGH";
+			} else if (stockResult == -2) {
+				action = "FAIL";
+				failReason = "PRODUCT_LIMIT";
+			} else if (stockResult == -3) {
+				action = "FAIL";
+				failReason = "ACTIVITY_LIMIT";
+			} else {
+				action = "LOCK"; // 库存锁定成功
+			}
+			logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), action, failReason, costTimeDecrement);
+			if (stockResult == -1) {
 				setIdempotentResult(idempotentKey, "FAILED:库存不足");
 				throw new BizIllegalException("库存不足");
-			} else if (result == -2) {
+			} else if (stockResult == -2) {
 				setIdempotentResult(idempotentKey, "FAILED:商品限购");
 				throw new BizIllegalException("您已达到该商品的购买上限");
-			} else if (result == -3) {
+			} else if (stockResult == -3) {
 				setIdempotentResult(idempotentKey, "FAILED:活动限购");
 				throw new BizIllegalException("您已达到该活动的购买上限");
 			}
@@ -158,11 +189,15 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			// 业务异常，更新幂等状态
 			String failReason = e.getMessage() != null ? e.getMessage() : "未知错误";
 			setIdempotentResult(idempotentKey, "FAILED:" + failReason);
+			// 记录失败日志
+			logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), "FAIL", failReason, null);
 			throw e;
 		} catch (Exception e) {
 			// 未知异常，更新幂等状态
 			log.error("秒杀执行异常", e);
 			setIdempotentResult(idempotentKey, "ERROR:系统异常");
+			// 记录异常日志
+			logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), "FAIL", "系统异常", null);
 			throw new BizIllegalException("秒杀失败，请稍后重试");
 		}
 	}
@@ -253,6 +288,55 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 	}
 
 	/**
+	 * 记录用户秒杀行为日志到MQ
+	 *
+	 * @param userId     用户ID
+	 * @param activityId 活动ID
+	 * @param skuId      SKU ID
+	 * @param action     操作类型: REQUEST/LOCK/SUCCESS/FAIL
+	 * @param failReason 失败原因
+	 * @param costTime   耗时(ms)
+	 */
+	private void logToMq(Long userId, Long activityId, Long skuId, Long productId,
+						 String action, String failReason, Integer costTime) {
+		try {
+			// 获取用户IP和User-Agent
+			String ip = WebUtils.getRemoteAddr();
+			HttpServletRequest request = WebUtils.getRequest();
+			String userAgent = request != null ? request.getHeader("User-Agent") : "";
+
+			// 构建日志消息
+			SeckillUserLogMessage logMessage = SeckillUserLogMessage.builder()
+					.userId(userId)
+					.activityId(activityId)
+					.skuId(skuId)
+					.productId(productId)
+					.action(action)
+					.ip(ip)
+					.userAgent(userAgent)
+					.failReason(failReason)
+					.costTime(costTime)
+					.createTime(LocalDateTime.now())
+					.build();
+
+			// 发送日志到MQ
+			rabbitTemplate.convertAndSend(
+					RabbitConstants.SECKILL_LOG_EXCHANGE,
+					RabbitConstants.SECKILL_LOG_ROUTING_KEY,
+					logMessage
+			);
+
+			log.debug("用户秒杀行为日志已发送, userId={}, action={}",
+					userId, action);
+
+		} catch (Exception e) {
+			// 日志记录失败不影响主流程
+			log.error("发送用户行为日志失败, userId={}, activityId={}",
+					userId, activityId, e);
+		}
+	}
+
+	/**
 	 * 构建订单消息
 	 */
 	private SeckillOrderMessage buildOrderMessage(String messageId, String preOrderNo,
@@ -300,18 +384,17 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				.statusName("待支付")
 				.build();
 
-		// 缓存预订单信息（用于轮询查询）
+		// 缓存预订单信息（用于轮询查询）- 使用Hash结构
 		String orderCacheKey = SeckillConstants.SECKILL_ORDER_PREFIX + orderNo;
 		try {
-			String orderJson = JSONUtil.toJsonStr(orderVO);
-			redisTemplate.opsForValue().set(
-					orderCacheKey,
-					orderJson,
-					SeckillConstants.IDEMPOTENT_EXPIRE_SECONDS,
-					TimeUnit.SECONDS
-			);
+			Map<String, String> orderMap = getStringObjectMap(orderVO);
+
+			redisTemplate.opsForHash().putAll(orderCacheKey, orderMap);
+			redisTemplate.expire(orderCacheKey, SeckillConstants.IDEMPOTENT_EXPIRE_SECONDS, TimeUnit.SECONDS);
 		} catch (Exception e) {
-			log.error("缓存预订单失败, orderNo={}", orderNo, e);
+			log.error("缓存预订单失败, orderNo={},不能进行后续订单超时消息", orderNo, e);
+			//不能忽略,缓存失败，不能继续执行
+			throw new BizIllegalException("预订单失败");
 		}
 
 		// 设置订单超时（用于超时取消）
@@ -324,6 +407,20 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 
 		log.info("预订单创建成功, userId={}, orderNo={}", userId, orderNo);
 		return orderVO;
+	}
+
+	private static @NonNull Map<String, String> getStringObjectMap(SeckillOrderVO orderVO) {
+		Map<String, String> orderMap = new HashMap<>();
+		orderMap.put("orderNo", orderVO.getOrderNo());
+		orderMap.put("seckillProductId", String.valueOf(orderVO.getSeckillProductId()));
+		orderMap.put("productName", orderVO.getProductName());
+		orderMap.put("seckillPrice", orderVO.getSeckillPrice().toString());
+		orderMap.put("quantity", String.valueOf(orderVO.getQuantity()));
+		orderMap.put("totalAmount", orderVO.getTotalAmount().toString());
+		orderMap.put("payExpireTime", orderVO.getPayExpireTime().toString());
+		orderMap.put("status", String.valueOf(orderVO.getStatus()));
+		orderMap.put("statusName", orderVO.getStatusName());
+		return orderMap;
 	}
 
 	/**
@@ -360,11 +457,11 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			String orderNo = resultValue.substring("SUCCESS:".length());
 			// 尝试从缓存获取完整订单信息
 			String orderCacheKey = SeckillConstants.SECKILL_ORDER_PREFIX + orderNo;
-			String orderJson = redisTemplate.opsForValue().get(orderCacheKey);
+			Map<Object, Object> orderHash = redisTemplate.opsForHash().entries(orderCacheKey);
 
-			if (orderJson != null) {
+			if (orderHash != null && !orderHash.isEmpty()) {
 				try {
-					SeckillOrderVO orderVO = JSONUtil.toBean(orderJson, SeckillOrderVO.class);
+					SeckillOrderVO orderVO = convertHashToOrderVO(orderHash);
 					return SeckillExecuteResultVO.builder()
 							.success(true)
 							.orderVO(orderVO)
@@ -755,6 +852,31 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 	}
 
 	/**
+	 * 将Hash数据转换为SeckillOrderVO
+	 * 自己写一个转换器
+	 * 相比于hutool的BeanUtils，这个转换器性能更好
+	 */
+	private SeckillOrderVO convertHashToOrderVO(Map<Object, Object> orderHash) {
+		return SeckillOrderVO.builder()
+				.orderNo(orderHash.get("orderNo") != null ? orderHash.get("orderNo").toString() : null)
+				.seckillProductId(orderHash.get("seckillProductId") != null ?
+						Long.parseLong(orderHash.get("seckillProductId").toString()) : null)
+				.productName(orderHash.get("productName") != null ? orderHash.get("productName").toString() : null)
+				.seckillPrice(orderHash.get("seckillPrice") != null ?
+						new BigDecimal(orderHash.get("seckillPrice").toString()) : null)
+				.quantity(orderHash.get("quantity") != null ?
+						Integer.parseInt(orderHash.get("quantity").toString()) : null)
+				.totalAmount(orderHash.get("totalAmount") != null ?
+						new BigDecimal(orderHash.get("totalAmount").toString()) : null)
+				.payExpireTime(orderHash.get("payExpireTime") != null ?
+						LocalDateTime.parse(orderHash.get("payExpireTime").toString()) : null)
+				.status(orderHash.get("status") != null ?
+						Integer.parseInt(orderHash.get("status").toString()) : null)
+				.statusName(orderHash.get("statusName") != null ? orderHash.get("statusName").toString() : null)
+				.build();
+	}
+
+	/**
 	 * 生成订单号
 	 * 格式：时间戳 + 机器ID + 序列号
 	 * 示例：SK191238123812381238
@@ -762,5 +884,81 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 	private String generateOrderNo() {
 		//
 		return "SK" + IdUtil.getSnowflakeNextIdStr();
+	}
+
+	@Override
+	public SeckillResultVO queryResult(String requestId) {
+		log.info("查询秒杀结果, requestId={}", requestId);
+
+		// 1. 从Redis查询幂等键获取处理状态
+		String idempotentKey = SeckillConstants.SECKILL_IDEMPOTENT_PREFIX + requestId;
+		String resultValue = redisTemplate.opsForValue().get(idempotentKey);
+
+		// 2. 如果幂等键不存在，说明请求ID无效或已过期（包括活动过期）
+		if (resultValue == null) {
+			log.warn("请求ID不存在或已过期, requestId={}", requestId);
+			// 返回失败状态，而不是抛出异常，让前端能够看到结果
+			return SeckillResultVO.builder()
+					.requestId(requestId)
+					.status("FAILED")
+					.failReason("ACTIVITY_EXPIRED")
+					.build();
+		}
+
+		// 3. 根据结果值判断状态
+		if (resultValue.startsWith("SUCCESS:")) {
+			// 秒杀成功
+			String orderNo = resultValue.substring("SUCCESS:".length());
+			log.info("秒杀成功, requestId={}, orderNo={}", requestId, orderNo);
+
+			// 尝试从缓存获取完整订单信息0  这是预订单信息
+			String orderCacheKey = SeckillConstants.SECKILL_ORDER_PREFIX + orderNo;
+			Map<Object, Object> orderHash = redisTemplate.opsForHash().entries(orderCacheKey);
+
+			SeckillOrderVO orderInfo = null;
+			if (orderHash != null && !orderHash.isEmpty()) {
+				try {
+					orderInfo = convertHashToOrderVO(orderHash);
+				} catch (Exception e) {
+					log.error("解析预订单订单缓存失败, orderNo={}", orderNo, e);
+				}
+			}
+
+			// 如果缓存中没有完整订单信息，构建基本信息
+			if (orderInfo == null) {
+				orderInfo = SeckillOrderVO.builder()
+						.orderNo(orderNo)
+						.statusName("待支付")
+						.build();
+			}
+
+			return SeckillResultVO.builder()
+					.requestId(requestId)
+					.status("SUCCESS")
+					.orderNo(orderNo)
+					.orderInfo(orderInfo)
+					.build();
+
+		} else if (resultValue.startsWith("FAILED:") || resultValue.startsWith("ERROR:")) {
+			// 秒杀失败
+			String failReason = resultValue.contains(":") ?
+					resultValue.substring(resultValue.indexOf(":") + 1) : "秒杀失败";
+			log.info("秒杀失败, requestId={}, reason={}", requestId, failReason);
+
+			return SeckillResultVO.builder()
+					.requestId(requestId)
+					.status("FAILED")
+					.failReason(failReason)
+					.build();
+
+		} else {
+			// 处理中
+			log.info("秒杀处理中, requestId={}", requestId);
+			return SeckillResultVO.builder()
+					.requestId(requestId)
+					.status("PROCESSING")
+					.orderNo(null)
+					.build();
+		}
 	}
 }
