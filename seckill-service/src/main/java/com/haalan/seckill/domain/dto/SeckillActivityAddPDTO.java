@@ -1,5 +1,6 @@
 package com.haalan.seckill.domain.dto;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -56,4 +57,11 @@ public class SeckillActivityAddPDTO implements Serializable {
 	@NotNull(message = "排序不能为空")
 	@Min(value = 0, message = "排序不能小于0")
 	private Integer sort;
+	@JsonProperty("alipayProductCode")
+	@TableField("alipay_product_code")
+	private String alipayProductCode;
+
+	@JsonProperty("wechatProductCode")
+	@TableField("wechat_product_code")
+	private String wechatProductCode;
 }

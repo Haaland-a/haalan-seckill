@@ -82,5 +82,12 @@ public class TSku implements Serializable {
 	@TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
 	private LocalDateTime updateTime;
 
+	@ApiModelProperty(value = "支付宝产品编码")
+	@TableField("alipay_product_code")
+	private String alipayProductCode;
+
+	@ApiModelProperty(value = "微信产品编码")
+	@TableField("wechat_product_code")
+	private String wechatProductCode;
 
 }

@@ -145,8 +145,8 @@ public class TSeckillPreheatServiceImpl implements ITSeckillPreheatService {
 				info.put("seckillPrice", product.getSeckillPrice().toString());
 				//先不写库存
 				info.put("soldStock", product.getSoldStock().toString());
-
-
+				info.put("alipayProductCode", product.getAlipayProductCode());
+				info.put("wechatProductCode", product.getWechatProductCode());
 				info.put("startTime", activity.getStartTime().toString());
 				info.put("endTime", activity.getEndTime().toString());
 				log.info("商品静态数据: {}", info);

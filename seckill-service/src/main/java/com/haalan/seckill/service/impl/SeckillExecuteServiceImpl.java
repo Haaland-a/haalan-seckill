@@ -5,17 +5,18 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.json.JSONUtil;
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
+import com.haalan.common.domain.mq.UserSeckillRecordMessage;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.WebUtils;
 import com.haalan.seckill.config.RabbitConstants;
 import com.haalan.seckill.config.SeckillConstants;
 import com.haalan.seckill.domain.dto.SeckillExecuteRequestDTO;
-import com.haalan.seckill.domain.po.SeckillUserLogMessage;
 import com.haalan.seckill.domain.vo.SeckillExecuteResultVO;
 import com.haalan.seckill.domain.vo.SeckillOrderVO;
 import com.haalan.seckill.domain.vo.SeckillQueueVO;
 import com.haalan.seckill.domain.vo.SeckillResultVO;
 import com.haalan.seckill.service.ISeckillExecuteService;
+import com.haalan.seckill.service.ITSeckillLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -47,6 +48,8 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 
 	private final RabbitTemplate rabbitTemplate;
 
+	private final ITSeckillLogService tseckillLogService;
+
 	private static final DefaultRedisScript<Long> SECKILL_EXECUTE_SCRIPT = new DefaultRedisScript<>();
 
 	static {
@@ -64,7 +67,13 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 		Long activityId = request.getActivityId();
 		Long seckillProductId = request.getSeckillProductId();
 		Integer quantity = request.getQuantity();
-
+		String ip = WebUtils.getRemoteAddr();
+		HttpServletRequest request1 = WebUtils.getRequest();
+		String userAgent =
+				null;
+		if (request1 != null) {
+			userAgent = request1.getHeader("User-Agent");
+		}
 		log.info("开始执行秒杀, userId={}, requestId={}, activityId={}, seckillProductId={}",
 				userId, requestId, activityId, seckillProductId);
 
@@ -135,7 +144,8 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			} else {
 				action = "LOCK"; // 库存锁定成功
 			}
-			logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), action, failReason, costTimeDecrement);
+
+			tseckillLogService.logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), action, failReason, costTimeDecrement, ip, userAgent);
 			if (stockResult == -1) {
 				setIdempotentResult(idempotentKey, "FAILED:库存不足");
 				throw new BizIllegalException("库存不足");
@@ -154,6 +164,10 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			// 创建预订单并缓存
 			SeckillOrderVO orderVO = createPreOrder(userId, request, activity, product,
 					preOrderNo, totalAmount);
+
+			// 获取支付过期时间（用于用户秒杀记录）
+			LocalDateTime payExpireTime = LocalDateTime.now()
+					.plusMinutes(SeckillConstants.ORDER_PAY_TIMEOUT_MINUTES);
 
 			// ============ 第十层：可靠消息投递 ============
 			String messageId = UUID.fastUUID().toString(true);
@@ -178,6 +192,9 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			// ============ 更新幂等状态 ============
 			setIdempotentResult(idempotentKey, "SUCCESS:" + preOrderNo);
 
+			// ============ 第十二层：异步发送用户秒杀记录消息 ============
+			sendUserSeckillRecordMessage(userId, request, activity, product, preOrderNo, totalAmount, payExpireTime, ip, userAgent);
+
 			log.info("秒杀成功, userId={}, orderNo={}, messageId={}", userId, preOrderNo, messageId);
 
 			return SeckillExecuteResultVO.builder()
@@ -190,14 +207,14 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			String failReason = e.getMessage() != null ? e.getMessage() : "未知错误";
 			setIdempotentResult(idempotentKey, "FAILED:" + failReason);
 			// 记录失败日志
-			logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), "FAIL", failReason, null);
+			tseckillLogService.logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), "FAIL", failReason, null, ip, userAgent);
 			throw e;
 		} catch (Exception e) {
 			// 未知异常，更新幂等状态
 			log.error("秒杀执行异常", e);
 			setIdempotentResult(idempotentKey, "ERROR:系统异常");
 			// 记录异常日志
-			logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), "FAIL", "系统异常", null);
+			tseckillLogService.logToMq(userId, activityId, request.getSkuId(), request.getSeckillProductId(), "FAIL", "系统异常", null, ip, userAgent);
 			throw new BizIllegalException("秒杀失败，请稍后重试");
 		}
 	}
@@ -230,14 +247,11 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			//发送成功删除待确认消息
 			correlationData.getFuture().addCallback(
 					confirm -> {
-						if (confirm.isAck()) {
+						if (confirm != null && confirm.isAck()) {
 							String pendingMsgKey = RabbitConstants.SECKILL_PENDING_MSG_PREFIX
 									+ correlationData.getId();
 							redisTemplate.delete(pendingMsgKey);
 							log.info("MQ消息已确认，删除待确认记录, messageId={}", correlationData.getId());
-						} else {
-							log.error("MQ消息发送失败, messageId={}, reason={}",
-									correlationData.getId(), confirm.getReason());
 						}
 					},
 					ex -> {
@@ -288,53 +302,55 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 	}
 
 	/**
-	 * 记录用户秒杀行为日志到MQ
-	 *
-	 * @param userId     用户ID
-	 * @param activityId 活动ID
-	 * @param skuId      SKU ID
-	 * @param action     操作类型: REQUEST/LOCK/SUCCESS/FAIL
-	 * @param failReason 失败原因
-	 * @param costTime   耗时(ms)
+	 * 异步发送用户秒杀记录消息
+	 * 失败不影响主流程，由MQ重试机制保证可靠性
 	 */
-	private void logToMq(Long userId, Long activityId, Long skuId, Long productId,
-						 String action, String failReason, Integer costTime) {
+	private void sendUserSeckillRecordMessage(Long userId,
+											  SeckillExecuteRequestDTO request,
+											  Map<String, String> activity,
+											  Map<String, String> product,
+											  String orderNo,
+											  BigDecimal totalAmount,
+											  LocalDateTime payExpireTime,
+											  String ip,
+											  String userAgent) {
 		try {
-			// 获取用户IP和User-Agent
-			String ip = WebUtils.getRemoteAddr();
-			HttpServletRequest request = WebUtils.getRequest();
-			String userAgent = request != null ? request.getHeader("User-Agent") : "";
+			String messageId = IdUtil.fastSimpleUUID();
 
-			// 构建日志消息
-			SeckillUserLogMessage logMessage = SeckillUserLogMessage.builder()
+			UserSeckillRecordMessage recordMessage = UserSeckillRecordMessage.builder()
+					.messageId(messageId)
+					.orderNo(orderNo)
 					.userId(userId)
-					.activityId(activityId)
-					.skuId(skuId)
-					.productId(productId)
-					.action(action)
-					.ip(ip)
-					.userAgent(userAgent)
-					.failReason(failReason)
-					.costTime(costTime)
+					.activityId(request.getActivityId())
+					.activityName(activity.get("activityName"))
+					.productId(request.getSkuId())
+					.productName(product.get("name"))
+					.productImage(product.get("images"))
+					.seckillPrice(new BigDecimal(product.get("seckillPrice")))
+					.quantity(request.getQuantity())
+					.status(0) // 待支付
+					.payExpireTime(payExpireTime)
 					.createTime(LocalDateTime.now())
 					.build();
 
-			// 发送日志到MQ
+			// 异步发送MQ消息（不等待确认）
 			rabbitTemplate.convertAndSend(
-					RabbitConstants.SECKILL_LOG_EXCHANGE,
-					RabbitConstants.SECKILL_LOG_ROUTING_KEY,
-					logMessage
+					RabbitConstants.SECKILL_RECORD_EXCHANGE,
+					RabbitConstants.SECKILL_RECORD_ROUTING_KEY,
+					recordMessage
 			);
 
-			log.debug("用户秒杀行为日志已发送, userId={}, action={}",
-					userId, action);
+			log.info("用户秒杀记录消息已发送, userId={}, orderNo={}, messageId={}",
+					userId, orderNo, messageId);
 
 		} catch (Exception e) {
-			// 日志记录失败不影响主流程
-			log.error("发送用户行为日志失败, userId={}, activityId={}",
-					userId, activityId, e);
+			// 消息发送失败不影响主流程，记录日志即可
+			log.error("发送用户秒杀记录消息失败, userId={}, orderNo={}", userId, orderNo, e);
+			tseckillLogService.logToMq(userId, request.getActivityId(), request.getSkuId(), request.getSeckillProductId(), "FAIL", "用户秒杀记录消息发送失败", null, ip, userAgent);
 		}
 	}
+
+
 
 	/**
 	 * 构建订单消息
@@ -355,6 +371,8 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				.seckillPrice(
 						new BigDecimal(product.get("seckillPrice"))
 				)
+				.wechatProductCode(product.get("wechatProductCode"))
+				.alipayProductCode(product.get("alipayProductCode"))
 				.quantity(request.getQuantity())
 				.totalAmount(totalAmount)
 				.createTime(LocalDateTime.now())

@@ -1,5 +1,6 @@
 package com.haalan.item.domain.dto;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -43,6 +44,12 @@ public class SkuCreateDTO implements Serializable {
 	@ApiModelProperty(value = "库存", required = true)
 	@NotNull(message = "库存不能为空")
 	private Integer stock;
+
+	@TableField("alipay_product_code")
+	private String alipayProductCode;
+
+	@TableField("wechat_product_code")
+	private String wechatProductCode;
 
 	@ApiModelProperty(value = "商品图片列表")
 	private List<String> images;

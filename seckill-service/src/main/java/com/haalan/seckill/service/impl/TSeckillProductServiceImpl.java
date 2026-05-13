@@ -92,6 +92,7 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 			throw new BizIllegalException("排序不能小于0");
 		}
 
+
 		TSeckillActivity activity = seckillActivityService.getById(activityId);
 		if (activity == null) {
 			throw new BizIllegalException("活动不存在");

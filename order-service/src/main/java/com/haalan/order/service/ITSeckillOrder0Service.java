@@ -18,4 +18,7 @@ public interface ITSeckillOrder0Service extends IService<TSeckillOrder> {
 	void saveMsg(SeckillOrderMessage message);
 
 	void setStatus(OrderTimeoutMessage message);
+
+	TSeckillOrder getAllByNo(String orderNo, Long userId);
+
 }

@@ -232,4 +232,61 @@ public class RabbitMQConfig {
 				.to(seckillLogDlxExchange())
 				.with(RabbitConstants.SECKILL_LOG_DLX_ROUTING_KEY);
 	}
+
+	// ==================== 用户秒杀记录持久化相关配置 ====================
+
+	/**
+	 * 用户秒杀记录交换机
+	 */
+	@Bean
+	public DirectExchange seckillRecordExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_RECORD_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 用户秒杀记录队列（带死信）
+	 */
+	@Bean
+	public Queue seckillRecordQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_RECORD_QUEUE)
+				.deadLetterExchange(RabbitConstants.SECKILL_RECORD_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.SECKILL_RECORD_DLX_ROUTING_KEY)
+				.build();
+	}
+
+	/**
+	 * 用户秒杀记录交换机与队列绑定
+	 */
+	@Bean
+	public Binding seckillRecordBinding() {
+		return BindingBuilder.bind(seckillRecordQueue())
+				.to(seckillRecordExchange())
+				.with(RabbitConstants.SECKILL_RECORD_ROUTING_KEY);
+	}
+
+	/**
+	 * 用户秒杀记录死信交换机
+	 */
+	@Bean
+	public DirectExchange seckillRecordDlxExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_RECORD_DLX_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 用户秒杀记录死信队列（处理失败的消息会到这里，可以重发或人工处理）
+	 */
+	@Bean
+	public Queue seckillRecordDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_RECORD_DLX_QUEUE).build();
+	}
+
+	/**
+	 * 用户秒杀记录死信绑定
+	 */
+	@Bean
+	public Binding seckillRecordDlxBinding() {
+		return BindingBuilder.bind(seckillRecordDlxQueue())
+				.to(seckillRecordDlxExchange())
+				.with(RabbitConstants.SECKILL_RECORD_DLX_ROUTING_KEY);
+	}
 }

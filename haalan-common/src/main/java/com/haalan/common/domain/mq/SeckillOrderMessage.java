@@ -71,4 +71,10 @@ public class SeckillOrderMessage implements Serializable {
 	 * 消息创建时间
 	 */
 	private LocalDateTime createTime;
+
+
+	private String alipayProductCode;
+
+
+	private String wechatProductCode;
 }

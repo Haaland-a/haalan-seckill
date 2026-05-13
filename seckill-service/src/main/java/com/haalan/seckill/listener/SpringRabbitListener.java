@@ -1,11 +1,14 @@
 package com.haalan.seckill.listener;
 
+import com.haalan.common.domain.mq.UserSeckillRecordMessage;
 import com.haalan.common.utils.BeanUtils;
 import com.haalan.common.utils.UserContext;
 import com.haalan.seckill.config.RabbitConstants;
 import com.haalan.seckill.domain.po.SeckillUserLogMessage;
 import com.haalan.seckill.domain.po.TSeckillLog;
+import com.haalan.seckill.domain.po.UserSeckillRecord;
 import com.haalan.seckill.service.ITSeckillLogService;
+import com.haalan.seckill.service.IUserSeckillRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -17,6 +20,8 @@ import org.springframework.stereotype.Component;
 public class SpringRabbitListener {
 
 	private final ITSeckillLogService seckillLogService;
+
+	private final IUserSeckillRecordService userSeckillRecordService;
 
 	@RabbitListener(queues = RabbitConstants.SECKILL_LOG_QUEUE)
 	public void listenSimpleQueueMessage(SeckillUserLogMessage message) {
@@ -37,6 +42,30 @@ public class SpringRabbitListener {
 		} finally {
 			// 清理，防止内存泄漏
 			UserContext.removeUser();
+		}
+	}
+
+	/**
+	 * 监听用户秒杀记录消息，持久化到数据库
+	 */
+	@RabbitListener(queues = RabbitConstants.SECKILL_RECORD_QUEUE)
+	public void listenUserSeckillRecordMessage(UserSeckillRecordMessage message) {
+		log.info("接收到用户秒杀记录消息：【{}】", message);
+
+		try {
+			// 转换为实体类
+			UserSeckillRecord record = BeanUtils.toBean(message, UserSeckillRecord.class);
+
+			// 保存（内部会自动分表）
+			userSeckillRecordService.saveUserRecord(record);
+
+			log.info("用户秒杀记录保存成功, userId={}, orderNo={}",
+					message.getUserId(), message.getOrderNo());
+
+		} catch (Exception e) {
+			log.error("保存用户秒杀记录失败, userId={}, orderNo={}",
+					message.getUserId(), message.getOrderNo(), e);
+			throw e; // 重新抛出，让MQ重试
 		}
 	}
 }

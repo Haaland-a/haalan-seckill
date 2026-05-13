@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.api.client.ItemServiceClient;
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
+import com.haalan.common.utils.UserContext;
 import com.haalan.order.domain.po.TSeckillOrder;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.service.ITSeckillOrder0Service;
@@ -53,6 +54,8 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				.activityId(message.getActivityId())
 				.seckillProductId(message.getSeckillProductId())
 				.skuId(message.getSkuId())
+				.wechatProductCode(message.getWechatProductCode())
+				.alipayProductCode(message.getAlipayProductCode())
 				.productName(itemServiceClient.getCode(message.getSkuId()).getProductName())
 				.seckillPrice(message.getSeckillPrice())
 				.quantity(message.getQuantity())
@@ -65,43 +68,50 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 	@Override
 	public void setStatus(OrderTimeoutMessage message) {
-		// 1. 查询订单
-		TSeckillOrder order = this.getOne(
-				new LambdaQueryWrapper<TSeckillOrder>()
-						.eq(TSeckillOrder::getOrderNo, message.getOrderNo())
-		);
+		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
+		UserContext.setUser(message.getUserId());
+		try {
+			// 1. 查询订单
+			TSeckillOrder order = this.getOne(
+					new LambdaQueryWrapper<TSeckillOrder>()
+							.eq(TSeckillOrder::getOrderNo, message.getOrderNo())
+			);
 
-		if (order == null) {
-			log.warn("订单不存在，稍后重试: {}", message.getOrderNo());
-			throw new RuntimeException("订单不存在: " + message.getOrderNo());
+			if (order == null) {
+				log.warn("订单不存在，稍后重试: {}", message.getOrderNo());
+				throw new RuntimeException("订单不存在: " + message.getOrderNo());
+			}
+
+			// 2. 只有待支付的订单才取消
+			if (order.getStatus() != 0) {
+				log.info("订单状态不是待支付，跳过: {}, 当前状态: {}",
+						message.getOrderNo(), order.getStatus());
+				return;
+			}
+
+			// 3. 更新订单状态为已取消
+			order.setStatus(3);
+			boolean updated = this.updateById(order);
+
+			if (!updated) {
+				log.error("更新订单状态失败: {}", message.getOrderNo());
+				throw new RuntimeException("更新订单状态失败: " + message.getOrderNo());
+			}
+
+			// 4. Lua 脚本回滚（增加重试机制）
+			boolean rollbackSuccess = rollbackStockAndBuyRecordWithRetry(message, 3);
+
+			if (!rollbackSuccess) {
+				log.error("库存回滚最终失败，需要人工处理: {}", message.getOrderNo());
+				// 可以发送告警或记录到失败表
+				throw new RuntimeException("库存回滚失败: " + message.getOrderNo());
+			}
+
+			log.info("订单已超时取消: {}, 库存已回滚", message.getOrderNo());
+		} finally {
+			// 清理ThreadLocal，防止内存泄漏
+			UserContext.removeUser();
 		}
-
-		// 2. 只有待支付的订单才取消
-		if (order.getStatus() != 0) {
-			log.info("订单状态不是待支付，跳过: {}, 当前状态: {}",
-					message.getOrderNo(), order.getStatus());
-			return;
-		}
-
-		// 3. 更新订单状态为已取消
-		order.setStatus(3);
-		boolean updated = this.updateById(order);
-
-		if (!updated) {
-			log.error("更新订单状态失败: {}", message.getOrderNo());
-			throw new RuntimeException("更新订单状态失败: " + message.getOrderNo());
-		}
-
-		// 4. Lua 脚本回滚（增加重试机制）
-		boolean rollbackSuccess = rollbackStockAndBuyRecordWithRetry(message, 3);
-
-		if (!rollbackSuccess) {
-			log.error("库存回滚最终失败，需要人工处理: {}", message.getOrderNo());
-			// 可以发送告警或记录到失败表
-			throw new RuntimeException("库存回滚失败: " + message.getOrderNo());
-		}
-
-		log.info("订单已超时取消: {}, 库存已回滚", message.getOrderNo());
 	}
 
 	/**
@@ -168,5 +178,18 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 		log.info("回滚成功, orderNo={}, userId={}, productId={}, quantity={}",
 				message.getOrderNo(), message.getUserId(),
 				message.getSeckillProductId(), message.getQuantity());
+	}
+
+	@Override
+	public TSeckillOrder getAllByNo(String orderNo, Long userId) {
+		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
+		UserContext.setUser(userId);
+		try {
+			return this.getOne(new LambdaQueryWrapper<TSeckillOrder>()
+					.eq(TSeckillOrder::getOrderNo, orderNo));
+		} finally {
+			// 清理ThreadLocal，防止内存泄漏
+			UserContext.removeUser();
+		}
 	}
 }

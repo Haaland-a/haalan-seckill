@@ -3,7 +3,6 @@ package com.haalan.order.domain.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
@@ -26,7 +25,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("t_seckill_order")
+
 @Builder
 @ApiModel(value = "TSeckillOrder0对象", description = "秒杀订单表")
 public class TSeckillOrder implements Serializable {
@@ -97,5 +96,9 @@ public class TSeckillOrder implements Serializable {
 	@TableField("update_time")
 	private LocalDateTime updateTime;
 
+	@TableField("alipay_product_code")
+	private String alipayProductCode;
 
+	@TableField("wechat_product_code")
+	private String wechatProductCode;
 }

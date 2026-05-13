@@ -15,4 +15,5 @@ public interface ISeckillExecuteService {
 	 * @return 秒杀结果
 	 */
 	SeckillResultVO queryResult(String requestId);
+
 }

@@ -18,3 +18,4 @@ spring:
           - dataId: share-redis.yaml
           - dataId: share-seata.yaml
           - dataId: rabbit.yaml
+          - dataId: share-pay.yaml

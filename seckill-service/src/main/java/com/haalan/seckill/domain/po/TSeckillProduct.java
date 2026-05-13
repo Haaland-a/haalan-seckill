@@ -91,5 +91,10 @@ public class TSeckillProduct implements Serializable {
 	@TableField("update_time")
 	private LocalDateTime updateTime;
 
+	@TableField("alipay_product_code")
+	private String alipayProductCode;
+
+	@TableField("wechat_product_code")
+	private String wechatProductCode;
 
 }

@@ -64,5 +64,20 @@ public class RabbitConstants {
 	public static final String SECKILL_LOG_DLX_QUEUE = "seckill.log.dlx.queue";
 	// 日志死信路由
 	public static final String SECKILL_LOG_DLX_ROUTING_KEY = "seckill.log.dlx";
+
+	// ==================== 用户秒杀记录持久化相关 ====================
+	// 交换机
+	public static final String SECKILL_RECORD_EXCHANGE = "seckill.record.exchange";
+	// 队列
+	public static final String SECKILL_RECORD_QUEUE = "seckill.record.queue";
+	// 路由
+	public static final String SECKILL_RECORD_ROUTING_KEY = "seckill.record";
+
+	// 用户秒杀记录死信交换机
+	public static final String SECKILL_RECORD_DLX_EXCHANGE = "seckill.record.dlx.exchange";
+	// 用户秒杀记录死信队列
+	public static final String SECKILL_RECORD_DLX_QUEUE = "seckill.record.dlx.queue";
+	// 用户秒杀记录死信路由
+	public static final String SECKILL_RECORD_DLX_ROUTING_KEY = "seckill.record.dlx";
 }
 
