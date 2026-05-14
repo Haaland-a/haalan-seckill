@@ -13,7 +13,10 @@ spring:
         max-idle: 8
         min-idle: 0
         max-wait: -1ms
-
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.cloud.loadbalancer: DEBUG
 
 server:
   port: 8080

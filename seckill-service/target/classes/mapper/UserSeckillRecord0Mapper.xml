@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.haalan.seckill.mapper.UserSeckillRecordMapper">
+
+    <!-- 分页查询用户秒杀记录（支持分表） -->
+    <select id="selectPageByUserId" resultType="com.haalan.seckill.domain.po.UserSeckillRecord">
+        SELECT *
+        FROM ${tableName}
+        WHERE user_id = #{userId}
+          AND is_deleted = 0
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 插入用户秒杀记录（支持分表） -->
+    <insert id="insertUserRecord">
+        INSERT INTO ${tableName} (
+            order_no, user_id, activity_id, activity_name,
+            product_id, product_name, product_image,
+            seckill_price, quantity, status,
+            create_time, pay_expire_time, update_time, is_deleted
+        ) VALUES (
+            #{record.orderNo}, #{record.userId}, #{record.activityId}, #{record.activityName},
+            #{record.productId}, #{record.productName}, #{record.productImage},
+            #{record.seckillPrice}, #{record.quantity}, #{record.status},
+            #{record.createTime}, #{record.payExpireTime}, NOW(), 0
+        )
+    </insert>
+
+</mapper>

@@ -88,6 +88,10 @@ public class TSeckillOrder implements Serializable {
 	@TableField("cancel_time")
 	private LocalDateTime cancelTime;
 
+	@ApiModelProperty(value = "取消原因")
+	@TableField("cancel_reason")
+	private String cancelReason;
+
 	@ApiModelProperty(value = "创建时间")
 	@TableField("create_time")
 	private LocalDateTime createTime;

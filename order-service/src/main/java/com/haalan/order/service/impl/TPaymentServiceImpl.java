@@ -1,10 +1,17 @@
 package com.haalan.order.service.impl;
 
 import cn.hutool.core.util.IdUtil;
-import com.alipay.easysdk.payment.page.models.AlipayTradePagePayResponse;
+import com.alipay.api.AlipayApiException;
+import com.alipay.api.AlipayClient;
+import com.alipay.api.AlipayConfig;
+import com.alipay.api.DefaultAlipayClient;
+import com.alipay.api.domain.AlipayTradePagePayModel;
+import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.order.config.AlipayProperties;
+import com.haalan.order.config.MQProperties;
 import com.haalan.order.domain.dto.PayRequestDTO;
 import com.haalan.order.domain.po.TPayment;
 import com.haalan.order.domain.po.TSeckillOrder;
@@ -21,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 /**
@@ -41,6 +49,9 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 
 	@Resource
 	private AlipayProperties alipayProperties;
+
+	@Resource
+	private MQProperties mqProperties;
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -143,36 +154,63 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	private String generateAlipayPayUrl(Long userId, String orderNo, String productName, BigDecimal payAmount) {
 		try {
 			// 1. 初始化支付宝客户端
-			AlipayClient alipayClient = new DefaultAlipayClient(
-					alipayProperties.getServerUrl(),
-					alipayProperties.getAppId(),
-					alipayProperties.getPrivateKey(),
-					alipayProperties.getFormat(),
-					alipayProperties.getCharset(),
-					alipayProperties.getAlipayPublicKey(),
-					alipayProperties.getSignType()
-			);
+			AlipayConfig config = new AlipayConfig();
+
+			config.setServerUrl(alipayProperties.getServerUrl());
+			config.setAppId(alipayProperties.getAppId());
+			config.setPrivateKey(alipayProperties.getPrivateKey());
+			config.setFormat("json");
+			config.setCharset("UTF-8");
+			config.setAlipayPublicKey(alipayProperties.getAlipayPublicKey());
+			config.setSignType("RSA2");
+
+			AlipayClient alipayClient = new DefaultAlipayClient(config);
+
+
+			System.out.println(alipayProperties.getPrivateKey());
+			System.out.println(alipayProperties.getAlipayPublicKey());
+
 
 			// 2. 创建请求对象
 			AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
-			request.setNotifyUrl(alipayProperties.getNotifyUrl());
-			request.setReturnUrl(alipayProperties.getReturnUrl());
 
 			// 3. 设置业务参数
 			AlipayTradePagePayModel model = new AlipayTradePagePayModel();
 			model.setOutTradeNo(orderNo); // 商户订单号
+			// 订单金额精确到两位小数
+			payAmount = payAmount.setScale(2, RoundingMode.HALF_UP);
 			model.setTotalAmount(payAmount.toString()); // 订单金额
-			model.setSubject(productName); // 订单标题
+
+			String productNameResult = productName.replaceAll("[^a-zA-Z0-9_]", "");
+
+			model.setSubject(productNameResult); // 订单标题
 			//从数据库获取
 			TSeckillOrder allByNo = seckillOrderService.getAllByNo(orderNo, userId);
 			String alipayProductCode = allByNo.getAlipayProductCode();
-			model.setProductCode(alipayProductCode); // 销售产品码
-			model.setTimeoutExpress("15m"); // 超时时间
+			model.setProductCode(alipayProductCode != null ? alipayProductCode : "FAST_INSTANT_TRADE_PAY"); // 销售产品码
+			model.setQrPayMode("1"); // PC扫码支付模式
+			Integer timeOut = mqProperties.getTimeOut();
+			// 超时时间
+			String timeoutExpress = timeOut != null ? String.valueOf(timeOut / 1000 / 60) + "m" : "30m";
+			model.setTimeoutExpress(timeoutExpress); // 超时时间
+
+//			// 设置商品详情（可选，但建议设置）
+//			List<GoodsDetail> goodsDetailList = new ArrayList<>();
+//			GoodsDetail goodsDetail = new GoodsDetail();
+//			goodsDetail.setGoodsName(productName);
+//			goodsDetail.setQuantity(1L);
+//			goodsDetail.setPrice(payAmount.toString());
+//			// 如果有skuId可以设置
+//			if (allByNo.getSkuId() != null) {
+//				goodsDetail.setOutSkuId(String.valueOf(allByNo.getSkuId()));
+//			}
+//			goodsDetailList.add(goodsDetail);
+//			model.setGoodsDetail(goodsDetailList);
 
 			request.setBizModel(model);
 
 			// 4. 执行请求，获取表单HTML
-			AlipayTradePagePayResponse response = alipayClient.pageExecute(request, "POST");
+			AlipayTradePagePayResponse response = alipayClient.pageExecute(request, "GET");
 
 			if (response.isSuccess()) {
 				log.info("支付宝支付表单生成成功, orderNo={}", orderNo);

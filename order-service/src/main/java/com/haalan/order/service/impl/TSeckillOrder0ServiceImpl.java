@@ -5,19 +5,22 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.api.client.ItemServiceClient;
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
+import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.UserContext;
 import com.haalan.order.domain.po.TSeckillOrder;
+import com.haalan.order.domain.vo.CancelOrderResponseVO;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
+import com.haalan.order.service.IMessagePushService;
 import com.haalan.order.service.ITSeckillOrder0Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,8 +37,8 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 	public static final String SECKILL_USER_LIMIT_PREFIX = "seckill:limit:";
 	public static final String SECKILL_ACTIVITY_LIMIT_PREFIX = "seckill:limit:activity:";
 
-	private final RedisTemplate<String, Object> redisTemplate;
 	private final StringRedisTemplate stringRedisTemplate;
+	private final IMessagePushService messagePushService;
 
 	private static final DefaultRedisScript<Long> ROLLBACK_SCRIPT = new DefaultRedisScript<>();
 
@@ -60,6 +63,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				.seckillPrice(message.getSeckillPrice())
 				.quantity(message.getQuantity())
 				.totalAmount(message.getTotalAmount())
+				.orderTime(message.getCreateTime())
 				.status(0)
 				.createTime(message.getCreateTime())
 				.build();
@@ -79,6 +83,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 			if (order == null) {
 				log.warn("订单不存在，稍后重试: {}", message.getOrderNo());
+				// 不存在重发, 等待下次重试 ,不回滚防止超卖
 				throw new RuntimeException("订单不存在: " + message.getOrderNo());
 			}
 
@@ -91,6 +96,8 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 			// 3. 更新订单状态为已取消
 			order.setStatus(3);
+			order.setCancelTime(LocalDateTime.now());
+			order.setCancelReason("订单超时取消");
 			boolean updated = this.updateById(order);
 
 			if (!updated) {
@@ -187,6 +194,77 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 		try {
 			return this.getOne(new LambdaQueryWrapper<TSeckillOrder>()
 					.eq(TSeckillOrder::getOrderNo, orderNo));
+		} finally {
+			// 清理ThreadLocal，防止内存泄漏
+			UserContext.removeUser();
+		}
+	}
+
+	@Override
+	public CancelOrderResponseVO cancelOrder(String orderNo, Long userId, String cancelReason) {
+		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
+		UserContext.setUser(userId);
+		try {
+			// 1. 查询订单
+			TSeckillOrder order = this.getOne(
+					new LambdaQueryWrapper<TSeckillOrder>()
+							.eq(TSeckillOrder::getOrderNo, orderNo)
+			);
+
+			if (order == null) {
+				throw new BizIllegalException("订单不存在");
+			}
+
+			// 2. 验证用户权限
+			if (!order.getUserId().equals(userId)) {
+				throw new BizIllegalException("无权操作此订单");
+			}
+
+			// 3. 只有待支付的订单才能取消
+			if (order.getStatus() != 0) {
+				throw new BizIllegalException("订单状态异常，无法取消");
+			}
+
+			// 4. 更新订单状态为已取消（状态2）
+			order.setStatus(2);
+			order.setCancelReason(cancelReason);
+			order.setCancelTime(LocalDateTime.now());
+			boolean updated = this.updateById(order);
+
+			if (!updated) {
+				log.error("更新订单状态失败: {}", orderNo);
+				throw new BizIllegalException("取消订单失败");
+			}
+
+			// 5. 回滚库存和购买记录
+			OrderTimeoutMessage message = OrderTimeoutMessage.builder()
+					.orderNo(orderNo)
+					.userId(userId)
+					.activityId(order.getActivityId())
+					.seckillProductId(order.getSeckillProductId())
+					.quantity(order.getQuantity())
+					.build();
+
+			boolean rollbackSuccess = rollbackStockAndBuyRecordWithRetry(message, 3);
+
+			if (!rollbackSuccess) {
+				log.error("库存回滚最终失败，需要人工处理: {}", orderNo);
+				throw new BizIllegalException("库存回滚失败，请联系客服");
+			}
+
+			log.info("订单已取消: {}, 原因: {}, 库存已回滚", orderNo, cancelReason);
+
+			// 6. 推送WebSocket消息通知客户端
+			CancelOrderResponseVO response = CancelOrderResponseVO.builder()
+					.orderNo(orderNo)
+					.status(2)
+					.statusName("已取消")
+					.build();
+			messagePushService.pushOrderCancel(userId, response);
+
+			// 7. 返回响应
+			return response;
+
 		} finally {
 			// 清理ThreadLocal，防止内存泄漏
 			UserContext.removeUser();

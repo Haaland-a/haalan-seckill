@@ -5,13 +5,11 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.AlipayConfig;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.domain.AlipayTradePagePayModel;
-import com.alipay.api.domain.GoodsDetail;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.response.AlipayTradePagePayResponse;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-
+@Slf4j
 public class AlipayTradePagePay {
 
 	public static void main(String[] args) throws AlipayApiException {
@@ -28,7 +26,7 @@ public class AlipayTradePagePay {
 		AlipayClient alipayClient = new DefaultAlipayClient(alipayConfig);
 		AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
 		AlipayTradePagePayModel model = new AlipayTradePagePayModel();
-		model.setOutTradeNo("20150320010101001");
+		model.setOutTradeNo("201503200101012001");
 		model.setTotalAmount("88.88");
 		model.setSubject("Iphone6 16G");
 		model.setProductCode("FAST_INSTANT_TRADE_PAY");
@@ -36,21 +34,21 @@ public class AlipayTradePagePay {
 		// 设置PC扫码支付的方式
 		model.setQrPayMode("1");
 
-		// 设置订单包含的商品列表信息
-		List<GoodsDetail> goodsDetail = new ArrayList<GoodsDetail>();
-		GoodsDetail goodsDetail0 = new GoodsDetail();
-		goodsDetail0.setOutSkuId("outSku_01");
-		goodsDetail0.setGoodsName("ipad");
-		goodsDetail0.setAlipayGoodsId("20010001");
-		goodsDetail0.setQuantity(1L);
-		goodsDetail0.setPrice("2000");
-		goodsDetail0.setOutItemId("outItem_01");
-		goodsDetail0.setGoodsId("apple-01");
-		goodsDetail0.setGoodsCategory("34543238");
-		goodsDetail0.setCategoriesTree("124868003|126232002|126252004");
-		goodsDetail0.setShowUrl("http://www.alipay.com/xxx.jpg");
-		goodsDetail.add(goodsDetail0);
-		model.setGoodsDetail(goodsDetail);
+//		// 设置订单包含的商品列表信息
+//		List<GoodsDetail> goodsDetail = new ArrayList<GoodsDetail>();
+//		GoodsDetail goodsDetail0 = new GoodsDetail();
+//		goodsDetail0.setOutSkuId("outSku_01");
+//		goodsDetail0.setGoodsName("ipad");
+//		goodsDetail0.setAlipayGoodsId("20010001");
+//		goodsDetail0.setQuantity(1L);
+//		goodsDetail0.setPrice("2000");
+//		goodsDetail0.setOutItemId("outItem_01");
+//		goodsDetail0.setGoodsId("apple-01");
+//		goodsDetail0.setGoodsCategory("34543238");
+//		goodsDetail0.setCategoriesTree("124868003|126232002|126252004");
+//		goodsDetail0.setShowUrl("http://www.alipay.com/xxx.jpg");
+//		goodsDetail.add(goodsDetail0);
+//		model.setGoodsDetail(goodsDetail);
 
 		// 推荐：相对超时时间（单位：分钟）
 		model.setTimeoutExpress("30m");
@@ -62,6 +60,12 @@ public class AlipayTradePagePay {
 		String pageRedirectionData = response.getBody();
 		System.out.println(pageRedirectionData);
 		if (response.isSuccess()) {
+			log.error("支付宝返回: code={}, msg={}, subCode={}, subMsg={}, body={}",
+					response.getCode(),
+					response.getMsg(),
+					response.getSubCode(),
+					response.getSubMsg(),
+					response.getBody());
 			System.out.println("调用成功");
 		} else {
 			System.out.println("调用失败");

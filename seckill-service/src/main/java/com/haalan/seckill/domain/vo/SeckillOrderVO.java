@@ -43,9 +43,4 @@ public class SeckillOrderVO implements Serializable {
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private LocalDateTime payExpireTime;
 
-	@ApiModelProperty(value = "订单状态：0-待支付")
-	private Integer status;
-
-	@ApiModelProperty(value = "订单状态描述")
-	private String statusName;
 }

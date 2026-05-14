@@ -112,12 +112,12 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 
 			// ============ 第五层：验证活动状态 ============
 			validateActivity(activityId, activity);
+//lua原子脚本还会再做一遍
+			// ============ 第六层：验证商品状态 ============冗余
+			//	validateProduct(activityId, seckillProductId);
 
-			// ============ 第六层：验证商品状态 ============
-			validateProduct(activityId, seckillProductId);
-
-			// ============ 第七层：验证用户购买限制 ============
-			checkUserPurchaseLimit(userId, activityId, seckillProductId, quantity);
+			// ============ 第七层：验证用户购买限制 ============冗余
+			//	checkUserPurchaseLimit(userId, activityId, seckillProductId, quantity);
 
 			// ============ 第八层：原子性库存扣减 ============
 			Long stockResult = executeStockDecrement(activityId, seckillProductId, userId, quantity);
@@ -398,8 +398,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				.quantity(request.getQuantity())
 				.totalAmount(totalAmount)
 				.payExpireTime(payExpireTime)
-				.status(0)
-				.statusName("待支付")
 				.build();
 
 		// 缓存预订单信息（用于轮询查询）- 使用Hash结构
@@ -436,8 +434,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 		orderMap.put("quantity", String.valueOf(orderVO.getQuantity()));
 		orderMap.put("totalAmount", orderVO.getTotalAmount().toString());
 		orderMap.put("payExpireTime", orderVO.getPayExpireTime().toString());
-		orderMap.put("status", String.valueOf(orderVO.getStatus()));
-		orderMap.put("statusName", orderVO.getStatusName());
+
 		return orderMap;
 	}
 
@@ -492,7 +489,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			// 缓存不存在时，返回基本信息
 			SeckillOrderVO basicOrder = SeckillOrderVO.builder()
 					.orderNo(orderNo)
-					.statusName("待支付")
+
 					.build();
 			return SeckillExecuteResultVO.builder()
 					.success(true)
@@ -829,8 +826,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				.quantity(quantity)
 				.totalAmount(totalAmount)
 				.payExpireTime(payExpireTime)
-				.status(0)
-				.statusName("待支付")
 				.build();
 
 		redisTemplate.opsForValue().set(
@@ -860,7 +855,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 	private SeckillExecuteResultVO buildDuplicateResult(String orderNo) {
 		SeckillOrderVO orderVO = SeckillOrderVO.builder()
 				.orderNo(orderNo)
-				.statusName("待支付")
+
 				.build();
 
 		return SeckillExecuteResultVO.builder()
@@ -888,9 +883,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 						new BigDecimal(orderHash.get("totalAmount").toString()) : null)
 				.payExpireTime(orderHash.get("payExpireTime") != null ?
 						LocalDateTime.parse(orderHash.get("payExpireTime").toString()) : null)
-				.status(orderHash.get("status") != null ?
-						Integer.parseInt(orderHash.get("status").toString()) : null)
-				.statusName(orderHash.get("statusName") != null ? orderHash.get("statusName").toString() : null)
 				.build();
 	}
 
@@ -946,7 +938,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			if (orderInfo == null) {
 				orderInfo = SeckillOrderVO.builder()
 						.orderNo(orderNo)
-						.statusName("待支付")
 						.build();
 			}
 
