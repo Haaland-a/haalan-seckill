@@ -1,212 +1,73 @@
-11:18:21:138  INFO 10192 --- [main] com.haalan.user.UserApplication          : The following 1 profile is active: "local"
-11:18:23:910  INFO 10192 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-11:18:23:922  INFO 10192 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-11:18:24:049  INFO 10192 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 70 ms. Found 0 Redis repository interfaces.
-11:18:24:776  INFO 10192 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=442e8177-192b-35d0-9e82-8af7fa1e79c6
-11:18:26:554  INFO 10192 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
-11:18:26:596  INFO 10192 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-11:18:26:597  INFO 10192 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
-11:18:27:204  INFO 10192 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-11:18:27:205  INFO 10192 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 5962 ms
-11:18:35:499  INFO 10192 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-11:18:38:317  INFO 10192 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
-11:18:38:357  INFO 10192 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
-11:18:44:754  INFO 10192 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-11:18:45:300  INFO 10192 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
-11:18:45:348  INFO 10192 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
-11:18:45:349  INFO 10192 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
-11:18:45:526  INFO 10192 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP user-service 192.168.131.1:8082 register finished
-11:18:48:210  INFO 10192 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-11:18:48:212  INFO 10192 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
-11:18:48:218  INFO 10192 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
-11:18:48:330  INFO 10192 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
-11:18:48:732  INFO 10192 --- [main] com.haalan.user.UserApplication          : Started UserApplication in 44.19 seconds (JVM running for 47.933)
-11:18:48:777  INFO 10192 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service.yaml, group=DEFAULT_GROUP
-11:18:48:779  INFO 10192 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service-local.yaml, group=DEFAULT_GROUP
-11:18:48:782  INFO 10192 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service, group=DEFAULT_GROUP
-12:28:22:256  WARN 10192 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
-12:28:22:256  WARN 10192 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
-12:28:22:276  WARN 10192 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
-12:28:22:290  WARN 10192 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
-12:28:22:688  INFO 10192 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
-12:28:22:721  INFO 10192 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
-12:28:49:411  INFO 25564 --- [main] com.haalan.user.UserApplication          : The following 1 profile is active: "local"
-12:28:50:717  INFO 25564 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-12:28:50:723  INFO 25564 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-12:28:50:768  INFO 25564 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 0 Redis repository interfaces.
-12:28:51:171  INFO 25564 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=442e8177-192b-35d0-9e82-8af7fa1e79c6
-12:28:52:044  INFO 25564 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
-12:28:52:062  INFO 25564 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-12:28:52:062  INFO 25564 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
-12:28:52:382  INFO 25564 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-12:28:52:382  INFO 25564 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2943 ms
-12:28:56:882  INFO 25564 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-12:28:58:107  INFO 25564 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
-12:28:58:128  INFO 25564 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
-12:29:00:330  INFO 25564 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-12:29:00:649  INFO 25564 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
-12:29:00:679  INFO 25564 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
-12:29:00:680  INFO 25564 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
-12:29:00:846  INFO 25564 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP user-service 192.168.131.1:8082 register finished
-12:29:02:834  INFO 25564 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-12:29:02:834  INFO 25564 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
-12:29:02:839  INFO 25564 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
-12:29:02:875  INFO 25564 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
-12:29:03:036  INFO 25564 --- [main] com.haalan.user.UserApplication          : Started UserApplication in 22.849 seconds (JVM running for 24.204)
-12:29:03:060  INFO 25564 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service.yaml, group=DEFAULT_GROUP
-12:29:03:061  INFO 25564 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service-local.yaml, group=DEFAULT_GROUP
-12:29:03:062  INFO 25564 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service, group=DEFAULT_GROUP
-14:10:06:193  WARN 25564 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
-14:10:06:193  WARN 25564 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
-14:10:06:232  WARN 25564 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
-14:10:06:274  WARN 25564 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
-14:10:07:000  INFO 25564 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
-14:10:10:099 ERROR 25564 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : ERR_NACOS_DEREGISTER, de-register failed...NacosRegistration{nacosDiscoveryProperties=NacosDiscoveryProperties{serverAddr='192.168.100.133:8848', username='', password='', endpoint='', namespace='', watchDelay=30000, logName='', service='user-service', weight=1.0, clusterName='DEFAULT', group='DEFAULT_GROUP', namingLoadCacheAtStart='false', metadata={IPv6=null, preserved.register.source=SPRING_CLOUD}, registerEnabled=true, ip='192.168.131.1', networkInterface='', port=8082, secure=false, accessKey='', secretKey='', heartBeatInterval=null, heartBeatTimeout=null, ipDeleteTimeout=null, instanceEnabled=true, ephemeral=true, failureToleranceEnabled=false}, ipDeleteTimeout=null, failFast=true}},
-
-com.alibaba.nacos.api.exception.NacosException: java.util.concurrent.TimeoutException: Waited 3000 milliseconds (plus 12 milliseconds, 289500 nanoseconds delay) for com.alibaba.nacos.shaded.io.grpc.stub.ClientCalls$GrpcFuture@723b3f41[status=PENDING, info=[GrpcFuture{clientCall=ClientCallImpl{method=MethodDescriptor{fullMethodName=Request/request, type=UNARY, idempotent=false, safe=false, sampledToLocalTracing=true, requestMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@53fc5c5c, responseMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@1571a47f, schemaDescriptor=com.alibaba.nacos.api.grpc.auto.RequestGrpc$RequestMethodDescriptorSupplier@5e152b81}}}]]
-	at com.alibaba.nacos.common.remote.client.grpc.GrpcConnection.request(GrpcConnection.java:78) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:641) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:619) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.requestToServer(NamingGrpcClientProxy.java:356) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.doDeregisterService(NamingGrpcClientProxy.java:233) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.deregisterService(NamingGrpcClientProxy.java:219) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.NamingClientProxyDelegate.deregisterService(NamingClientProxyDelegate.java:125) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.NacosNamingService.deregisterInstance(NacosNamingService.java:201) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.NacosNamingService.deregisterInstance(NacosNamingService.java:191) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.cloud.nacos.registry.NacosServiceRegistry.deregister(NacosServiceRegistry.java:107) ~[spring-cloud-starter-alibaba-nacos-discovery-2021.0.5.0.jar:2021.0.5.0]
-	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.deregister(AbstractAutoServiceRegistration.java:249) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
-	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.stop(AbstractAutoServiceRegistration.java:264) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
-	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.destroy(AbstractAutoServiceRegistration.java:201) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement.invoke(InitDestroyAnnotationBeanPostProcessor.java:389) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeDestroyMethods(InitDestroyAnnotationBeanPostProcessor.java:347) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeDestruction(InitDestroyAnnotationBeanPostProcessor.java:177) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DisposableBeanAdapter.destroy(DisposableBeanAdapter.java:197) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroyBean(DefaultSingletonBeanRegistry.java:587) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroySingleton(DefaultSingletonBeanRegistry.java:559) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.destroySingleton(DefaultListableBeanFactory.java:1163) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroySingletons(DefaultSingletonBeanRegistry.java:520) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.destroySingletons(DefaultListableBeanFactory.java:1156) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.context.support.AbstractApplicationContext.destroyBeans(AbstractApplicationContext.java:1108) ~[spring-context-5.3.27.jar:5.3.27]
-	at org.springframework.context.support.AbstractApplicationContext.doClose(AbstractApplicationContext.java:1077) ~[spring-context-5.3.27.jar:5.3.27]
-	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.doClose(ServletWebServerApplicationContext.java:174) ~[spring-boot-2.7.12.jar:2.7.12]
-	at org.springframework.context.support.AbstractApplicationContext.close(AbstractApplicationContext.java:1023) ~[spring-context-5.3.27.jar:5.3.27]
-	at org.springframework.boot.SpringApplicationShutdownHook.closeAndWait(SpringApplicationShutdownHook.java:145) ~[spring-boot-2.7.12.jar:2.7.12]
-	at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[na:na]
-	at org.springframework.boot.SpringApplicationShutdownHook.run(SpringApplicationShutdownHook.java:114) ~[spring-boot-2.7.12.jar:2.7.12]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: java.util.concurrent.TimeoutException: Waited 3000 milliseconds (plus 12 milliseconds, 289500 nanoseconds delay) for com.alibaba.nacos.shaded.io.grpc.stub.ClientCalls$GrpcFuture@723b3f41[status=PENDING, info=[GrpcFuture{clientCall=ClientCallImpl{method=MethodDescriptor{fullMethodName=Request/request, type=UNARY, idempotent=false, safe=false, sampledToLocalTracing=true, requestMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@53fc5c5c, responseMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@1571a47f, schemaDescriptor=com.alibaba.nacos.api.grpc.auto.RequestGrpc$RequestMethodDescriptorSupplier@5e152b81}}}]]
-	at com.alibaba.nacos.shaded.com.google.common.util.concurrent.AbstractFuture.get(AbstractFuture.java:508) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.common.remote.client.grpc.GrpcConnection.request(GrpcConnection.java:76) ~[nacos-client-2.2.0.jar:na]
-	... 33 common frames omitted
-
-14:10:10:103  INFO 25564 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
-14:31:01:154  INFO 24992 --- [main] com.haalan.user.UserApplication          : The following 1 profile is active: "local"
-14:31:03:749  INFO 24992 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-14:31:03:764  INFO 24992 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-14:31:03:853  INFO 24992 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 44 ms. Found 0 Redis repository interfaces.
-14:31:04:744  INFO 24992 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=442e8177-192b-35d0-9e82-8af7fa1e79c6
-14:31:06:831  INFO 24992 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
-14:31:06:871  INFO 24992 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-14:31:06:872  INFO 24992 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
-14:31:07:485  INFO 24992 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-14:31:07:486  INFO 24992 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 6252 ms
-14:31:16:133  INFO 24992 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-14:31:18:317  INFO 24992 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
-14:31:18:352  INFO 24992 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
-14:31:21:575  INFO 24992 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-14:31:22:065  INFO 24992 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
-14:31:22:110  INFO 24992 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
-14:31:22:111  INFO 24992 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
-14:31:22:305  INFO 24992 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP user-service 192.168.131.1:8082 register finished
-14:31:25:566  INFO 24992 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-14:31:25:570  INFO 24992 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
-14:31:25:581  INFO 24992 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
-14:31:25:686  INFO 24992 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
-14:31:26:085  INFO 24992 --- [main] com.haalan.user.UserApplication          : Started UserApplication in 39.582 seconds (JVM running for 42.805)
-14:31:26:143  INFO 24992 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service.yaml, group=DEFAULT_GROUP
-14:31:26:150  INFO 24992 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service-local.yaml, group=DEFAULT_GROUP
-14:31:26:155  INFO 24992 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service, group=DEFAULT_GROUP
-14:35:31:473  WARN 24992 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
-14:35:31:473  WARN 24992 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
-14:35:31:482  WARN 24992 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
-14:35:31:494  WARN 24992 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
-14:35:31:901  INFO 24992 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
-14:35:31:915  INFO 24992 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
-15:51:41:163  INFO 33012 --- [main] com.haalan.user.UserApplication          : The following 1 profile is active: "local"
-15:51:42:821  INFO 33012 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
-15:51:42:827  INFO 33012 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
-15:51:42:887  INFO 33012 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29 ms. Found 0 Redis repository interfaces.
-15:51:43:341  INFO 33012 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=442e8177-192b-35d0-9e82-8af7fa1e79c6
-15:51:44:242  INFO 33012 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
-15:51:44:265  INFO 33012 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-15:51:44:266  INFO 33012 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
-15:51:44:562  INFO 33012 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-15:51:44:562  INFO 33012 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3365 ms
-15:51:49:944  INFO 33012 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-15:51:51:252  INFO 33012 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
-15:51:51:269  INFO 33012 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
-15:51:53:389  INFO 33012 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-15:51:53:673  INFO 33012 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
-15:51:53:701  INFO 33012 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
-15:51:53:701  INFO 33012 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
-15:51:53:853  INFO 33012 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP user-service 192.168.131.1:8082 register finished
-15:51:55:801  INFO 33012 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
-15:51:55:804  INFO 33012 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
-15:51:55:812  INFO 33012 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
-15:51:55:862  INFO 33012 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
-15:51:56:050  INFO 33012 --- [main] com.haalan.user.UserApplication          : Started UserApplication in 23.276 seconds (JVM running for 25.179)
-15:51:56:078  INFO 33012 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service.yaml, group=DEFAULT_GROUP
-15:51:56:079  INFO 33012 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service-local.yaml, group=DEFAULT_GROUP
-15:51:56:081  INFO 33012 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service, group=DEFAULT_GROUP
-18:06:08:063  WARN 33012 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
-18:06:08:063  WARN 33012 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
-18:06:08:127  WARN 33012 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
-18:06:08:205  WARN 33012 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
-18:06:08:887  INFO 33012 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
-18:06:12:010 ERROR 33012 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : ERR_NACOS_DEREGISTER, de-register failed...NacosRegistration{nacosDiscoveryProperties=NacosDiscoveryProperties{serverAddr='192.168.100.133:8848', username='', password='', endpoint='', namespace='', watchDelay=30000, logName='', service='user-service', weight=1.0, clusterName='DEFAULT', group='DEFAULT_GROUP', namingLoadCacheAtStart='false', metadata={IPv6=null, preserved.register.source=SPRING_CLOUD}, registerEnabled=true, ip='192.168.131.1', networkInterface='', port=8082, secure=false, accessKey='', secretKey='', heartBeatInterval=null, heartBeatTimeout=null, ipDeleteTimeout=null, instanceEnabled=true, ephemeral=true, failureToleranceEnabled=false}, ipDeleteTimeout=null, failFast=true}},
-
-com.alibaba.nacos.api.exception.NacosException: java.util.concurrent.TimeoutException: Waited 3000 milliseconds (plus 13 milliseconds, 964100 nanoseconds delay) for com.alibaba.nacos.shaded.io.grpc.stub.ClientCalls$GrpcFuture@2a6d0bba[status=PENDING, info=[GrpcFuture{clientCall=ClientCallImpl{method=MethodDescriptor{fullMethodName=Request/request, type=UNARY, idempotent=false, safe=false, sampledToLocalTracing=true, requestMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@64dcce4b, responseMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@6ec7372d, schemaDescriptor=com.alibaba.nacos.api.grpc.auto.RequestGrpc$RequestMethodDescriptorSupplier@784483a0}}}]]
-	at com.alibaba.nacos.common.remote.client.grpc.GrpcConnection.request(GrpcConnection.java:78) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:641) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:619) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.requestToServer(NamingGrpcClientProxy.java:356) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.doDeregisterService(NamingGrpcClientProxy.java:233) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.deregisterService(NamingGrpcClientProxy.java:219) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.remote.NamingClientProxyDelegate.deregisterService(NamingClientProxyDelegate.java:125) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.NacosNamingService.deregisterInstance(NacosNamingService.java:201) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.client.naming.NacosNamingService.deregisterInstance(NacosNamingService.java:191) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.cloud.nacos.registry.NacosServiceRegistry.deregister(NacosServiceRegistry.java:107) ~[spring-cloud-starter-alibaba-nacos-discovery-2021.0.5.0.jar:2021.0.5.0]
-	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.deregister(AbstractAutoServiceRegistration.java:249) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
-	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.stop(AbstractAutoServiceRegistration.java:264) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
-	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.destroy(AbstractAutoServiceRegistration.java:201) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:na]
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77) ~[na:na]
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:568) ~[na:na]
-	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleElement.invoke(InitDestroyAnnotationBeanPostProcessor.java:389) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeDestroyMethods(InitDestroyAnnotationBeanPostProcessor.java:347) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeDestruction(InitDestroyAnnotationBeanPostProcessor.java:177) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DisposableBeanAdapter.destroy(DisposableBeanAdapter.java:197) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroyBean(DefaultSingletonBeanRegistry.java:587) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroySingleton(DefaultSingletonBeanRegistry.java:559) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.destroySingleton(DefaultListableBeanFactory.java:1163) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.destroySingletons(DefaultSingletonBeanRegistry.java:520) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.destroySingletons(DefaultListableBeanFactory.java:1156) ~[spring-beans-5.3.27.jar:5.3.27]
-	at org.springframework.context.support.AbstractApplicationContext.destroyBeans(AbstractApplicationContext.java:1108) ~[spring-context-5.3.27.jar:5.3.27]
-	at org.springframework.context.support.AbstractApplicationContext.doClose(AbstractApplicationContext.java:1077) ~[spring-context-5.3.27.jar:5.3.27]
-	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.doClose(ServletWebServerApplicationContext.java:174) ~[spring-boot-2.7.12.jar:2.7.12]
-	at org.springframework.context.support.AbstractApplicationContext.close(AbstractApplicationContext.java:1023) ~[spring-context-5.3.27.jar:5.3.27]
-	at org.springframework.boot.SpringApplicationShutdownHook.closeAndWait(SpringApplicationShutdownHook.java:145) ~[spring-boot-2.7.12.jar:2.7.12]
-	at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[na:na]
-	at org.springframework.boot.SpringApplicationShutdownHook.run(SpringApplicationShutdownHook.java:114) ~[spring-boot-2.7.12.jar:2.7.12]
-	at java.base/java.lang.Thread.run(Thread.java:842) ~[na:na]
-Caused by: java.util.concurrent.TimeoutException: Waited 3000 milliseconds (plus 13 milliseconds, 964100 nanoseconds delay) for com.alibaba.nacos.shaded.io.grpc.stub.ClientCalls$GrpcFuture@2a6d0bba[status=PENDING, info=[GrpcFuture{clientCall=ClientCallImpl{method=MethodDescriptor{fullMethodName=Request/request, type=UNARY, idempotent=false, safe=false, sampledToLocalTracing=true, requestMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@64dcce4b, responseMarshaller=com.alibaba.nacos.shaded.io.grpc.protobuf.lite.ProtoLiteUtils$MessageMarshaller@6ec7372d, schemaDescriptor=com.alibaba.nacos.api.grpc.auto.RequestGrpc$RequestMethodDescriptorSupplier@784483a0}}}]]
-	at com.alibaba.nacos.shaded.com.google.common.util.concurrent.AbstractFuture.get(AbstractFuture.java:508) ~[nacos-client-2.2.0.jar:na]
-	at com.alibaba.nacos.common.remote.client.grpc.GrpcConnection.request(GrpcConnection.java:76) ~[nacos-client-2.2.0.jar:na]
-	... 33 common frames omitted
-
-18:06:12:012  INFO 33012 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+12:09:40:796  INFO 11420 --- [main] com.haalan.user.UserApplication          : The following 1 profile is active: "local"
+12:09:42:276  INFO 11420 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+12:09:42:282  INFO 11420 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+12:09:42:347  INFO 11420 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 28 ms. Found 0 Redis repository interfaces.
+12:09:43:129  INFO 11420 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=369034cd-9def-3b93-8856-b5a0fffa891f
+12:09:44:850  INFO 11420 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+12:09:44:878  INFO 11420 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+12:09:44:881  INFO 11420 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+12:09:45:273  INFO 11420 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+12:09:45:274  INFO 11420 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4440 ms
+12:09:49:971  INFO 11420 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+12:09:51:102  INFO 11420 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+12:09:51:123  INFO 11420 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+12:09:53:152  INFO 11420 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+12:09:53:477  INFO 11420 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+12:09:53:503  INFO 11420 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+12:09:53:504  INFO 11420 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+12:09:53:644  INFO 11420 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP user-service 192.168.131.1:8082 register finished
+12:09:55:540  INFO 11420 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+12:09:55:542  INFO 11420 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+12:09:55:556  INFO 11420 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+12:09:55:617  INFO 11420 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+12:09:55:862  INFO 11420 --- [main] com.haalan.user.UserApplication          : Started UserApplication in 23.207 seconds (JVM running for 24.834)
+12:09:55:894  INFO 11420 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service.yaml, group=DEFAULT_GROUP
+12:09:55:895  INFO 11420 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service-local.yaml, group=DEFAULT_GROUP
+12:09:55:897  INFO 11420 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=user-service, group=DEFAULT_GROUP
+15:05:57:711  INFO 11420 --- [http-nio-8082-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+15:05:57:727  INFO 11420 --- [http-nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+15:05:57:852  INFO 11420 --- [http-nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 123 ms
+15:05:57:980 DEBUG 11420 --- [http-nio-8082-exec-1] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+15:05:58:210  INFO 11420 --- [http-nio-8082-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+15:05:58:942  INFO 11420 --- [http-nio-8082-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+15:05:58:955 DEBUG 11420 --- [http-nio-8082-exec-1] c.h.user.mapper.TUserMapper.selectById   : ==>  Preparing: SELECT id,username,password,phone,email,avatar,status,member_level,token_version,create_time,update_time FROM t_user WHERE id=?
+15:05:59:002 DEBUG 11420 --- [http-nio-8082-exec-1] c.h.user.mapper.TUserMapper.selectById   : ==> Parameters: 1(Long)
+15:05:59:064 DEBUG 11420 --- [http-nio-8082-exec-1] c.h.user.mapper.TUserMapper.selectById   : <==      Total: 1
+15:05:59:072  INFO 11420 --- [http-nio-8082-exec-1] c.h.user.service.Impl.TUserServiceImpl   : 用户TUser(id=1, username=admin, password=$2a$10$L/2ljxCVZmO1HG1igEVe0eoSaVQ6uKBi2QsBDAXxSuPIahsJLg1Z., phone=13800138000, email=test_user01@example.com, avatar=https://lyc1019.oss-cn-beijing.aliyuncs.com/2026/03/67b51838-5dde-4f50-afd4-1af69a7e591f.jpg, status=1, memberLevel=0, tokenVersion=7, createTime=2026-04-13T18:37:21, updateTime=2026-04-13T18:37:21)查询成功
+15:05:59:088  INFO 11420 --- [http-nio-8082-exec-1] c.h.user.controller.TUserController      : 获取用户信息成功, userId: 1
+15:07:11:153 DEBUG 11420 --- [http-nio-8082-exec-3] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+15:07:11:336 DEBUG 11420 --- [http-nio-8082-exec-3] c.h.user.mapper.TUserMapper.updateById   : ==>  Preparing: UPDATE t_user SET email=?, avatar=?, update_time=? WHERE id=?
+15:07:11:339 DEBUG 11420 --- [http-nio-8082-exec-3] c.h.user.mapper.TUserMapper.updateById   : ==> Parameters: k8qi48.p5h@163.com(String), https://avatars.githubusercontent.com/u/94585045(String), null, null
+15:07:11:342 DEBUG 11420 --- [http-nio-8082-exec-3] c.h.user.mapper.TUserMapper.updateById   : <==    Updates: 0
+15:07:11:343  INFO 11420 --- [http-nio-8082-exec-3] c.h.user.controller.TUserController      : 修改用户信息成功, userId: 1
+15:07:16:692 DEBUG 11420 --- [http-nio-8082-exec-6] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+15:07:16:748 DEBUG 11420 --- [http-nio-8082-exec-6] c.h.u.mapper.TUserAddressMapper.update   : ==>  Preparing: UPDATE t_user_address SET is_default=?, update_time=? WHERE deleted=0 AND (user_id = ? AND is_default = ?)
+15:07:16:753 DEBUG 11420 --- [http-nio-8082-exec-6] c.h.u.mapper.TUserAddressMapper.update   : ==> Parameters: 0(Integer), null, 1(Long), 1(Integer)
+15:07:16:781 DEBUG 11420 --- [http-nio-8082-exec-6] c.h.u.mapper.TUserAddressMapper.update   : <==    Updates: 1
+15:07:16:784 DEBUG 11420 --- [http-nio-8082-exec-6] c.h.u.mapper.TUserAddressMapper.insert   : ==>  Preparing: INSERT INTO t_user_address ( user_id, receiver_name, receiver_phone, province, city, district, detail_address, is_default, create_time, update_time ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+15:07:16:785 DEBUG 11420 --- [http-nio-8082-exec-6] c.h.u.mapper.TUserAddressMapper.insert   : ==> Parameters: 1(Long), 海俊杰(String), 085 4245 5112(String), 河北省(String), 上口市(String), 堆龙德庆县(String), 郎街70号(String), 1(Integer), null, null
+15:07:16:788 DEBUG 11420 --- [http-nio-8082-exec-6] c.h.u.mapper.TUserAddressMapper.insert   : <==    Updates: 1
+15:07:16:792  INFO 11420 --- [http-nio-8082-exec-6] c.h.u.s.Impl.UserAddressServiceImpl      : 添加收货地址成功, userId: 1, addressId: 8
+15:07:16:797  INFO 11420 --- [http-nio-8082-exec-6] c.h.user.controller.TUserController      : 添加收货地址成功, userId: 1, addressId: 8
+15:07:20:684 DEBUG 11420 --- [http-nio-8082-exec-7] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+15:07:20:690 DEBUG 11420 --- [http-nio-8082-exec-7] c.h.u.m.TUserAddressMapper.selectList    : ==>  Preparing: SELECT id,user_id,receiver_name,receiver_phone,province,city,district,detail_address,is_default,deleted,create_time,update_time FROM t_user_address WHERE deleted=0 AND (user_id = ?) ORDER BY is_default DESC,create_time DESC
+15:07:20:691 DEBUG 11420 --- [http-nio-8082-exec-7] c.h.u.m.TUserAddressMapper.selectList    : ==> Parameters: 1(Long)
+15:07:20:695 DEBUG 11420 --- [http-nio-8082-exec-7] c.h.u.m.TUserAddressMapper.selectList    : <==      Total: 8
+15:07:20:714  INFO 11420 --- [http-nio-8082-exec-7] c.h.user.controller.TUserController      : 查询用户地址列表成功, userId: 1, count: 8
+17:44:11:182 DEBUG 11420 --- [http-nio-8082-exec-8] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+17:44:11:293 DEBUG 11420 --- [http-nio-8082-exec-8] c.h.user.mapper.TUserMapper.updateById   : ==>  Preparing: UPDATE t_user SET email=?, avatar=?, update_time=? WHERE id=?
+17:44:11:300 DEBUG 11420 --- [http-nio-8082-exec-8] c.h.user.mapper.TUserMapper.updateById   : ==> Parameters: k8qi48.p5h@163.com(String), https://avatars.githubusercontent.com/u/94585045(String), null, null
+17:44:11:306 DEBUG 11420 --- [http-nio-8082-exec-8] c.h.user.mapper.TUserMapper.updateById   : <==    Updates: 0
+17:44:11:308  INFO 11420 --- [http-nio-8082-exec-8] c.h.user.controller.TUserController      : 修改用户信息成功, userId: 1
+17:44:21:487 DEBUG 11420 --- [http-nio-8082-exec-5] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+17:44:21:490 DEBUG 11420 --- [http-nio-8082-exec-5] c.h.user.mapper.TUserMapper.selectById   : ==>  Preparing: SELECT id,username,password,phone,email,avatar,status,member_level,token_version,create_time,update_time FROM t_user WHERE id=?
+17:44:21:492 DEBUG 11420 --- [http-nio-8082-exec-5] c.h.user.mapper.TUserMapper.selectById   : ==> Parameters: 1(Long)
+17:44:21:501 DEBUG 11420 --- [http-nio-8082-exec-5] c.h.user.mapper.TUserMapper.selectById   : <==      Total: 1
+17:44:21:504  INFO 11420 --- [http-nio-8082-exec-5] c.h.user.service.Impl.TUserServiceImpl   : 用户TUser(id=1, username=admin, password=$2a$10$L/2ljxCVZmO1HG1igEVe0eoSaVQ6uKBi2QsBDAXxSuPIahsJLg1Z., phone=13800138000, email=test_user01@example.com, avatar=https://lyc1019.oss-cn-beijing.aliyuncs.com/2026/03/67b51838-5dde-4f50-afd4-1af69a7e591f.jpg, status=1, memberLevel=0, tokenVersion=7, createTime=2026-04-13T18:37:21, updateTime=2026-04-13T18:37:21)查询成功
+17:44:21:504  INFO 11420 --- [http-nio-8082-exec-5] c.h.user.controller.TUserController      : 获取用户信息成功, userId: 1
+17:44:24:598 DEBUG 11420 --- [http-nio-8082-exec-9] c.h.c.intercepter.UserInfoIntercepter    : 用户信息已存入ThreadLocal: 1
+17:44:24:600 DEBUG 11420 --- [http-nio-8082-exec-9] c.h.user.mapper.TUserMapper.selectById   : ==>  Preparing: SELECT id,username,password,phone,email,avatar,status,member_level,token_version,create_time,update_time FROM t_user WHERE id=?
+17:44:24:600 DEBUG 11420 --- [http-nio-8082-exec-9] c.h.user.mapper.TUserMapper.selectById   : ==> Parameters: 1(Long)
+17:44:24:602 DEBUG 11420 --- [http-nio-8082-exec-9] c.h.user.mapper.TUserMapper.selectById   : <==      Total: 1
+17:44:24:603  INFO 11420 --- [http-nio-8082-exec-9] c.h.user.service.Impl.TUserServiceImpl   : 用户TUser(id=1, username=admin, password=$2a$10$L/2ljxCVZmO1HG1igEVe0eoSaVQ6uKBi2QsBDAXxSuPIahsJLg1Z., phone=13800138000, email=test_user01@example.com, avatar=https://lyc1019.oss-cn-beijing.aliyuncs.com/2026/03/67b51838-5dde-4f50-afd4-1af69a7e591f.jpg, status=1, memberLevel=0, tokenVersion=7, createTime=2026-04-13T18:37:21, updateTime=2026-04-13T18:37:21)查询成功
+17:44:24:603  INFO 11420 --- [http-nio-8082-exec-9] c.h.user.controller.TUserController      : 获取用户信息成功, userId: 1

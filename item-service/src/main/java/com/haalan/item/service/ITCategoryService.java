@@ -16,5 +16,12 @@ import java.util.List;
  */
 public interface ITCategoryService extends IService<TCategory> {
 
-	List<CategoryVO> getCategoryTree();
+	/**
+	 * 获取分类树
+	 *
+	 * @param id    分类ID，默认为0表示从根节点开始
+	 * @param level 获取的层级数，如果超过最大层级则返回所有层级
+	 * @return 分类树列表
+	 */
+	List<CategoryVO> getCategoryTree(Long id, Integer level);
 }

@@ -1,6 +1,9 @@
 package com.haalan.item.controller;
 
+import com.haalan.api.domain.dto.BatchDeductStockDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
+import com.haalan.api.domain.vo.BatchDeductStockResultVO;
+import com.haalan.api.domain.vo.SkuDetailVO;
 import com.haalan.common.domain.R;
 import com.haalan.item.domain.dto.ProductStringDTO;
 import com.haalan.item.domain.vo.ProductDetailVO;
@@ -59,11 +62,23 @@ public class SpuQueryController {
 		return productService.deductStock(skuId, stock);
 	}
 
+	@PostMapping("/inner/batchDeductStock")
+	@ApiOperation("批量扣减库存")
+	public List<BatchDeductStockResultVO> batchDeductStock(@RequestBody List<BatchDeductStockDTO> stockList) {
+		return productService.batchDeductStock(stockList);
+	}
+
 	@PostMapping("/inner/getProductInfo")
 	@ApiOperation("批量获取商品信息给预热")
 		//可优化
 	Map<String, Map<String, String>> batchGetProductInfo(
 			@RequestBody List<SeckillProductSkuDTO> pIdToSId) {
 		return productService.batchGetProductInfo(pIdToSId);
+	}
+
+	@GetMapping("/inner/getSkuDetail")
+	@ApiOperation("获取SKU详细信息")
+	public SkuDetailVO getSkuDetail(@RequestParam Long skuId) {
+		return productService.getSkuDetail(skuId);
 	}
 }

@@ -1,14 +1,18 @@
 package com.haalan.api.client.fallback;
 
 import com.haalan.api.client.ItemServiceClient;
+import com.haalan.api.domain.dto.BatchDeductStockDTO;
 import com.haalan.api.domain.dto.ProductStringDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
+import com.haalan.api.domain.vo.BatchDeductStockResultVO;
+import com.haalan.api.domain.vo.SkuDetailVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -51,6 +55,32 @@ public class ItemServiceClientFallback implements FallbackFactory<ItemServiceCli
 			public Map<String, Map<String, String>> batchGetProductInfo(List<SeckillProductSkuDTO> pIdToSId) {
 				log.error("调用 item-service 批量获取商品信息失败, pIdToSId: {}", pIdToSId, cause);
 				return null;
+			}
+
+			@Override
+			public SkuDetailVO getSkuDetail(Long skuId) {
+				log.error("调用 item-service 获取SKU详情失败, skuId: {}", skuId, cause);
+				// 返回兜底数据
+				return SkuDetailVO.builder()
+						.skuId(skuId)
+						.skuName("商品信息获取失败")
+						.build();
+			}
+
+			@Override
+			public List<BatchDeductStockResultVO> batchDeductStock(List<BatchDeductStockDTO> stockList) {
+				log.error("调用 item-service 批量扣减库存失败, stockList: {}", stockList, cause);
+				// 返回全部失败的兜底数据
+				if (stockList == null || stockList.isEmpty()) {
+					return List.of();
+				}
+				return stockList.stream()
+						.map(dto -> BatchDeductStockResultVO.builder()
+								.skuId(dto.getSkuId())
+								.success(false)
+								.failReason("服务调用失败")
+								.build())
+						.collect(Collectors.toList());
 			}
 
 		};

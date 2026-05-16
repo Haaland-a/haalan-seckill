@@ -57,6 +57,7 @@ public class SeckillActivityAddPDTO implements Serializable {
 	@NotNull(message = "排序不能为空")
 	@Min(value = 0, message = "排序不能小于0")
 	private Integer sort;
+
 	@JsonProperty("alipayProductCode")
 	@TableField("alipay_product_code")
 	private String alipayProductCode;

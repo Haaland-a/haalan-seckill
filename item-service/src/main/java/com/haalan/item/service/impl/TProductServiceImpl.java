@@ -2,7 +2,10 @@ package com.haalan.item.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.haalan.api.domain.dto.BatchDeductStockDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
+import com.haalan.api.domain.vo.BatchDeductStockResultVO;
+import com.haalan.api.domain.vo.SkuDetailVO;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.item.domain.dto.ProductStringDTO;
 import com.haalan.item.domain.po.TBrand;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -125,10 +129,12 @@ public class TProductServiceImpl implements TProductService {
 			vo.setStatus(sku.getStock() > 0 ? 1 : 0);
 			vo.setStatusName(sku.getStock() > 0 ? "有货" : "缺货");
 		} else {
+			//缓存中没有,查询数据库
+			TSku sku = skuService.getById(skuId);
 			vo.setSkuId(skuId);
-			vo.setStock(Integer.valueOf(stock));
-			vo.setStatus(Integer.valueOf(status));
-			vo.setStatusName(Integer.valueOf(stock) > 0 ? "有货" : "缺货");
+			vo.setStock(sku.getStock());
+			vo.setStatus(sku.getStatus());
+			vo.setStatusName(sku.getStock() > 0 ? "有货" : "缺货");
 		}
 		return vo;
 	}
@@ -198,5 +204,111 @@ public class TProductServiceImpl implements TProductService {
 			);
 		}
 		return resultMap;
+	}
+
+	@Override
+	public SkuDetailVO getSkuDetail(Long skuId) {
+		TSku tSku = skuService.getById(skuId);
+		if (tSku == null) {
+			throw new RuntimeException("SKU不存在");
+		}
+
+		// 解析规格信息
+		Map<String, String> specifications = new HashMap<>();
+		if (StrUtil.isNotBlank(tSku.getSpecifications())) {
+			specifications = JSONUtil.toBean(tSku.getSpecifications(), Map.class);
+		}
+
+		return SkuDetailVO.builder()
+				.skuId(tSku.getId())
+				.spuId(tSku.getSpuId())
+				.skuCode(tSku.getSkuCode())
+				.skuName(tSku.getName())
+				.images(tSku.getImages())
+				.price(tSku.getPrice())
+				.specifications(specifications)
+				.stock(tSku.getStock())
+				.status(tSku.getStatus())
+				.build();
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public List<BatchDeductStockResultVO> batchDeductStock(List<BatchDeductStockDTO> stockList) {
+		if (stockList == null || stockList.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		log.info("批量扣减库存开始, 数量: {}", stockList.size());
+		long start = System.currentTimeMillis();
+
+		// 提取所有SKU ID
+		List<Long> skuIds = stockList.stream()
+				.map(BatchDeductStockDTO::getSkuId)
+				.collect(Collectors.toList());
+
+		// 批量查询SKU信息
+		List<TSku> skuList = skuService.listByIds(skuIds);
+		Map<Long, TSku> skuMap = skuList.stream()
+				.collect(Collectors.toMap(TSku::getId, sku -> sku));
+
+		// 逐个扣减库存
+		List<BatchDeductStockResultVO> results = stockList.stream()
+				.map(dto -> {
+					try {
+						TSku sku = skuMap.get(dto.getSkuId());
+						if (sku == null) {
+							return BatchDeductStockResultVO.builder()
+									.skuId(dto.getSkuId())
+									.success(false)
+									.failReason("SKU不存在")
+									.build();
+						}
+
+						// 检查库存是否充足
+						if (sku.getStock() < dto.getStock()) {
+							return BatchDeductStockResultVO.builder()
+									.skuId(dto.getSkuId())
+									.success(false)
+									.failReason("库存不足，当前库存: " + sku.getStock())
+									.build();
+						}
+
+						// 使用乐观锁扣减库存
+						boolean updated = skuService.lambdaUpdate()
+								.eq(TSku::getId, dto.getSkuId())
+								.ge(TSku::getStock, dto.getStock())
+								.setSql("stock = stock - " + dto.getStock())
+								.update();
+
+						if (updated) {
+							return BatchDeductStockResultVO.builder()
+									.skuId(dto.getSkuId())
+									.success(true)
+									.build();
+						} else {
+							return BatchDeductStockResultVO.builder()
+									.skuId(dto.getSkuId())
+									.success(false)
+									.failReason("扣减失败，可能库存已被其他请求扣减")
+									.build();
+						}
+					} catch (Exception e) {
+						log.error("扣减库存异常, skuId: {}", dto.getSkuId(), e);
+						return BatchDeductStockResultVO.builder()
+								.skuId(dto.getSkuId())
+								.success(false)
+								.failReason("系统异常: " + e.getMessage())
+								.build();
+					}
+				})
+				.collect(Collectors.toList());
+
+		long end = System.currentTimeMillis();
+		long successCount = results.stream().filter(BatchDeductStockResultVO::getSuccess).count();
+		log.info("批量扣减库存完成, 总数: {}, 成功: {}, 失败: {}, 耗时: {}ms",
+				stockList.size(), successCount, stockList.size() - successCount, end - start);
+
+		return results;
 	}
 }

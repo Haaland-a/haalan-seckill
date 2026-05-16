@@ -510,7 +510,7 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 			productVO.setCountdown(0L);
 		}
 		// 用户已购买数量 只获取当前活动中的
-		Object o = redisTemplate.opsForHash().get(SeckillConstants.SECKILL_USER_BUY_PREFIX + UserContext.getUser(), seckillProductId);
+		Object o = redisTemplate.opsForHash().get(SeckillConstants.SECKILL_USER_BUY_PREFIX + UserContext.getUser(), String.valueOf(seckillProductId));
 		productVO.setUserPurchaseCount(o != null ? Integer.parseInt(o.toString()) : 0);
 
 		log.info("查询秒杀商品详情成功, seckillProductId={}", seckillProductId);

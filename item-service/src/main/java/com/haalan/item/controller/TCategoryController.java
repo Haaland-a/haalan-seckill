@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,7 +24,9 @@ public class TCategoryController {
 
 	@GetMapping("/tree")
 	@ApiOperation("获取分类树")
-	public R<List<CategoryVO>> getCategoryTree() {
-		return R.success(categoryService.getCategoryTree());
+	public R<List<CategoryVO>> getCategoryTree(
+			@RequestParam(required = false, defaultValue = "0") Long id,
+			@RequestParam(required = false, defaultValue = "3") Integer level) {
+		return R.success(categoryService.getCategoryTree(id, level));
 	}
 }

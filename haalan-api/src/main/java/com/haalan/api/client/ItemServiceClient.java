@@ -1,8 +1,11 @@
 package com.haalan.api.client;
 
 import com.haalan.api.client.fallback.ItemServiceClientFallback;
+import com.haalan.api.domain.dto.BatchDeductStockDTO;
 import com.haalan.api.domain.dto.ProductStringDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
+import com.haalan.api.domain.vo.BatchDeductStockResultVO;
+import com.haalan.api.domain.vo.SkuDetailVO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,4 +34,16 @@ public interface ItemServiceClient {
 	@PostMapping("/api/product/inner/getProductInfo")
 	Map<String, Map<String, String>> batchGetProductInfo(
 			@RequestBody List<SeckillProductSkuDTO> pIdToSId);
+
+	@GetMapping("/api/product/inner/getSkuDetail")
+	SkuDetailVO getSkuDetail(@RequestParam("skuId") Long skuId);
+
+	/**
+	 * 批量扣减库存
+	 *
+	 * @param stockList 扣减库存列表
+	 * @return 扣减结果列表
+	 */
+	@PostMapping("/api/product/inner/batchDeductStock")
+	List<BatchDeductStockResultVO> batchDeductStock(@RequestBody List<BatchDeductStockDTO> stockList);
 }

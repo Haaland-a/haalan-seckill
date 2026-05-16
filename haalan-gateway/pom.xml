@@ -7,6 +7,7 @@
         <groupId>com.haalan</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>haalan-gateway</artifactId>
@@ -22,6 +23,23 @@
             <groupId>com.haalan</groupId>
             <artifactId>haalan-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+            <exclusions>
+                <!-- 排除 Spring MVC -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+                <!-- 排除 WebSocket -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-websocket</artifactId>
+                </exclusion>
+                <!-- 排除 Tomcat -->
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!--网关-->
         <dependency>
@@ -53,6 +71,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
+
 
     </dependencies>
 

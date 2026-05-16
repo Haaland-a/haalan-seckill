@@ -1,6 +1,9 @@
 package com.haalan.item.service;
 
+import com.haalan.api.domain.dto.BatchDeductStockDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
+import com.haalan.api.domain.vo.BatchDeductStockResultVO;
+import com.haalan.api.domain.vo.SkuDetailVO;
 import com.haalan.item.domain.dto.ProductStringDTO;
 import com.haalan.item.domain.vo.ProductDetailVO;
 import com.haalan.item.domain.vo.StockVO;
@@ -28,4 +31,14 @@ public interface TProductService {
 	Boolean deductStock(Long skuId, Integer stock);
 
 	Map<String, Map<String, String>> batchGetProductInfo(List<SeckillProductSkuDTO> pIdToSId);
+
+	SkuDetailVO getSkuDetail(Long skuId);
+
+	/**
+	 * 批量扣减库存
+	 *
+	 * @param stockList 扣减库存列表
+	 * @return 扣减结果列表
+	 */
+	List<BatchDeductStockResultVO> batchDeductStock(List<BatchDeductStockDTO> stockList);
 }

@@ -25,6 +25,4 @@ public class PayRequestDTO implements Serializable {
 	@NotNull(message = "支付方式不能为空")
 	private Integer payType;
 
-	@ApiModelProperty(value = "支付成功回调地址")
-	private String returnUrl;
 }

@@ -31,7 +31,7 @@ public class TSeckillActivityController {
 	private final ITSeckillProductService seckillProductService;
 	private final ITSeckillPreheatService preheatService;
 
-	@PostMapping
+	@PostMapping("/activity")
 	@ApiOperation("创建秒杀活动")
 	public R<SeckillActivityCreateResultVO> createActivity(@RequestBody @Validated SeckillActivityCreateDTO dto) {
 		return R.success("创建成功", seckillActivityService.createActivity(dto));

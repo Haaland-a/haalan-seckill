@@ -2,7 +2,9 @@ package com.haalan.seckill.service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.api.client.ItemServiceClient;
+import com.haalan.api.domain.dto.BatchDeductStockDTO;
 import com.haalan.api.domain.dto.ProductStringDTO;
+import com.haalan.api.domain.vo.BatchDeductStockResultVO;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.BeanUtils;
 import com.haalan.seckill.domain.dto.SeckillActivityAddPDTO;
@@ -140,6 +142,11 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 		tSeckillProduct.setOriginalPrice(
 				value.getOriginalPrice() != null ? value.getOriginalPrice() : dto.getSeckillPrice()
 		);
+		tSeckillProduct.setAlipayProductCode(value.getAlipayProductCode());
+		tSeckillProduct.setWechatProductCode(value.getWechatProductCode());
+
+		//从sku中扣取库存到秒杀商品表中  先减再加
+		itemServiceClient.deductStock(dto.getSkuId(), dto.getStock());
 		boolean saved = this.save(tSeckillProduct);
 		if (!saved) {
 			throw new BizIllegalException("新增秒杀商品失败");
@@ -149,9 +156,7 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 		if (seckillProductId == null) {
 			throw new BizIllegalException("新增秒杀商品失败");
 		}
-		//最后扣减库存
-		//从sku中扣取库存到秒杀商品表中
-		itemServiceClient.deductStock(dto.getSkuId(), dto.getStock());
+
 
 
 		return SeckillActivityAddPVO.builder()
@@ -234,6 +239,7 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 						.reason("商品库存不足")
 						.build());
 				continue;
+				//如果都没问题，就先扣减库存再添加
 			}
 
 			TSeckillProduct product = new TSeckillProduct();
@@ -244,14 +250,34 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 			product.setVersion(0);
 			product.setSkuCode(productInfo.getSkuCode());
 			product.setProductName(productInfo.getProductName());
+			product.setAlipayProductCode(productInfo.getAlipayProductCode());
+			product.setWechatProductCode(productInfo.getWechatProductCode());
 			product.setOriginalPrice(
 					productInfo.getOriginalPrice() != null ? productInfo.getOriginalPrice() : dto.getSeckillPrice()
 			);
 
 			toInsert.add(product);
 		}
+		//扣减库存 - 使用批量接口
+		if (!toInsert.isEmpty()) {
+			List<BatchDeductStockDTO> stockList = toInsert.stream()
+					.map(product -> BatchDeductStockDTO.builder()
+							.skuId(product.getSkuId())
+							.stock(product.getStock())
+							.build())
+					.collect(Collectors.toList());
 
+			List<BatchDeductStockResultVO> results = itemServiceClient.batchDeductStock(stockList);
+
+			// 检查是否有失败的
+			long failCount = results.stream().filter(r -> !r.getSuccess()).count();
+			if (failCount > 0) {
+				log.error("批量扣减库存部分失败, 失败数量: {}", failCount);
+				// 可以选择抛出异常或记录日志
+			}
+		}
 		int successCount = 0;
+		//如果toInsert不为空
 		if (!toInsert.isEmpty()) {
 			boolean saved = this.saveBatch(toInsert);
 			if (saved) {
@@ -260,10 +286,7 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 				throw new BizIllegalException("批量添加秒杀商品失败");
 			}
 		}
-		//扣减库存  //管理端写入操作少点，可以多次操作数据库扣减
-		toInsert.forEach(product -> {
-			itemServiceClient.deductStock(product.getSkuId(), product.getStock());
-		});
+
 
 		return SeckillProductBatchAddResultVO.builder()
 				.successCount(successCount)

@@ -1,16 +1,23 @@
 package com.haalan.order.service.impl;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.api.client.ItemServiceClient;
+import com.haalan.api.domain.vo.SkuDetailVO;
+import com.haalan.common.domain.PageResult;
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.UserContext;
+import com.haalan.order.domain.po.TOrderItem;
 import com.haalan.order.domain.po.TSeckillOrder;
-import com.haalan.order.domain.vo.CancelOrderResponseVO;
+import com.haalan.order.domain.vo.*;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.service.IMessagePushService;
+import com.haalan.order.service.ITOrderItemService;
 import com.haalan.order.service.ITSeckillOrder0Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +30,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -39,6 +48,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 	private final StringRedisTemplate stringRedisTemplate;
 	private final IMessagePushService messagePushService;
+	private final ITOrderItemService orderItemService;
 
 	private static final DefaultRedisScript<Long> ROLLBACK_SCRIPT = new DefaultRedisScript<>();
 
@@ -51,6 +61,10 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 	@Override
 	public void saveMsg(SeckillOrderMessage message) {
+		// 1. 获取SKU详细信息
+		SkuDetailVO skuDetail = itemServiceClient.getSkuDetail(message.getSkuId());
+
+		// 2. 保存秒杀订单
 		TSeckillOrder seckillOrder = TSeckillOrder.builder()
 				.orderNo(message.getPreOrderNo())
 				.userId(message.getUserId())
@@ -59,7 +73,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				.skuId(message.getSkuId())
 				.wechatProductCode(message.getWechatProductCode())
 				.alipayProductCode(message.getAlipayProductCode())
-				.productName(itemServiceClient.getCode(message.getSkuId()).getProductName())
+				.productName(skuDetail.getSkuName())
 				.seckillPrice(message.getSeckillPrice())
 				.quantity(message.getQuantity())
 				.totalAmount(message.getTotalAmount())
@@ -68,6 +82,24 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				.createTime(message.getCreateTime())
 				.build();
 		this.save(seckillOrder);
+
+		// 3. 保存订单商品明细
+		TOrderItem orderItem = new TOrderItem();
+		orderItem.setOrderId(seckillOrder.getId());
+		orderItem.setOrderNo(message.getPreOrderNo());
+		orderItem.setSkuId(message.getSkuId());
+		orderItem.setSkuCode(skuDetail.getSkuCode());
+		orderItem.setProductName(skuDetail.getSkuName());
+		orderItem.setProductImage(skuDetail.getImages());
+		orderItem.setPrice(message.getSeckillPrice());
+		orderItem.setQuantity(message.getQuantity());
+		orderItem.setTotalPrice(message.getTotalAmount());
+		// 将规格信息转换为JSON字符串存储
+		if (skuDetail.getSpecifications() != null && !skuDetail.getSpecifications().isEmpty()) {
+			orderItem.setSpecifications(JSONUtil.toJsonStr(skuDetail.getSpecifications()));
+		}
+		orderItem.setCreateTime(message.getCreateTime());
+		orderItemService.save(orderItem);
 	}
 
 	@Override
@@ -264,6 +296,174 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 			// 7. 返回响应
 			return response;
+
+		} finally {
+			// 清理ThreadLocal，防止内存泄漏
+			UserContext.removeUser();
+		}
+	}
+
+	@Override
+	public OrderDetailVO getOrderDetail(String orderNo, Long userId) {
+		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
+		UserContext.setUser(userId);
+		try {
+			// 1. 查询秒杀订单
+			TSeckillOrder seckillOrder = this.getOne(
+					new LambdaQueryWrapper<TSeckillOrder>()
+							.eq(TSeckillOrder::getOrderNo, orderNo)
+							.eq(TSeckillOrder::getUserId, userId)
+			);
+
+			if (seckillOrder == null) {
+				throw new BizIllegalException("订单不存在");
+			}
+
+			// 2. 构建订单详情VO（秒杀订单）
+			OrderDetailVO orderDetailVO = new OrderDetailVO();
+			orderDetailVO.setOrderId(seckillOrder.getId());
+			orderDetailVO.setOrderNo(seckillOrder.getOrderNo());
+			orderDetailVO.setUserId(seckillOrder.getUserId());
+			orderDetailVO.setOrderType(2); // 2-秒杀订单
+			orderDetailVO.setOrderTypeName("秒杀订单");
+			// 秒杀订单不设置totalAmount、discountAmount、actualAmount
+			orderDetailVO.setStatus(seckillOrder.getStatus());
+			orderDetailVO.setStatusName(getStatusName(seckillOrder.getStatus()));
+			orderDetailVO.setCreateTime(seckillOrder.getOrderTime());
+
+			// 3. 计算支付过期时间（假设15分钟）
+			LocalDateTime payExpireTime = seckillOrder.getOrderTime().plusMinutes(15);
+			orderDetailVO.setPayExpireTime(payExpireTime);
+
+			// 4. 计算剩余支付时间
+			long remainingSeconds = 0;
+			if (seckillOrder.getStatus() == 0) { // 待支付状态才计算
+				remainingSeconds = java.time.Duration.between(LocalDateTime.now(), payExpireTime).getSeconds();
+				if (remainingSeconds < 0) {
+					remainingSeconds = 0;
+				}
+			}
+			orderDetailVO.setRemainingSeconds(remainingSeconds);
+
+			// 5. 查询订单商品明细
+			List<TOrderItem> orderItems = orderItemService.lambdaQuery()
+					.eq(TOrderItem::getOrderNo, orderNo)
+					.list();
+
+			List<OrderItemVO> orderItemVOList = orderItems.stream()
+					.map(item -> {
+						OrderItemVO itemVO = new OrderItemVO();
+						itemVO.setSkuId(item.getSkuId());
+						// 从SKU获取SPU ID
+						SkuDetailVO skuDetail = itemServiceClient.getSkuDetail(item.getSkuId());
+						itemVO.setSpuId(skuDetail != null ? skuDetail.getSpuId() : null);
+						itemVO.setProductName(item.getProductName());
+						itemVO.setProductImage(item.getProductImage());
+						// 解析规格信息
+						if (StrUtil.isNotBlank(item.getSpecifications())) {
+							itemVO.setSpecifications(JSONUtil.toBean(item.getSpecifications(), Map.class));
+						}
+						itemVO.setPrice(item.getPrice());
+						itemVO.setQuantity(item.getQuantity());
+						itemVO.setTotalPrice(item.getTotalPrice());
+						return itemVO;
+					})
+					.collect(Collectors.toList());
+
+			orderDetailVO.setOrderItems(orderItemVOList);
+
+			// 6. 收货地址信息（秒杀订单可能没有，返回空对象）
+			AddressInfoVO addressInfo = new AddressInfoVO();
+			addressInfo.setReceiverName("");
+			addressInfo.setReceiverPhone("");
+			addressInfo.setFullAddress("");
+			orderDetailVO.setAddressInfo(addressInfo);
+
+			return orderDetailVO;
+
+		} finally {
+			// 清理ThreadLocal，防止内存泄漏
+			UserContext.removeUser();
+		}
+	}
+
+	/**
+	 * 获取订单状态名称
+	 */
+	private String getStatusName(Integer status) {
+		if (status == null) {
+			return "未知";
+		}
+		switch (status) {
+			case 0:
+				return "待支付";
+			case 1:
+				return "已支付";
+			case 2:
+				return "已取消";
+			case 3:
+				return "已超时";
+			default:
+				return "未知";
+		}
+	}
+
+	@Override
+	public PageResult<OrderListItemVO> getSeckillOrderList(Long userId, Integer pageNum, Integer pageSize, Integer status) {
+		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
+		UserContext.setUser(userId);
+		try {
+			// 1. 构建分页对象
+			Page<TSeckillOrder> page = new Page<>(pageNum, pageSize);
+
+			// 2. 构建查询条件
+			LambdaQueryWrapper<TSeckillOrder> queryWrapper = new LambdaQueryWrapper<>();
+			queryWrapper.eq(TSeckillOrder::getUserId, userId);
+			if (status != null) {
+				queryWrapper.eq(TSeckillOrder::getStatus, status);
+			}
+			queryWrapper.orderByDesc(TSeckillOrder::getCreateTime);
+
+			// 3. 执行分页查询
+			Page<TSeckillOrder> orderPage = this.page(page, queryWrapper);
+
+			// 4. 转换为VO
+			List<OrderListItemVO> voList = orderPage.getRecords().stream()
+					.map(order -> {
+						OrderListItemVO vo = new OrderListItemVO();
+						vo.setOrderNo(order.getOrderNo());
+						vo.setOrderType(2); // 秒杀订单
+						vo.setOrderTypeName("秒杀订单");
+						vo.setTotalAmount(order.getTotalAmount());
+						// 秒杀订单不设置actualAmount
+						vo.setStatus(order.getStatus());
+						vo.setStatusName(getStatusName(order.getStatus()));
+						vo.setProductName(order.getProductName());
+						vo.setQuantity(order.getQuantity());
+						vo.setCreateTime(order.getOrderTime());
+
+
+						// 从订单商品明细中获取商品图片
+						TOrderItem orderItem = orderItemService.lambdaQuery()
+								.eq(TOrderItem::getOrderNo, order.getOrderNo())
+								.last("LIMIT 1")
+								.one();
+						if (orderItem != null) {
+							vo.setProductImage(orderItem.getProductImage());
+						}
+
+						return vo;
+					})
+					.collect(Collectors.toList());
+
+			// 5. 构建分页结果
+			PageResult<OrderListItemVO> result = new PageResult<>();
+			result.setTotal(orderPage.getTotal());
+			result.setPageNum((int) orderPage.getCurrent());
+			result.setPageSize((int) orderPage.getSize());
+			result.setList(voList);
+
+			return result;
 
 		} finally {
 			// 清理ThreadLocal，防止内存泄漏
