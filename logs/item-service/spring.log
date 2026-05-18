@@ -524,3 +524,316 @@ java.lang.NumberFormatException: Cannot parse null string
 17:43:50:908 DEBUG 32456 --- [http-nio-8083-exec-9] c.h.item.mapper.TBrandMapper.selectById  : ==> Parameters: 1(Long)
 17:43:50:910 DEBUG 32456 --- [http-nio-8083-exec-9] c.h.item.mapper.TBrandMapper.selectById  : <==      Total: 1
 17:43:51:518  INFO 32456 --- [http-nio-8083-exec-9] c.h.item.service.impl.TSkuServiceImpl    : 成功同步 SPU 1 到 ES
+18:52:04:882  WARN 32456 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+18:52:04:882  WARN 32456 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+18:52:04:906  WARN 32456 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+18:52:04:935  WARN 32456 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+18:52:05:373  INFO 32456 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+18:52:05:391  INFO 32456 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+18:52:05:624  INFO 32456 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+18:52:05:652  INFO 32456 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+17:29:26:256  INFO 28700 --- [main] com.haalan.item.ItemServiceApplication   : The following 1 profile is active: "local"
+17:29:27:525  INFO 28700 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+17:29:27:529  INFO 28700 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+17:29:27:571  INFO 28700 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 24 ms. Found 0 Redis repository interfaces.
+17:29:27:970  INFO 28700 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=78eb47ae-fa5e-3f7f-a16d-a4c9dd87d5af
+17:29:28:909  INFO 28700 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8083 (http)
+17:29:28:925  INFO 28700 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+17:29:28:926  INFO 28700 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+17:29:29:226  INFO 28700 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+17:29:29:226  INFO 28700 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2946 ms
+17:29:32:643  INFO 28700 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+17:29:33:249  INFO 28700 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+17:29:33:260  INFO 28700 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+17:29:35:159  INFO 28700 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+17:29:35:380  INFO 28700 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8083 (http) with context path ''
+17:29:35:397  INFO 28700 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+17:29:35:398  INFO 28700 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+17:29:44:790 ERROR 28700 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, item-service register failed...NacosRegistration{nacosDiscoveryProperties=NacosDiscoveryProperties{serverAddr='192.168.100.133:8848', username='', password='', endpoint='', namespace='', watchDelay=30000, logName='', service='item-service', weight=1.0, clusterName='DEFAULT', group='DEFAULT_GROUP', namingLoadCacheAtStart='false', metadata={IPv6=null, preserved.register.source=SPRING_CLOUD}, registerEnabled=true, ip='192.168.131.1', networkInterface='', port=8083, secure=false, accessKey='', secretKey='', heartBeatInterval=null, heartBeatTimeout=null, ipDeleteTimeout=null, instanceEnabled=true, ephemeral=true, failureToleranceEnabled=false}, ipDeleteTimeout=null, failFast=true}},
+
+com.alibaba.nacos.api.exception.NacosException: Client not connected, current status:STARTING
+	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:639) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:619) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.requestToServer(NamingGrpcClientProxy.java:356) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.doRegisterService(NamingGrpcClientProxy.java:209) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.registerService(NamingGrpcClientProxy.java:123) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.NamingClientProxyDelegate.registerService(NamingClientProxyDelegate.java:98) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.NacosNamingService.registerInstance(NacosNamingService.java:152) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.cloud.nacos.registry.NacosServiceRegistry.register(NacosServiceRegistry.java:75) ~[spring-cloud-starter-alibaba-nacos-discovery-2021.0.5.0.jar:2021.0.5.0]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.register(AbstractAutoServiceRegistration.java:232) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration.register(NacosAutoServiceRegistration.java:78) ~[spring-cloud-starter-alibaba-nacos-discovery-2021.0.5.0.jar:2021.0.5.0]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.start(AbstractAutoServiceRegistration.java:133) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.bind(AbstractAutoServiceRegistration.java:98) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.onApplicationEvent(AbstractAutoServiceRegistration.java:86) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.onApplicationEvent(AbstractAutoServiceRegistration.java:47) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:176) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:169) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:143) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:421) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:378) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.boot.web.servlet.context.WebServerStartStopLifecycle.start(WebServerStartStopLifecycle.java:46) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.context.support.DefaultLifecycleProcessor.doStart(DefaultLifecycleProcessor.java:178) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.DefaultLifecycleProcessor.access$200(DefaultLifecycleProcessor.java:54) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.DefaultLifecycleProcessor$LifecycleGroup.start(DefaultLifecycleProcessor.java:356) ~[spring-context-5.3.27.jar:5.3.27]
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[na:na]
+	at org.springframework.context.support.DefaultLifecycleProcessor.startBeans(DefaultLifecycleProcessor.java:155) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.DefaultLifecycleProcessor.onRefresh(DefaultLifecycleProcessor.java:123) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.finishRefresh(AbstractApplicationContext.java:937) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:586) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:731) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:307) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1303) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1292) ~[spring-boot-2.7.12.jar:2.7.12]
+	at com.haalan.item.ItemServiceApplication.main(ItemServiceApplication.java:11) ~[classes/:na]
+
+17:29:44:791  WARN 28700 --- [main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'; nested exception is java.lang.reflect.UndeclaredThrowableException
+17:29:45:169  INFO 28700 --- [main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+17:29:45:181  INFO 28700 --- [main] ConditionEvaluationReportLoggingListener : 
+
+Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+17:29:45:207 ERROR 28700 --- [main] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.context.ApplicationContextException: Failed to start bean 'webServerStartStop'; nested exception is java.lang.reflect.UndeclaredThrowableException
+	at org.springframework.context.support.DefaultLifecycleProcessor.doStart(DefaultLifecycleProcessor.java:181) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.DefaultLifecycleProcessor.access$200(DefaultLifecycleProcessor.java:54) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.DefaultLifecycleProcessor$LifecycleGroup.start(DefaultLifecycleProcessor.java:356) ~[spring-context-5.3.27.jar:5.3.27]
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[na:na]
+	at org.springframework.context.support.DefaultLifecycleProcessor.startBeans(DefaultLifecycleProcessor.java:155) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.DefaultLifecycleProcessor.onRefresh(DefaultLifecycleProcessor.java:123) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.finishRefresh(AbstractApplicationContext.java:937) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:586) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:731) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:307) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1303) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1292) ~[spring-boot-2.7.12.jar:2.7.12]
+	at com.haalan.item.ItemServiceApplication.main(ItemServiceApplication.java:11) ~[classes/:na]
+Caused by: java.lang.reflect.UndeclaredThrowableException: null
+	at org.springframework.util.ReflectionUtils.rethrowRuntimeException(ReflectionUtils.java:147) ~[spring-core-5.3.27.jar:5.3.27]
+	at com.alibaba.cloud.nacos.registry.NacosServiceRegistry.register(NacosServiceRegistry.java:83) ~[spring-cloud-starter-alibaba-nacos-discovery-2021.0.5.0.jar:2021.0.5.0]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.register(AbstractAutoServiceRegistration.java:232) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at com.alibaba.cloud.nacos.registry.NacosAutoServiceRegistration.register(NacosAutoServiceRegistration.java:78) ~[spring-cloud-starter-alibaba-nacos-discovery-2021.0.5.0.jar:2021.0.5.0]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.start(AbstractAutoServiceRegistration.java:133) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.bind(AbstractAutoServiceRegistration.java:98) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.onApplicationEvent(AbstractAutoServiceRegistration.java:86) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.cloud.client.serviceregistry.AbstractAutoServiceRegistration.onApplicationEvent(AbstractAutoServiceRegistration.java:47) ~[spring-cloud-commons-3.1.3.jar:3.1.3]
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.doInvokeListener(SimpleApplicationEventMulticaster.java:176) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.invokeListener(SimpleApplicationEventMulticaster.java:169) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:143) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:421) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.context.support.AbstractApplicationContext.publishEvent(AbstractApplicationContext.java:378) ~[spring-context-5.3.27.jar:5.3.27]
+	at org.springframework.boot.web.servlet.context.WebServerStartStopLifecycle.start(WebServerStartStopLifecycle.java:46) ~[spring-boot-2.7.12.jar:2.7.12]
+	at org.springframework.context.support.DefaultLifecycleProcessor.doStart(DefaultLifecycleProcessor.java:178) ~[spring-context-5.3.27.jar:5.3.27]
+	... 14 common frames omitted
+Caused by: com.alibaba.nacos.api.exception.NacosException: Client not connected, current status:STARTING
+	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:639) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.common.remote.client.RpcClient.request(RpcClient.java:619) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.requestToServer(NamingGrpcClientProxy.java:356) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.doRegisterService(NamingGrpcClientProxy.java:209) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.gprc.NamingGrpcClientProxy.registerService(NamingGrpcClientProxy.java:123) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.remote.NamingClientProxyDelegate.registerService(NamingClientProxyDelegate.java:98) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.nacos.client.naming.NacosNamingService.registerInstance(NacosNamingService.java:152) ~[nacos-client-2.2.0.jar:na]
+	at com.alibaba.cloud.nacos.registry.NacosServiceRegistry.register(NacosServiceRegistry.java:75) ~[spring-cloud-starter-alibaba-nacos-discovery-2021.0.5.0.jar:2021.0.5.0]
+	... 27 common frames omitted
+
+17:29:46:144  WARN 28700 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+17:29:46:144  WARN 28700 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+17:32:28:694  INFO 30584 --- [main] com.haalan.item.ItemServiceApplication   : The following 1 profile is active: "local"
+17:32:30:057  INFO 30584 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+17:32:30:061  INFO 30584 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+17:32:30:117  INFO 30584 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 31 ms. Found 0 Redis repository interfaces.
+17:32:30:693  INFO 30584 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=78eb47ae-fa5e-3f7f-a16d-a4c9dd87d5af
+17:32:31:918  INFO 30584 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8083 (http)
+17:32:31:941  INFO 30584 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+17:32:31:941  INFO 30584 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+17:32:32:322  INFO 30584 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+17:32:32:323  INFO 30584 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3602 ms
+17:32:37:295  INFO 30584 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+17:32:38:102  INFO 30584 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+17:32:38:118  INFO 30584 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+17:32:40:543  INFO 30584 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+17:32:40:767  INFO 30584 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8083 (http) with context path ''
+17:32:40:783  INFO 30584 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+17:32:40:784  INFO 30584 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+17:32:40:931  INFO 30584 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP item-service 192.168.131.1:8083 register finished
+17:32:42:601  INFO 30584 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+17:32:42:603  INFO 30584 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+17:32:42:607  INFO 30584 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+17:32:42:650  INFO 30584 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+17:32:42:876  INFO 30584 --- [main] com.haalan.item.ItemServiceApplication   : Started ItemServiceApplication in 24.786 seconds (JVM running for 26.341)
+17:32:42:893  INFO 30584 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service.yaml, group=DEFAULT_GROUP
+17:32:42:894  INFO 30584 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service-local.yaml, group=DEFAULT_GROUP
+17:32:42:895  INFO 30584 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service, group=DEFAULT_GROUP
+17:55:34:992  INFO 30584 --- [http-nio-8083-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+17:55:35:001  INFO 30584 --- [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+17:55:35:073  INFO 30584 --- [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 71 ms
+17:55:35:366  INFO 30584 --- [http-nio-8083-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+17:55:35:803  INFO 30584 --- [http-nio-8083-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+17:55:35:818 DEBUG 30584 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+17:55:35:877 DEBUG 30584 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+17:55:36:029 DEBUG 30584 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+17:55:43:019 DEBUG 30584 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+17:55:43:020 DEBUG 30584 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+17:55:43:022 DEBUG 30584 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+17:55:48:222 DEBUG 30584 --- [http-nio-8083-exec-3] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+17:55:48:222 DEBUG 30584 --- [http-nio-8083-exec-3] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+17:55:48:225 DEBUG 30584 --- [http-nio-8083-exec-3] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:13:30:415 DEBUG 30584 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:13:30:421 DEBUG 30584 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+18:13:30:429 DEBUG 30584 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:37:04:423  WARN 30584 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+18:37:04:423  WARN 30584 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+18:37:04:450  WARN 30584 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+18:37:04:489  WARN 30584 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+18:37:05:190  INFO 30584 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+18:37:05:219  INFO 30584 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+18:37:05:369  INFO 30584 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+18:37:05:381  INFO 30584 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+18:38:27:593  INFO 33592 --- [main] com.haalan.item.ItemServiceApplication   : The following 1 profile is active: "local"
+18:38:29:470  INFO 33592 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+18:38:29:482  INFO 33592 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+18:38:29:537  INFO 33592 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 32 ms. Found 0 Redis repository interfaces.
+18:38:29:976  INFO 33592 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=78eb47ae-fa5e-3f7f-a16d-a4c9dd87d5af
+18:38:30:693  INFO 33592 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8083 (http)
+18:38:30:705  INFO 33592 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+18:38:30:706  INFO 33592 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+18:38:30:975  INFO 33592 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+18:38:30:975  INFO 33592 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3366 ms
+18:38:34:992  INFO 33592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+18:38:35:558  INFO 33592 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+18:38:35:568  INFO 33592 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+18:38:37:383  INFO 33592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+18:38:37:605  INFO 33592 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8083 (http) with context path ''
+18:38:37:626  INFO 33592 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+18:38:37:626  INFO 33592 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+18:38:37:764  INFO 33592 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP item-service 192.168.131.1:8083 register finished
+18:38:39:293  INFO 33592 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+18:38:39:294  INFO 33592 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+18:38:39:297  INFO 33592 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+18:38:39:330  INFO 33592 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+18:38:39:568  INFO 33592 --- [main] com.haalan.item.ItemServiceApplication   : Started ItemServiceApplication in 18.312 seconds (JVM running for 21.003)
+18:38:39:589  INFO 33592 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service.yaml, group=DEFAULT_GROUP
+18:38:39:590  INFO 33592 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service-local.yaml, group=DEFAULT_GROUP
+18:38:39:590  INFO 33592 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service, group=DEFAULT_GROUP
+18:41:20:246  INFO 33592 --- [http-nio-8083-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+18:41:20:246  INFO 33592 --- [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+18:41:20:249  INFO 33592 --- [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+18:41:20:380  INFO 33592 --- [http-nio-8083-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+18:41:20:750  INFO 33592 --- [http-nio-8083-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+18:41:20:762 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:41:20:801 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 1(Long)
+18:41:20:845 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:41:20:853 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:41:20:854 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+18:41:20:857 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:41:20:857 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:41:20:857 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 5(Long)
+18:41:20:860 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:41:20:861 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:41:20:861 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 7(Long)
+18:41:20:864 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:41:20:865 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:41:20:865 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 9(Long)
+18:41:20:867 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:41:20:867 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:41:20:867 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 11(Long)
+18:41:20:871 DEBUG 33592 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:55:57:226 DEBUG 33592 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:55:57:239 DEBUG 33592 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+18:55:57:249 DEBUG 33592 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+18:56:27:033 DEBUG 33592 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+18:56:27:033 DEBUG 33592 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+18:56:27:045 DEBUG 33592 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:02:43:442  WARN 33592 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Start destroying Publisher
+19:02:43:442  WARN 33592 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Start destroying common HttpClient
+19:02:43:444  WARN 33592 --- [Thread-7] c.a.nacos.common.notify.NotifyCenter     : [NotifyCenter] Destruction of the end
+19:02:43:452  WARN 33592 --- [Thread-1] c.a.n.common.http.HttpClientBeanHolder   : [HttpClientBeanHolder] Destruction of the end
+19:02:43:676  INFO 33592 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registering from Nacos Server now...
+19:02:43:692  INFO 33592 --- [SpringApplicationShutdownHook] c.a.c.n.registry.NacosServiceRegistry    : De-registration finished.
+19:02:43:787  INFO 33592 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+19:02:43:803  INFO 33592 --- [SpringApplicationShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+19:02:56:003  INFO 33052 --- [main] com.haalan.item.ItemServiceApplication   : The following 1 profile is active: "local"
+19:02:57:681  INFO 33052 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+19:02:57:688  INFO 33052 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+19:02:57:748  INFO 33052 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 32 ms. Found 0 Redis repository interfaces.
+19:02:58:304  INFO 33052 --- [main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=78eb47ae-fa5e-3f7f-a16d-a4c9dd87d5af
+19:02:59:393  INFO 33052 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8083 (http)
+19:02:59:416  INFO 33052 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+19:02:59:417  INFO 33052 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.75]
+19:02:59:805  INFO 33052 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+19:02:59:805  INFO 33052 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3768 ms
+19:03:05:507  INFO 33052 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+19:03:06:469  INFO 33052 --- [main] pertySourcedRequestMappingHandlerMapping : Mapped URL path [/v2/api-docs] onto method [springfox.documentation.swagger2.web.Swagger2ControllerWebMvc#getDocumentation(String, HttpServletRequest)]
+19:03:06:489  INFO 33052 --- [main] c.h.c.config.GlobalExceptionHandler      : GlobalExceptionHandler 已初始化
+19:03:09:139  INFO 33052 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+19:03:09:563  INFO 33052 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8083 (http) with context path ''
+19:03:09:596  INFO 33052 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.impl.NacosClientAuthServiceImpl success.
+19:03:09:597  INFO 33052 --- [main] c.a.n.p.a.s.c.ClientAuthPluginManager    : [ClientAuthPluginManager] Load ClientAuthService com.alibaba.nacos.client.auth.ram.RamClientAuthServiceImpl success.
+19:03:09:764  INFO 33052 --- [main] c.a.c.n.registry.NacosServiceRegistry    : nacos registry, DEFAULT_GROUP item-service 192.168.131.1:8083 register finished
+19:03:11:849  INFO 33052 --- [main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+19:03:11:851  INFO 33052 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Documentation plugins bootstrapped
+19:03:11:858  INFO 33052 --- [main] d.s.w.p.DocumentationPluginsBootstrapper : Found 1 custom documentation plugin(s)
+19:03:11:906  INFO 33052 --- [main] s.d.s.w.s.ApiListingReferenceScanner     : Scanning for api listing references
+19:03:12:207  INFO 33052 --- [main] com.haalan.item.ItemServiceApplication   : Started ItemServiceApplication in 24.718 seconds (JVM running for 26.625)
+19:03:12:231  INFO 33052 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service.yaml, group=DEFAULT_GROUP
+19:03:12:233  INFO 33052 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service-local.yaml, group=DEFAULT_GROUP
+19:03:12:234  INFO 33052 --- [main] c.a.c.n.refresh.NacosContextRefresher    : [Nacos Config] Listening config: dataId=item-service, group=DEFAULT_GROUP
+19:03:41:878  INFO 33052 --- [http-nio-8083-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+19:03:41:879  INFO 33052 --- [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+19:03:41:882  INFO 33052 --- [http-nio-8083-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+19:03:41:979  INFO 33052 --- [http-nio-8083-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+19:03:42:279  INFO 33052 --- [http-nio-8083-exec-1] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+19:03:42:290 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:03:42:327 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:03:42:372 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:03:50:098 DEBUG 33052 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:03:50:098 DEBUG 33052 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:03:50:101 DEBUG 33052 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:06:41:711 DEBUG 33052 --- [http-nio-8083-exec-3] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:06:41:715 DEBUG 33052 --- [http-nio-8083-exec-3] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:06:41:725 DEBUG 33052 --- [http-nio-8083-exec-3] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:06:52:404 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:06:52:406 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:06:52:411 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:08:34:695 DEBUG 33052 --- [http-nio-8083-exec-7] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:08:34:697 DEBUG 33052 --- [http-nio-8083-exec-7] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:08:34:699 DEBUG 33052 --- [http-nio-8083-exec-7] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:10:16:500 DEBUG 33052 --- [http-nio-8083-exec-9] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:10:16:501 DEBUG 33052 --- [http-nio-8083-exec-9] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:10:16:511 DEBUG 33052 --- [http-nio-8083-exec-9] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:12:46:288 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:12:46:289 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:12:46:291 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:15:58:788 DEBUG 33052 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:15:58:789 DEBUG 33052 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:15:58:807 DEBUG 33052 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:19:46:783 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:19:46:784 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:19:46:789 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:21:33:710 DEBUG 33052 --- [http-nio-8083-exec-7] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:21:33:711 DEBUG 33052 --- [http-nio-8083-exec-7] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:21:33:712 DEBUG 33052 --- [http-nio-8083-exec-7] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:21:41:209 DEBUG 33052 --- [http-nio-8083-exec-8] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:21:41:209 DEBUG 33052 --- [http-nio-8083-exec-8] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:21:41:212 DEBUG 33052 --- [http-nio-8083-exec-8] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:22:59:930 DEBUG 33052 --- [http-nio-8083-exec-10] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:22:59:930 DEBUG 33052 --- [http-nio-8083-exec-10] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:22:59:933 DEBUG 33052 --- [http-nio-8083-exec-10] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:23:07:982 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:23:07:983 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:23:07:986 DEBUG 33052 --- [http-nio-8083-exec-1] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:23:19:891 DEBUG 33052 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:23:19:893 DEBUG 33052 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:23:19:895 DEBUG 33052 --- [http-nio-8083-exec-2] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:23:36:743 DEBUG 33052 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:23:36:744 DEBUG 33052 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:23:36:747 DEBUG 33052 --- [http-nio-8083-exec-4] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:29:53:699 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:29:53:714 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:29:53:810 DEBUG 33052 --- [http-nio-8083-exec-5] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
+19:30:28:370 DEBUG 33052 --- [http-nio-8083-exec-6] c.h.item.mapper.TSkuMapper.selectById    : ==>  Preparing: SELECT id,sku_code,spu_id,name,specifications,price,promotion_price,stock,sold_count,images,status,create_time,update_time,alipay_product_code,wechat_product_code FROM t_sku WHERE id=?
+19:30:28:372 DEBUG 33052 --- [http-nio-8083-exec-6] c.h.item.mapper.TSkuMapper.selectById    : ==> Parameters: 2(Long)
+19:30:28:378 DEBUG 33052 --- [http-nio-8083-exec-6] c.h.item.mapper.TSkuMapper.selectById    : <==      Total: 1
