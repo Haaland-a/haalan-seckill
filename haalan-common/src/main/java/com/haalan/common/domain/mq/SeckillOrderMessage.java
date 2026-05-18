@@ -68,7 +68,7 @@ public class SeckillOrderMessage implements Serializable {
 	private BigDecimal totalAmount;
 
 	/**
-	 * 收货地址ID
+	 * 收货地址ID（加密前）
 	 */
 	private Long addressId;
 

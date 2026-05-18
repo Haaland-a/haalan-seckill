@@ -68,6 +68,10 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 		SkuDetailVO skuDetail = itemServiceClient.getSkuDetail(message.getSkuId());
 
 		// 2. 保存秒杀订单
+		// 解密地址ID（从加密字符串转为Long）
+		Long decryptedAddressId = message.getAddressId();
+
+
 		TSeckillOrder seckillOrder = TSeckillOrder.builder()
 				.orderNo(message.getPreOrderNo())
 				.userId(message.getUserId())
@@ -80,7 +84,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				.seckillPrice(message.getSeckillPrice())
 				.quantity(message.getQuantity())
 				.totalAmount(message.getTotalAmount())
-				.addressId(message.getAddressId())
+				.addressId(decryptedAddressId)
 				.orderTime(message.getCreateTime())
 				.status(0)
 				.createTime(message.getCreateTime())
