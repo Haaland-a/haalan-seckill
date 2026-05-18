@@ -96,6 +96,10 @@ public class TSeckillOrder implements Serializable {
 	@TableField("create_time")
 	private LocalDateTime createTime;
 
+	@ApiModelProperty(value = "收货地址ID")
+	@TableField("address_id")
+	private Long addressId;
+
 	@ApiModelProperty(value = "更新时间")
 	@TableField("update_time")
 	private LocalDateTime updateTime;

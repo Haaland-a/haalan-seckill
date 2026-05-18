@@ -1,6 +1,7 @@
 package com.haalan.user.controller;
 
 import com.haalan.common.domain.R;
+import com.haalan.common.utils.EncryptUtils;
 import com.haalan.common.utils.UserContext;
 import com.haalan.user.domain.dto.LoginDTO;
 import com.haalan.user.domain.dto.TUserDTO;
@@ -79,21 +80,39 @@ public class TUserController {
 		return R.success(addresses);
 	}
 
+	@ApiOperation(value = "根据ID获取收货地址详情")
+	@GetMapping("/address/{addressId}")
+	public R<UserAddressVO> getAddressById(@PathVariable String addressId) {
+		Long userId = UserContext.getUser();
+		// 解密地址ID
+		Long decryptedAddressId = EncryptUtils.decryptToLong(addressId);
+		UserAddressVO address = userAddressService.getAddressById(userId, decryptedAddressId);
+		if (address == null) {
+			return R.error("地址不存在或无权限");
+		}
+		log.info("获取地址详情成功, userId: {}, addressId: {}", userId, decryptedAddressId);
+		return R.success(address);
+	}
+
 	@ApiOperation(value = "修改收货地址")
 	@PutMapping("/address/{addressId}")
 	public R<Void> updateAddress(
-			@PathVariable Long addressId,
+			@PathVariable String addressId,
 			@RequestBody UserAddressDTO addressDTO) {
 		Long userId = UserContext.getUser();
-		userAddressService.updateAddress(userId, addressId, addressDTO);
+		// 解密地址ID
+		Long decryptedAddressId = EncryptUtils.decryptToLong(addressId);
+		userAddressService.updateAddress(userId, decryptedAddressId, addressDTO);
 		return R.success("修改成功", null);
 	}
 
 	@ApiOperation(value = "删除收货地址")
 	@DeleteMapping("/address/{addressId}")
-	public R<Void> deleteAddress(@PathVariable Long addressId) {
+	public R<Void> deleteAddress(@PathVariable String addressId) {
 		Long userId = UserContext.getUser();
-		userAddressService.deleteAddress(userId, addressId);
+		// 解密地址ID
+		Long decryptedAddressId = EncryptUtils.decryptToLong(addressId);
+		userAddressService.deleteAddress(userId, decryptedAddressId);
 		return R.success("删除成功", null);
 	}
 
@@ -111,5 +130,21 @@ public class TUserController {
 		log.info("用户退出登录, userId: {}", userId);
 		return R.success("退出成功", null);
 	}
+
+	/**
+	 * 内部接口，用于获取收货地址详情
+	 *
+	 * @param addressId
+	 * @return
+	 */
+	@GetMapping("address/inner/{addressId}")
+	public UserAddressVO getInnerAddressById(@RequestParam Long addressId,
+											 @RequestParam Long userId) {
+
+		UserAddressVO address = userAddressService.getAddressById(userId, addressId);
+		log.info("获取地址详情成功, userId: {}, addressId: {}", userId, addressId);
+		return address;
+	}
+
 
 }

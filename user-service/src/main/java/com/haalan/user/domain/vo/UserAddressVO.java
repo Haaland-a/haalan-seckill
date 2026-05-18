@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class UserAddressVO {
 
 	@ApiModelProperty(value = "地址ID")
-	private Long addressId;
+	private String addressId;
 
 	@ApiModelProperty(value = "收货人姓名")
 	private String receiverName;

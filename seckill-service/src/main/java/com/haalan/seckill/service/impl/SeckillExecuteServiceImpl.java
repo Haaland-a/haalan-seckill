@@ -7,6 +7,7 @@ import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.common.domain.mq.UserSeckillRecordMessage;
 import com.haalan.common.exception.BizIllegalException;
+import com.haalan.common.utils.EncryptUtils;
 import com.haalan.common.utils.WebUtils;
 import com.haalan.seckill.config.RabbitConstants;
 import com.haalan.seckill.config.SeckillConstants;
@@ -67,6 +68,8 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 		Long activityId = request.getActivityId();
 		Long seckillProductId = request.getSeckillProductId();
 		Integer quantity = request.getQuantity();
+		// 解密地址ID
+		Long addressId = EncryptUtils.decryptToLong(request.getAddressId());
 		String ip = WebUtils.getRemoteAddr();
 		HttpServletRequest request1 = WebUtils.getRequest();
 		String userAgent =
@@ -74,8 +77,8 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 		if (request1 != null) {
 			userAgent = request1.getHeader("User-Agent");
 		}
-		log.info("开始执行秒杀, userId={}, requestId={}, activityId={}, seckillProductId={}",
-				userId, requestId, activityId, seckillProductId);
+		log.info("开始执行秒杀, userId={}, requestId={}, activityId={}, seckillProductId={}, addressId={}",
+				userId, requestId, activityId, seckillProductId, addressId);
 
 		// ============ 第一层：幂等性控制(提前占位) ============
 		String idempotentKey = SeckillConstants.SECKILL_IDEMPOTENT_PREFIX + requestId;
@@ -172,7 +175,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			// ============ 第十层：可靠消息投递 ============
 			String messageId = UUID.fastUUID().toString(true);
 			SeckillOrderMessage message = buildOrderMessage(messageId, preOrderNo, userId, product,
-					request, totalAmount);
+					request, totalAmount, addressId);
 
 			// 关键步骤：先持久化消息记录到Redis，再发送MQ
 			boolean messageSent = sendMessageReliably(message, preOrderNo);
@@ -359,7 +362,8 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 												  Long userId,
 												  Map<String, String> product,
 												  SeckillExecuteRequestDTO request,
-												  BigDecimal totalAmount) {
+												  BigDecimal totalAmount,
+												  Long addressId) {
 		return SeckillOrderMessage.builder()
 				.messageId(messageId)
 				.preOrderNo(preOrderNo)
@@ -375,6 +379,7 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				.alipayProductCode(product.get("alipayProductCode"))
 				.quantity(request.getQuantity())
 				.totalAmount(totalAmount)
+				.addressId(addressId)
 				.createTime(LocalDateTime.now())
 				.build();
 	}

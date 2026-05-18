@@ -1,0 +1,148 @@
+# ==================== Maven ====================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ==================== Gradle ====================
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ==================== IntelliJ IDEA ====================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# ==================== Eclipse ====================
+.classpath
+.project
+.settings/
+bin/
+
+# ==================== NetBeans ====================
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ==================== VS Code ====================
+.vscode/
+*.code-workspace
+
+# ==================== macOS ====================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ==================== Windows ====================
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ==================== Linux ====================
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# ==================== Logs ====================
+logs/
+*.log
+log/
+
+# ==================== Application Properties ====================
+application-local.yml
+application-local.yaml
+application-dev.yml
+application-dev.yaml
+*.properties.local
+
+# ==================== Database ====================
+*.db
+*.h2.db
+*.sqlite
+
+# ==================== Temporary Files ====================
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+
+# ==================== Package Files ====================
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ==================== JVM ====================
+hs_err_pid*
+replay_pid*
+
+# ==================== Spring Boot ====================
+spring.log
+spring.log.*
+
+# ==================== Redis Dump ====================
+dump.rdb
+
+# ==================== Node (if frontend exists) ====================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ==================== Environment Variables ====================
+.env
+.env.local
+.env.*.local
+
+# ==================== Secrets & Credentials ====================
+*.jks
+*.keystore
+*.p12
+*.pem
+*-private.key
+secrets/
+credentials/
+
+# ==================== Docker ====================
+docker-compose.override.yml
+
+# ==================== Coverage & Reports ====================
+coverage/
+*.gcov
+jacoco/
+site/
+
+# ==================== Misc ====================
+*.class
+*.orig
+*.rej
+.DS_Store
+.cache
+.temp
+tmp/
+temp/

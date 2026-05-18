@@ -3,6 +3,7 @@ package com.haalan.user.service.Impl;
 import cn.hutool.core.util.DesensitizedUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.haalan.common.utils.EncryptUtils;
 import com.haalan.user.domain.dto.UserAddressDTO;
 import com.haalan.user.domain.po.TUserAddress;
 import com.haalan.user.domain.vo.AddressVO;
@@ -101,6 +102,33 @@ public class UserAddressServiceImpl implements UserAddressService {
 		return addresses.stream().map(this::convertToVO).collect(Collectors.toList());
 	}
 
+	/**
+	 * <p>
+	 * 根据地址ID获取地址详情
+	 * </p>
+	 *
+	 * @param userId    用户ID
+	 * @param addressId 地址ID
+	 * @return 地址详情
+	 * @author Haaland
+	 * @date 2026/5/18
+	 */
+	@Override
+	public UserAddressVO getAddressById(Long userId, Long addressId) {
+		TUserAddress address = addressMapper.selectOne(
+				Wrappers.<TUserAddress>lambdaQuery()
+						.eq(TUserAddress::getId, addressId)
+						.eq(TUserAddress::getUserId, userId)
+		);
+
+		if (address == null) {
+			log.warn("地址不存在或无权限, userId: {}, addressId: {}", userId, addressId);
+			return null;
+		}
+
+		return convertToVO(address);
+	}
+
 	private UserAddressVO convertToVO(TUserAddress address) {
 		String fullAddress = StrUtil.format("{}{}{}{}",
 				address.getProvince(),
@@ -117,8 +145,11 @@ public class UserAddressServiceImpl implements UserAddressService {
 		//🏠 地址脱敏
 		String phoneMasked = DesensitizedUtil.mobilePhone(address.getReceiverPhone());
 
+		// 加密地址ID
+		String encryptedAddressId = EncryptUtils.encryptId(address.getId());
+
 		return UserAddressVO.builder()
-				.addressId(address.getId())
+				.addressId(encryptedAddressId)
 				.receiverName(address.getReceiverName())
 				.receiverPhone(phoneMasked)
 				.province(address.getProvince())

@@ -46,7 +46,7 @@ public class SeckillExecuteRequestDTO implements Serializable {
 	@Min(value = 1, message = "购买数量必须大于0")
 	private Integer quantity;
 
-	@ApiModelProperty(value = "收货地址ID", required = true)
-	@NotNull(message = "收货地址ID不能为空")
-	private Long addressId;
+	@ApiModelProperty(value = "收货地址ID（加密后）", required = true)
+	@NotBlank(message = "收货地址ID不能为空")
+	private String addressId;
 }

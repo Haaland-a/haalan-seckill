@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.api.client.ItemServiceClient;
+import com.haalan.api.client.UserServiceClient;
 import com.haalan.api.domain.vo.SkuDetailVO;
+import com.haalan.api.domain.vo.UserAddressVO;
 import com.haalan.common.domain.PageResult;
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
@@ -40,6 +42,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 		implements ITSeckillOrder0Service {
 
 	private final ItemServiceClient itemServiceClient;
+	private final UserServiceClient userServiceClient;
 
 	public static final String SECKILL_STOCK = "seckill:stock:";
 	public static final String SECKILL_USER_BUY_PREFIX = "seckill:buy:";
@@ -77,6 +80,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				.seckillPrice(message.getSeckillPrice())
 				.quantity(message.getQuantity())
 				.totalAmount(message.getTotalAmount())
+				.addressId(message.getAddressId())
 				.orderTime(message.getCreateTime())
 				.status(0)
 				.createTime(message.getCreateTime())
@@ -326,7 +330,8 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 			orderDetailVO.setUserId(seckillOrder.getUserId());
 			orderDetailVO.setOrderType(2); // 2-秒杀订单
 			orderDetailVO.setOrderTypeName("秒杀订单");
-			// 秒杀订单不设置totalAmount、discountAmount、actualAmount
+			orderDetailVO.setTotalAmount(seckillOrder.getTotalAmount());
+			// 秒杀订单不设置discountAmount、actualAmount
 			orderDetailVO.setStatus(seckillOrder.getStatus());
 			orderDetailVO.setStatusName(getStatusName(seckillOrder.getStatus()));
 			orderDetailVO.setCreateTime(seckillOrder.getOrderTime());
@@ -372,12 +377,40 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 			orderDetailVO.setOrderItems(orderItemVOList);
 
-			// 6. 收货地址信息（秒杀订单可能没有，返回空对象）
-			AddressInfoVO addressInfo = new AddressInfoVO();
-			addressInfo.setReceiverName("");
-			addressInfo.setReceiverPhone("");
-			addressInfo.setFullAddress("");
-			orderDetailVO.setAddressInfo(addressInfo);
+			// 6. 收货地址信息
+			if (seckillOrder.getAddressId() != null) {
+				try {
+					log.info("开始调用用户服务获取地址, userId: {}, addressId: {}", userId, seckillOrder.getAddressId());
+					UserAddressVO userAddress = userServiceClient.getUserAddressById(seckillOrder.getAddressId(), userId);
+					log.info("用户服务返回结果: {}", userAddress);
+					if (userAddress != null) {
+						log.info("地址详情 - 姓名: {}, 电话: {}, 完整地址: {}",
+								userAddress.getReceiverName(),
+								userAddress.getReceiverPhone(),
+								userAddress.getFullAddress());
+						AddressInfoVO addressInfo = new AddressInfoVO();
+						addressInfo.setReceiverName(userAddress.getReceiverName());
+						addressInfo.setReceiverPhone(userAddress.getReceiverPhone());
+						addressInfo.setFullAddress(userAddress.getFullAddress());
+						addressInfo.setProvince(userAddress.getProvince());
+						addressInfo.setCity(userAddress.getCity());
+						addressInfo.setDistrict(userAddress.getDistrict());
+						addressInfo.setDetailAddress(userAddress.getDetailAddress());
+						orderDetailVO.setAddressInfo(addressInfo);
+					} else {
+						log.warn("用户服务返回的地址为null");
+					}
+				} catch (Exception e) {
+					log.error("获取用户地址失败, addressId: {}", seckillOrder.getAddressId(), e);
+					// 如果获取失败，返回空地址对象
+					AddressInfoVO addressInfo = new AddressInfoVO();
+					orderDetailVO.setAddressInfo(addressInfo);
+				}
+			} else {
+				log.info("订单中没有地址ID");
+				AddressInfoVO addressInfo = new AddressInfoVO();
+				orderDetailVO.setAddressInfo(addressInfo);
+			}
 
 			return orderDetailVO;
 
@@ -431,7 +464,9 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 			List<OrderListItemVO> voList = orderPage.getRecords().stream()
 					.map(order -> {
 						OrderListItemVO vo = new OrderListItemVO();
+
 						vo.setOrderNo(order.getOrderNo());
+
 						vo.setOrderType(2); // 秒杀订单
 						vo.setOrderTypeName("秒杀订单");
 						vo.setTotalAmount(order.getTotalAmount());
@@ -441,12 +476,12 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 						vo.setProductName(order.getProductName());
 						vo.setQuantity(order.getQuantity());
 						vo.setCreateTime(order.getOrderTime());
+						vo.setUpdateTime(order.getUpdateTime());
 
 
 						// 从订单商品明细中获取商品图片
 						TOrderItem orderItem = orderItemService.lambdaQuery()
 								.eq(TOrderItem::getOrderNo, order.getOrderNo())
-								.last("LIMIT 1")
 								.one();
 						if (orderItem != null) {
 							vo.setProductImage(orderItem.getProductImage());
