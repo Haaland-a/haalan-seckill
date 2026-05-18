@@ -110,7 +110,7 @@ public class TSeckillTokenServiceImpl implements ITSeckillTokenService {
 				tokenKey,
 				tokenValue,
 				sTokenProperties.getTimeOut(),
-				TimeUnit.SECONDS
+				TimeUnit.MICROSECONDS
 		);
 
 		log.info("令牌已存储到Redis, token={}, value={}, ttl={}s",
