@@ -49,4 +49,10 @@ public class RabbitConstants {
 	public static final String ORDER_TIMEOUT_BACKUP_DLX_EXCHANGE = "seckill.timeout.backup.dlx.exchange";
 	public static final String ORDER_TIMEOUT_BACKUP_DLX_QUEUE = "seckill.timeout.backup.dlx.queue";
 	public static final String ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY = "seckill.timeout.backup.dlx";
+
+	// ==================== 秒杀订单支付状态更新相关 ====================
+	// 支付成功交换机
+	public static final String SECKILL_PAY_SUCCESS_EXCHANGE = "seckill.pay.success.exchange";
+	// 支付成功路由
+	public static final String SECKILL_PAY_SUCCESS_ROUTING_KEY = "seckill.pay.success";
 }

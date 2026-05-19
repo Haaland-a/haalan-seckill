@@ -102,4 +102,23 @@ public class UserSeckillRecordServiceImpl extends ServiceImpl<UserSeckillRecordM
 		// 插入数据库
 		userSeckillRecordMapper.insertUserRecord(record, tableName);
 	}
+
+	@Override
+	public boolean updateStatusByOrderNo(String orderNo, Long userId, Integer status) {
+		// 1. 根据userId确定分表
+		int tableSuffix = (int) (userId % 2);
+		String tableName = "user_seckill_record_" + tableSuffix;
+		log.debug("更新秒杀记录状态，orderNo: {}, userId: {}, status: {}, 表名: {}", orderNo, userId, status, tableName);
+
+		// 2. 执行更新
+		int updated = userSeckillRecordMapper.updateStatusByOrderNo(orderNo, status, tableName);
+		return updated > 0;
+	}
+
+	@Override
+	public UserSeckillRecord getByOrderNo(String orderNo, Long userId) {
+		int tableSuffix = (int) (userId % 2);
+		String tableName = "user_seckill_record_" + tableSuffix;
+		return userSeckillRecordMapper.getByOrderNo(orderNo, tableName);
+	}
 }

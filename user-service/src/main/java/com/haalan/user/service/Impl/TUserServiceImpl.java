@@ -143,6 +143,8 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 		userInfoVO.setAvatar(user.getAvatar());
 		userInfoVO.setMemberLevel(user.getMemberLevel());
 		userInfoVO.setLastLoginTime(user.getUpdateTime());
+		userInfoVO.setAvatarUpdateTime(user.getAvatarUpdateTime());
+
 
 		log.info("用户{}查询成功", user);
 		return userInfoVO;
@@ -161,7 +163,12 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 	@Override
 	public void updateUserInfo(UserInfoVO userInfoVO) {
 		TUser user = new TUser();
-		BeanUtils.copyProperties(userInfoVO, user);
+		user.setId(userInfoVO.getUserId());
+		user.setEmail(userInfoVO.getEmail());
+		user.setPhone(userInfoVO.getPhone());
+		user.setAvatar(userInfoVO.getAvatar());
+		user.setUsername(userInfoVO.getUsername());
+		log.info("用户{}修改信息成功", userInfoVO.getAvatar());
 		tUserMapper.updateById(user);
 	}
 

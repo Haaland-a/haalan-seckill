@@ -36,4 +36,18 @@ public interface UserSeckillRecordMapper extends BaseMapper<UserSeckillRecord> {
 	 */
 	void insertUserRecord(@Param("record") UserSeckillRecord record,
 						  @Param("tableName") String tableName);
+
+	/**
+	 * 根据订单号更新秒杀记录状态（支持分表）
+	 *
+	 * @param orderNo   订单号
+	 * @param status    新状态
+	 * @param tableName 表名（user_seckill_record_0 或 user_seckill_record_1）
+	 * @return 影响行数
+	 */
+	int updateStatusByOrderNo(@Param("orderNo") String orderNo,
+							  @Param("status") Integer status,
+							  @Param("tableName") String tableName);
+
+	UserSeckillRecord getByOrderNo(String orderNo, String tableName);
 }

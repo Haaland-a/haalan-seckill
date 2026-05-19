@@ -24,7 +24,7 @@ public class SeckillProductDetailVO implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@ApiModelProperty(value = "秒杀商品ID")
-	private Long id;
+	private Long productId;
 
 	@ApiModelProperty(value = "SKU ID")
 	private Long skuId;

@@ -13,9 +13,11 @@ import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.haalan.common.domain.mq.SeckillOrderPaySuccessMessage;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.order.config.AlipayProperties;
 import com.haalan.order.config.MQProperties;
+import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.dto.PayRequestDTO;
 import com.haalan.order.domain.po.TPayment;
 import com.haalan.order.domain.po.TSeckillOrder;
@@ -29,6 +31,7 @@ import com.haalan.order.service.ITPaymentService;
 import com.haalan.order.service.ITSeckillOrder0Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +64,9 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 
 	@Resource
 	private IMessagePushService messagePushService;
+
+	@Resource
+	private RabbitTemplate rabbitTemplate;
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -355,6 +361,9 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			// 5. 推送WebSocket消息通知客户端
 			messagePushService.pushPaymentSuccess(userId, outTradeNo);
 
+			// 6. 发送MQ消息通知秒杀服务更新秒杀记录状态
+			sendPaySuccessMessage(order, userId);
+
 			return "success";
 
 		} catch (Exception e) {
@@ -490,6 +499,9 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 
 			// 3. 推送WebSocket消息通知客户端
 			messagePushService.pushPaymentSuccess(userId, payment.getOrderNo());
+
+			// 4. 发送MQ消息通知秒杀服务更新秒杀记录状态
+			sendPaySuccessMessage(order, userId);
 		}
 	}
 
@@ -516,5 +528,34 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			case 2 -> "支付失败";
 			default -> "未知";
 		};
+	}
+
+	/**
+	 * 发送支付成功MQ消息，通知秒杀服务更新秒杀记录状态
+	 *
+	 * @param order  订单信息
+	 * @param userId 用户ID
+	 */
+	private void sendPaySuccessMessage(TSeckillOrder order, Long userId) {
+		try {
+			SeckillOrderPaySuccessMessage message = SeckillOrderPaySuccessMessage.builder()
+					.orderNo(order.getOrderNo())
+					.userId(userId)
+					.activityId(order.getActivityId())
+					.seckillProductId(order.getSeckillProductId())
+					.build();
+
+			rabbitTemplate.convertAndSend(
+					RabbitConstants.SECKILL_PAY_SUCCESS_EXCHANGE,
+					RabbitConstants.SECKILL_PAY_SUCCESS_ROUTING_KEY,
+					message
+			);
+
+			log.info("支付成功MQ消息已发送, orderNo={}, userId={}", order.getOrderNo(), userId);
+
+		} catch (Exception e) {
+			// MQ消息发送失败不影响主流程，记录日志即可
+			log.error("发送支付成功MQ消息失败, orderNo={}, userId={}", order.getOrderNo(), userId, e);
+		}
 	}
 }

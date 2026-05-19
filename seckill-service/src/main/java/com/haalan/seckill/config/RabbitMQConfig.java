@@ -289,4 +289,116 @@ public class RabbitMQConfig {
 				.to(seckillRecordDlxExchange())
 				.with(RabbitConstants.SECKILL_RECORD_DLX_ROUTING_KEY);
 	}
+
+	// ==================== 秒杀订单支付状态更新相关配置 ====================
+
+	/**
+	 * 支付成功交换机
+	 */
+	@Bean
+	public DirectExchange seckillPaySuccessExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_PAY_SUCCESS_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 支付成功死信交换机
+	 */
+	@Bean
+	public DirectExchange seckillPaySuccessDlxExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_PAY_SUCCESS_DLX_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 支付成功队列（带死信）
+	 */
+	@Bean
+	public Queue seckillPaySuccessQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_PAY_SUCCESS_QUEUE)
+				.deadLetterExchange(RabbitConstants.SECKILL_PAY_SUCCESS_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.SECKILL_PAY_SUCCESS_DLX_ROUTING_KEY)
+				.build();
+	}
+
+	/**
+	 * 支付成功死信队列
+	 */
+	@Bean
+	public Queue seckillPaySuccessDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_PAY_SUCCESS_DLX_QUEUE).build();
+	}
+
+	/**
+	 * 支付成功绑定
+	 */
+	@Bean
+	public Binding seckillPaySuccessBinding() {
+		return BindingBuilder.bind(seckillPaySuccessQueue())
+				.to(seckillPaySuccessExchange())
+				.with(RabbitConstants.SECKILL_PAY_SUCCESS_ROUTING_KEY);
+	}
+
+	/**
+	 * 支付成功死信绑定
+	 */
+	@Bean
+	public Binding seckillPaySuccessDlxBinding() {
+		return BindingBuilder.bind(seckillPaySuccessDlxQueue())
+				.to(seckillPaySuccessDlxExchange())
+				.with(RabbitConstants.SECKILL_PAY_SUCCESS_DLX_ROUTING_KEY);
+	}
+
+	/**
+	 * 订单取消（超时）交换机
+	 */
+	@Bean
+	public DirectExchange seckillOrderCancelExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_ORDER_CANCEL_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 订单取消死信交换机
+	 */
+	@Bean
+	public DirectExchange seckillOrderCancelDlxExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_ORDER_CANCEL_DLX_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 订单取消（超时）队列（带死信）
+	 */
+	@Bean
+	public Queue seckillOrderCancelQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_ORDER_CANCEL_QUEUE)
+				.deadLetterExchange(RabbitConstants.SECKILL_ORDER_CANCEL_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.SECKILL_ORDER_CANCEL_DLX_ROUTING_KEY)
+				.build();
+	}
+
+	/**
+	 * 订单取消死信队列
+	 */
+	@Bean
+	public Queue seckillOrderCancelDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_ORDER_CANCEL_DLX_QUEUE).build();
+	}
+
+	/**
+	 * 订单取消（超时）绑定
+	 */
+	@Bean
+	public Binding seckillOrderCancelBinding() {
+		return BindingBuilder.bind(seckillOrderCancelQueue())
+				.to(seckillOrderCancelExchange())
+				.with(RabbitConstants.SECKILL_ORDER_CANCEL_ROUTING_KEY);
+	}
+
+	/**
+	 * 订单取消死信绑定
+	 */
+	@Bean
+	public Binding seckillOrderCancelDlxBinding() {
+		return BindingBuilder.bind(seckillOrderCancelDlxQueue())
+				.to(seckillOrderCancelDlxExchange())
+				.with(RabbitConstants.SECKILL_ORDER_CANCEL_DLX_ROUTING_KEY);
+	}
 }

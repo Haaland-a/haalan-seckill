@@ -79,5 +79,34 @@ public class RabbitConstants {
 	public static final String SECKILL_RECORD_DLX_QUEUE = "seckill.record.dlx.queue";
 	// 用户秒杀记录死信路由
 	public static final String SECKILL_RECORD_DLX_ROUTING_KEY = "seckill.record.dlx";
+
+	// ==================== 秒杀订单支付状态更新相关 ====================
+	// 支付成功交换机
+	public static final String SECKILL_PAY_SUCCESS_EXCHANGE = "seckill.pay.success.exchange";
+	// 支付成功队列
+	public static final String SECKILL_PAY_SUCCESS_QUEUE = "seckill.pay.success.queue";
+	// 支付成功路由
+	public static final String SECKILL_PAY_SUCCESS_ROUTING_KEY = "seckill.pay.success";
+
+	// 支付成功死信交换机
+	public static final String SECKILL_PAY_SUCCESS_DLX_EXCHANGE = "seckill.pay.success.dlx.exchange";
+	// 支付成功死信队列
+	public static final String SECKILL_PAY_SUCCESS_DLX_QUEUE = "seckill.pay.success.dlx.queue";
+	// 支付成功死信路由
+	public static final String SECKILL_PAY_SUCCESS_DLX_ROUTING_KEY = "seckill.pay.success.dlx";
+
+	// 订单超时（取消）交换机
+	public static final String SECKILL_ORDER_CANCEL_EXCHANGE = "seckill.order.cancel.exchange";
+	// 订单超时（取消）队列
+	public static final String SECKILL_ORDER_CANCEL_QUEUE = "seckill.order.cancel.queue";
+	// 订单超时（取消）路由
+	public static final String SECKILL_ORDER_CANCEL_ROUTING_KEY = "seckill.order.cancel";
+
+	// 订单取消死信交换机
+	public static final String SECKILL_ORDER_CANCEL_DLX_EXCHANGE = "seckill.order.cancel.dlx.exchange";
+	// 订单取消死信队列
+	public static final String SECKILL_ORDER_CANCEL_DLX_QUEUE = "seckill.order.cancel.dlx.queue";
+	// 订单取消死信路由
+	public static final String SECKILL_ORDER_CANCEL_DLX_ROUTING_KEY = "seckill.order.cancel.dlx";
 }
 

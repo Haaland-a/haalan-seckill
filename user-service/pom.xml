@@ -103,6 +103,25 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
         </dependency>
 
+        <!--阿里云OSS-->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>3.15.1</version>
+        </dependency>
+
+        <!--阿里云STS临时凭证-->
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-sts</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>aliyun-java-sdk-core</artifactId>
+            <version>4.6.0</version>
+        </dependency>
+
         <!--        &lt;!&ndash;AMQP依赖，包含RabbitMQ&ndash;&gt;-->
         <!--        <dependency>-->
         <!--            <groupId>org.springframework.boot</groupId>-->

@@ -10,6 +10,12 @@
           AND is_deleted = 0
         ORDER BY create_time DESC
     </select>
+    <select id="getByOrderNo" resultType="com.haalan.seckill.domain.po.UserSeckillRecord">
+        SELECT *
+        FROM ${tableName}
+        WHERE order_no = #{orderNo}
+          AND is_deleted = 0
+    </select>
 
     <!-- 插入用户秒杀记录（支持分表） -->
     <insert id="insertUserRecord">
@@ -22,5 +28,14 @@
                 #{record.seckillPrice}, #{record.quantity}, #{record.status},
                 #{record.createTime}, #{record.payExpireTime}, NOW(), 0)
     </insert>
+
+    <!-- 根据订单号更新秒杀记录状态（支持分表） -->
+    <update id="updateStatusByOrderNo">
+        UPDATE ${tableName}
+        SET status      = #{status},
+            update_time = NOW()
+        WHERE order_no = #{orderNo}
+          AND is_deleted = 0
+    </update>
 
 </mapper>

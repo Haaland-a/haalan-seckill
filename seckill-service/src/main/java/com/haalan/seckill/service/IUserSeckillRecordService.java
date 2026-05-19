@@ -31,4 +31,16 @@ public interface IUserSeckillRecordService extends IService<UserSeckillRecord> {
 	 * @param record 秒杀记录
 	 */
 	void saveUserRecord(UserSeckillRecord record);
+
+	/**
+	 * 根据订单号更新秒杀记录状态（支持分表）
+	 *
+	 * @param orderNo 订单号
+	 * @param userId  用户ID（用于确定分表）
+	 * @param status  新状态
+	 * @return 是否更新成功
+	 */
+	boolean updateStatusByOrderNo(String orderNo, Long userId, Integer status);
+
+	UserSeckillRecord getByOrderNo(String orderNo, Long userId);
 }

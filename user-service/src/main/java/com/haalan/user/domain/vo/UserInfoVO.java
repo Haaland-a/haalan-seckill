@@ -34,4 +34,9 @@ public class UserInfoVO {
 	private LocalDateTime lastLoginTime;
 	@JsonProperty("lastLoginIp")
 	private String lastLoginIp;
+
+	@JsonProperty("avatarUpdateTime")
+	private LocalDateTime avatarUpdateTime;
+
+
 }

@@ -1,6 +1,7 @@
 package com.haalan.user.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -63,6 +64,9 @@ public class TUser implements Serializable {
 	@TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
 	private LocalDateTime updateTime;
 
+	@JsonProperty("avatarUpdateTime")
+	@TableField("avatar_update_time")
+	private LocalDateTime avatarUpdateTime;
 
 }
 

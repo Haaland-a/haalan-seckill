@@ -137,7 +137,7 @@ public class TSeckillPreheatServiceImpl implements ITSeckillPreheatService {
 
 				Map<String, String> info = productInfoMap.get(key);
 
-				info.put("id", product.getId().toString());
+				info.put("productId", product.getId().toString());
 				info.put("skuId", product.getSkuId().toString());
 				info.put("skuCode", product.getSkuCode());
 				info.put("name", product.getProductName());

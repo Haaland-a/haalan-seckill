@@ -1,5 +1,7 @@
 package com.haalan.seckill.listener;
 
+import com.haalan.common.domain.mq.OrderTimeoutMessage;
+import com.haalan.common.domain.mq.SeckillOrderPaySuccessMessage;
 import com.haalan.common.domain.mq.UserSeckillRecordMessage;
 import com.haalan.common.utils.BeanUtils;
 import com.haalan.common.utils.UserContext;
@@ -67,5 +69,107 @@ public class SpringRabbitListener {
 					message.getUserId(), message.getOrderNo(), e);
 			throw e; // 重新抛出，让MQ重试
 		}
+	}
+
+	/**
+	 * 监听订单支付成功消息，更新秒杀记录状态为已支付
+	 */
+	@RabbitListener(queues = RabbitConstants.SECKILL_PAY_SUCCESS_QUEUE)
+	public void listenPaySuccessMessage(SeckillOrderPaySuccessMessage message) {
+		log.info("接收到订单支付成功消息：【{}】", message);
+
+		try {
+			// 更新秒杀记录状态为已支付（status=1）- 支持分表
+			boolean updated = userSeckillRecordService.updateStatusByOrderNo(
+					message.getOrderNo(),
+					message.getUserId(),
+					1 // 1-已支付
+			);
+
+			if (updated) {
+				log.info("秒杀记录状态更新为已支付成功, orderNo={}, userId={}",
+						message.getOrderNo(), message.getUserId());
+			} else {
+				log.warn("秒杀记录状态更新失败，可能记录不存在, orderNo={}", message.getOrderNo());
+			}
+
+		} catch (Exception e) {
+			log.error("更新秒杀记录支付状态失败, orderNo={}, userId={}",
+					message.getOrderNo(), message.getUserId(), e);
+			throw e; // 重新抛出，让MQ重试
+		}
+	}
+
+	/**
+	 * 监听订单超时取消消息，更新秒杀记录状态为已取消
+	 */
+	@RabbitListener(queues = RabbitConstants.SECKILL_ORDER_CANCEL_QUEUE)
+	public void listenOrderCancelMessage(OrderTimeoutMessage message) {
+		log.info("接收到订单超时取消消息：【{}】", message);
+
+		try {
+			// 先查询当前状态（支持分表）
+			UserSeckillRecord record = userSeckillRecordService.getByOrderNo(message.getOrderNo(),
+					message.getUserId());
+
+			// 校验：记录不存在或状态不是待支付，则不处理
+			if (record == null) {
+				log.warn("秒杀记录不存在, orderNo={}", message.getOrderNo());
+				return;
+			}
+
+			if (record.getStatus() != 0) {
+				log.info("订单状态不是待支付，无需取消, orderNo={}, currentStatus={}",
+						message.getOrderNo(), record.getStatus());
+				return;
+			}
+
+			// 更新秒杀记录状态为已取消（status=2）- 支持分表
+			boolean updated = userSeckillRecordService.updateStatusByOrderNo(
+					message.getOrderNo(),
+					message.getUserId(),
+					2 // 2-已取消
+			);
+
+			if (updated) {
+				log.info("秒杀记录状态更新为已取消成功, orderNo={}, userId={}",
+						message.getOrderNo(), message.getUserId());
+			} else {
+				log.warn("秒杀记录状态更新失败，可能记录不存在, orderNo={}", message.getOrderNo());
+			}
+
+		} catch (Exception e) {
+			log.error("更新秒杀记录取消状态失败, orderNo={}, userId={}",
+					message.getOrderNo(), message.getUserId(), e);
+			throw e; // 重新抛出，让MQ重试
+		}
+	}
+
+	/**
+	 * 监听支付成功死信队列 - 用于告警和人工干预
+	 */
+	@RabbitListener(queues = RabbitConstants.SECKILL_PAY_SUCCESS_DLX_QUEUE)
+	public void listenPaySuccessDlxMessage(SeckillOrderPaySuccessMessage message) {
+		log.error("【严重告警】支付成功消息进入死信队列，需要人工干预！消息内容：【{}】", message);
+
+		// TODO: 这里可以添加告警通知
+		// TODO: 也可以记录到专门的失败表中，供后续补偿处理
+
+		// 注意：死信队列的消息不再抛出异常，避免无限循环
+		// 应该通过监控告警，由人工或定时任务进行补偿处理
+	}
+
+	/**
+	 * 监听订单取消死信队列 - 用于告警和人工干预
+	 */
+	@RabbitListener(queues = RabbitConstants.SECKILL_ORDER_CANCEL_DLX_QUEUE)
+	public void listenOrderCancelDlxMessage(OrderTimeoutMessage message) {
+		log.error("【严重告警】订单取消消息进入死信队列，需要人工干预！消息内容：【{}】", message);
+
+		// TODO: 这里可以添加告警通知
+		// TODO: 也可以记录到专门的失败表中，供后续补偿处理
+
+		// 注意：死信队列的消息不再抛出异常，避免无限循环
+		// 应该通过监控告警，由人工或定时任务进行补偿处理
 	}
 }

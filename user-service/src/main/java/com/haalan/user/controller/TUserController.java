@@ -7,6 +7,8 @@ import com.haalan.user.domain.dto.LoginDTO;
 import com.haalan.user.domain.dto.TUserDTO;
 import com.haalan.user.domain.dto.UserAddressDTO;
 import com.haalan.user.domain.vo.*;
+import com.haalan.user.service.FileUploadService;
+import com.haalan.user.service.OssDirectUploadService;
 import com.haalan.user.service.TUserService;
 import com.haalan.user.service.UserAddressService;
 import io.swagger.annotations.Api;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Api(tags = "用户管理")
@@ -26,6 +29,8 @@ public class TUserController {
 
 	private final TUserService tUserService;
 	private final UserAddressService userAddressService;
+	private final FileUploadService fileUploadService;
+	private final OssDirectUploadService ossDirectUploadService;
 
 	@ApiOperation(value = "用户注册")
 	@PostMapping("/register")
@@ -60,6 +65,29 @@ public class TUserController {
 		tUserService.updateUserInfo(userInfoVO);
 		log.info("修改用户信息成功, userId: {}", userId);
 		return R.success("修改成功");
+	}
+
+//	@ApiOperation(value = "上传头像")
+//	@PostMapping("/avatar/upload")
+//	public R<String> uploadAvatar(@RequestParam("file") MultipartFile file) {
+//		Long userId = UserContext.getUser();
+//		String avatarUrl = fileUploadService.uploadAvatar(file);
+//		log.info("用户上传头像成功, userId: {}, url: {}", userId, avatarUrl);
+//		return R.success("上传成功", avatarUrl);
+//	}
+
+	@ApiOperation(value = "获取OSS上传凭证（前端直传）")
+	@GetMapping("/oss/credential")
+	public R<OssUploadCredentialVO> getOssUploadCredential() {
+		Long userId = UserContext.getUser();
+		//检验用户是否一天内上传过
+		UserInfoVO userInfo = tUserService.getUserInfo(userId);
+		if (userInfo.getAvatarUpdateTime() != null && userInfo.getAvatarUpdateTime().isAfter(LocalDateTime.now().minusDays(1))) {
+			return R.error("今天已上传过头像");
+		}
+		OssUploadCredentialVO credential = ossDirectUploadService.getUploadCredential();
+		log.info("用户获取OSS上传凭证, userId: {}", userId);
+		return R.success(credential);
 	}
 
 	@ApiOperation(value = "添加收货地址")
