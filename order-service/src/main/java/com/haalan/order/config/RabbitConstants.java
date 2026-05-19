@@ -51,8 +51,15 @@ public class RabbitConstants {
 	public static final String ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY = "seckill.timeout.backup.dlx";
 
 	// ==================== 秒杀订单支付状态更新相关 ====================
+	//在秒杀中绑定了
 	// 支付成功交换机
 	public static final String SECKILL_PAY_SUCCESS_EXCHANGE = "seckill.pay.success.exchange";
 	// 支付成功路由
 	public static final String SECKILL_PAY_SUCCESS_ROUTING_KEY = "seckill.pay.success";
+
+	// 订单超时（取消）交换机
+	public static final String SECKILL_ORDER_CANCEL_EXCHANGE = "seckill.order.cancel.exchange";
+
+	// 订单超时（取消）路由
+	public static final String SECKILL_ORDER_CANCEL_ROUTING_KEY = "seckill.order.cancel";
 }

@@ -541,8 +541,6 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			SeckillOrderPaySuccessMessage message = SeckillOrderPaySuccessMessage.builder()
 					.orderNo(order.getOrderNo())
 					.userId(userId)
-					.activityId(order.getActivityId())
-					.seckillProductId(order.getSeckillProductId())
 					.build();
 
 			rabbitTemplate.convertAndSend(

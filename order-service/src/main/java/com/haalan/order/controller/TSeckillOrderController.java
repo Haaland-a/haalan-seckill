@@ -33,8 +33,8 @@ public class TSeckillOrderController {
 	private final ITSeckillOrder0Service seckillOrderService;
 	private final ITOrderService orderService;
 
-	@PostMapping("/cancel/{orderNo}")
-	@ApiOperation("取消订单")
+	@PostMapping("/seckill/cancel/{orderNo}")
+	@ApiOperation("取消秒杀订单")
 	public R<CancelOrderResponseVO> cancelOrder(
 			@PathVariable String orderNo,
 			@RequestBody @Validated CancelOrderRequestDTO request) {
@@ -46,6 +46,7 @@ public class TSeckillOrderController {
 
 		return R.success(response);
 	}
+
 
 	@GetMapping("/seckill/detail/{orderNo}")
 	@ApiOperation("获取订单详情")

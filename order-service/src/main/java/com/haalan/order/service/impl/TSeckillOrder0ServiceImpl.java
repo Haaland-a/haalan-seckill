@@ -14,6 +14,7 @@ import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.UserContext;
+import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.po.TOrderItem;
 import com.haalan.order.domain.po.TSeckillOrder;
 import com.haalan.order.domain.vo.*;
@@ -23,6 +24,7 @@ import com.haalan.order.service.ITOrderItemService;
 import com.haalan.order.service.ITSeckillOrder0Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -52,6 +54,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 	private final StringRedisTemplate stringRedisTemplate;
 	private final IMessagePushService messagePushService;
 	private final ITOrderItemService orderItemService;
+	private final RabbitTemplate rabbitTemplate;
 
 	private static final DefaultRedisScript<Long> ROLLBACK_SCRIPT = new DefaultRedisScript<>();
 
@@ -302,7 +305,10 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 					.build();
 			messagePushService.pushOrderCancel(userId, response);
 
-			// 7. 返回响应
+			// 7. 发送MQ消息通知秒杀服务更新秒杀记录状态
+			sendOrderCancelMessage(order, userId);
+
+			// 8. 返回响应
 			return response;
 
 		} finally {
@@ -442,6 +448,33 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				return "已超时";
 			default:
 				return "未知";
+		}
+	}
+
+	/**
+	 * 发送订单取消MQ消息，通知秒杀服务更新秒杀记录状态
+	 *
+	 * @param order  订单信息
+	 * @param userId 用户ID
+	 */
+	private void sendOrderCancelMessage(TSeckillOrder order, Long userId) {
+		try {
+			OrderTimeoutMessage message = OrderTimeoutMessage.builder()
+					.orderNo(order.getOrderNo())
+					.userId(userId)
+					.build();
+
+			rabbitTemplate.convertAndSend(
+					RabbitConstants.SECKILL_ORDER_CANCEL_EXCHANGE,
+					RabbitConstants.SECKILL_ORDER_CANCEL_ROUTING_KEY,
+					message
+			);
+
+			log.info("订单取消MQ消息已发送, orderNo={}, userId={}", order.getOrderNo(), userId);
+
+		} catch (Exception e) {
+			// MQ消息发送失败不影响主流程，记录日志即可
+			log.error("发送订单取消MQ消息失败, orderNo={}, userId={}", order.getOrderNo(), userId, e);
 		}
 	}
 

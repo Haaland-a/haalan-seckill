@@ -343,17 +343,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 					RabbitConstants.SECKILL_RECORD_ROUTING_KEY,
 					recordMessage
 			);
-			//发送延时消息給本服务的秒杀记录
-			OrderTimeoutMessage timeoutMessage = new OrderTimeoutMessage();
-			timeoutMessage.setOrderNo(orderNo);
-			timeoutMessage.setUserId(userId);
-			// 发送延时消息
-			//如果订单超时未支付，则取消订单,支付了内边就不管了
-			rabbitTemplate.convertAndSend(
-					RabbitConstants.SECKILL_ORDER_CANCEL_EXCHANGE,
-					RabbitConstants.SECKILL_ORDER_CANCEL_ROUTING_KEY,
-					timeoutMessage
-			);
 
 
 			log.info("用户秒杀记录消息已发送, userId={}, orderNo={}, messageId={}",
