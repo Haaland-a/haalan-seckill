@@ -9,11 +9,15 @@ import com.aliyuncs.sts.model.v20150401.AssumeRoleRequest;
 import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
 import com.haalan.common.exception.CommonException;
 import com.haalan.user.config.OssProperties;
+import com.haalan.user.domain.po.TUser;
 import com.haalan.user.domain.vo.OssUploadCredentialVO;
 import com.haalan.user.service.OssDirectUploadService;
+import com.haalan.user.service.TUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 /**
  * OSS直传服务实现类
@@ -25,6 +29,7 @@ public class OssDirectUploadServiceImpl implements OssDirectUploadService {
 
 	private final OssProperties ossProperties;
 
+	private final TUserService tUserService;
 	/**
 	 * <p>
 	 * 获取OSS上传临时凭证（STS）
@@ -35,7 +40,7 @@ public class OssDirectUploadServiceImpl implements OssDirectUploadService {
 	 * @date 2026/5/19
 	 */
 	@Override
-	public OssUploadCredentialVO getUploadCredential() {
+	public OssUploadCredentialVO getUploadCredential(Long userId) {
 		try {
 			// 构建请求
 			AssumeRoleRequest request = new AssumeRoleRequest();
@@ -66,7 +71,16 @@ public class OssDirectUploadServiceImpl implements OssDirectUploadService {
 			AssumeRoleResponse response = client.getAcsResponse(request);
 			AssumeRoleResponse.Credentials credentials = response.getCredentials();
 
-			log.info("生成OSS上传凭证成功，过期时间: {}秒", ossProperties.getStsDuration());
+			log.info("生成OSS上传凭证成功，用户ID: {}", userId);
+			TUser tUser = new TUser();
+			tUser.setId(userId);
+			tUser.setTokenAcquireTime(LocalDateTime.now());
+			boolean b = tUserService.updateById(tUser);
+			if (!b) {
+				log.error("更新用户获取凭证时间失败，用户ID: {},暂时无法更新头像", userId);
+				throw new CommonException("更新用户获取凭证时间失败,暂时无法更新头像 " + userId, 500);
+			}
+			log.info("更新用户获取凭证时间成功，用户ID: {}", userId);
 
 			return OssUploadCredentialVO.builder()
 					.accessKeyId(credentials.getAccessKeyId())

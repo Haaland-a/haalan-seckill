@@ -68,5 +68,8 @@ public class TUser implements Serializable {
 	@TableField("avatar_update_time")
 	private LocalDateTime avatarUpdateTime;
 
+	@TableField("token_acquire_time")
+	private LocalDateTime tokenAcquireTime;
+
 }
 

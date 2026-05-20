@@ -3,9 +3,11 @@ package com.haalan.user.controller;
 import com.haalan.common.domain.R;
 import com.haalan.common.utils.EncryptUtils;
 import com.haalan.common.utils.UserContext;
+import com.haalan.user.domain.dto.ChangePasswordDTO;
 import com.haalan.user.domain.dto.LoginDTO;
 import com.haalan.user.domain.dto.TUserDTO;
 import com.haalan.user.domain.dto.UserAddressDTO;
+import com.haalan.user.domain.po.TUser;
 import com.haalan.user.domain.vo.*;
 import com.haalan.user.service.FileUploadService;
 import com.haalan.user.service.OssDirectUploadService;
@@ -81,11 +83,14 @@ public class TUserController {
 	public R<OssUploadCredentialVO> getOssUploadCredential() {
 		Long userId = UserContext.getUser();
 		//检验用户是否一天内上传过
-		UserInfoVO userInfo = tUserService.getUserInfo(userId);
-		if (userInfo.getAvatarUpdateTime() != null && userInfo.getAvatarUpdateTime().isAfter(LocalDateTime.now().minusDays(1))) {
+		TUser user = tUserService.getById(userId);
+		if (user.getAvatarUpdateTime() != null && user.getAvatarUpdateTime().plusDays(1).isAfter(LocalDateTime.now())) {
 			return R.error("今天已上传过头像");
 		}
-		OssUploadCredentialVO credential = ossDirectUploadService.getUploadCredential();
+		if (user.getTokenAcquireTime() != null && user.getTokenAcquireTime().plusHours(1).isAfter(LocalDateTime.now())) {
+			return R.error("请勿频繁点击上传头像,一小时后重试");
+		}
+		OssUploadCredentialVO credential = ossDirectUploadService.getUploadCredential(userId);
 		log.info("用户获取OSS上传凭证, userId: {}", userId);
 		return R.success(credential);
 	}
@@ -157,6 +162,21 @@ public class TUserController {
 		tUserService.logout(userId);
 		log.info("用户退出登录, userId: {}", userId);
 		return R.success("退出成功", null);
+	}
+
+	@ApiOperation(value = "修改密码")
+	@PostMapping("/change-password")
+	public R<Void> changePassword(@RequestBody ChangePasswordDTO changePasswordDTO) {
+		Long userId = UserContext.getUser();
+		log.info("修改密码接口被调用, userId: {}", userId);
+
+		if (userId == null) {
+			return R.error("未登录或Token无效");
+		}
+
+		tUserService.changePassword(userId, changePasswordDTO);
+		log.info("用户修改密码成功, userId: {}", userId);
+		return R.success("密码修改成功，请重新登录", null);
 	}
 
 	/**

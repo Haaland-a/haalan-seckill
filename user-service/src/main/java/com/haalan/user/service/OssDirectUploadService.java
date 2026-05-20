@@ -12,5 +12,5 @@ public interface OssDirectUploadService {
 	 *
 	 * @return 上传凭证
 	 */
-	OssUploadCredentialVO getUploadCredential();
+	OssUploadCredentialVO getUploadCredential(Long userId);
 }

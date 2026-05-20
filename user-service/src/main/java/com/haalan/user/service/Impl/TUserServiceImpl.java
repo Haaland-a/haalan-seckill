@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.common.exception.CommonException;
 import com.haalan.common.utils.BeanUtils;
+import com.haalan.user.domain.dto.ChangePasswordDTO;
 import com.haalan.user.domain.dto.LoginDTO;
 import com.haalan.user.domain.dto.TUserDTO;
 import com.haalan.user.domain.po.TUser;
@@ -61,7 +62,7 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 		BeanUtils.copyProperties(userDTO, user);
 
 		// 密码加密
-		// 设置传入数据库的密码//再做一层 BCrypt（关键🔥） // 前端传来的“加密密码”
+		// 设置传入数据库的密码//再做一层 BCrypt（关键） // 前端传来的“加密密码”
 		user.setPassword(passwordEncoder.encode(user.getPassword()));
 
 		user.setCreateTime(LocalDateTime.now());
@@ -195,6 +196,58 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 
 			log.info("用户{}退出登录，Token版本已更新为: {}，Redis已同步", userId, newVersion);
 		}
+	}
+
+	/**
+	 * <p>
+	 * 修改密码
+	 * </p>
+	 *
+	 * @param userId            用户ID
+	 * @param changePasswordDTO 修改密码请求参数
+	 * @author Haaland
+	 * @date 2026/5/20
+	 */
+	@Override
+	@Transactional
+	public void changePassword(Long userId, ChangePasswordDTO changePasswordDTO) {
+		// 1. 验证新密码和确认密码是否一致
+		if (!changePasswordDTO.getNewPassword().equals(changePasswordDTO.getConfirmNewPassword())) {
+			throw new CommonException("新密码与确认密码不一致", 400);
+		}
+
+		// 2. 查询用户信息
+		TUser user = tUserMapper.selectById(userId);
+		if (user == null) {
+			throw new CommonException("用户不存在", 404);
+		}
+
+		// 3. 验证原密码是否正确
+		if (!passwordEncoder.matches(changePasswordDTO.getOldPassword(), user.getPassword())) {
+			throw new CommonException("原密码错误", 400);
+		}
+
+		// 4. 验证新密码不能与原密码相同
+		if (passwordEncoder.matches(changePasswordDTO.getNewPassword(), user.getPassword())) {
+			throw new CommonException("新密码不能与原密码相同", 400);
+		}
+
+		// 5. 更新密码并递增token版本使旧token失效
+		String encodedNewPassword = passwordEncoder.encode(changePasswordDTO.getNewPassword());
+		user.setPassword(encodedNewPassword);
+
+		// 递增token版本，使之前的所有token失效
+		Integer newVersion = (user.getTokenVersion() != null ? user.getTokenVersion() : 1) + 1;
+		user.setTokenVersion(newVersion);
+		user.setUpdateTime(LocalDateTime.now());
+
+		tUserMapper.updateById(user);
+
+		// 6. 更新Redis中的token版本
+		String redisKey = "user:token:version:" + userId;
+		stringRedisTemplate.opsForValue().set(redisKey, newVersion.toString(), 2, TimeUnit.HOURS);
+
+		log.info("用户{}修改密码成功，Token版本已更新为: {}", userId, newVersion);
 	}
 
 }

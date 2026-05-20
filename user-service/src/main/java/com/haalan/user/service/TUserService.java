@@ -6,6 +6,7 @@
 package com.haalan.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.haalan.user.domain.dto.ChangePasswordDTO;
 import com.haalan.user.domain.dto.LoginDTO;
 import com.haalan.user.domain.dto.TUserDTO;
 import com.haalan.user.domain.po.TUser;
@@ -23,4 +24,12 @@ public interface TUserService extends IService<TUser> {
 	void updateUserInfo(UserInfoVO userInfoVO);
 
 	void logout(Long userId);
+
+	/**
+	 * 修改密码
+	 *
+	 * @param userId            用户ID
+	 * @param changePasswordDTO 修改密码请求参数
+	 */
+	void changePassword(Long userId, ChangePasswordDTO changePasswordDTO);
 }
