@@ -67,6 +67,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>    <!-- 👈 加上这行 -->
+                </configuration>
             </plugin>
         </plugins>
     </build>
