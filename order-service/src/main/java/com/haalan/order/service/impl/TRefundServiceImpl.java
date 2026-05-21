@@ -25,10 +25,10 @@ import com.haalan.order.mapper.TRefundMapper;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.mapper.TSeckillOrder1Mapper;
 import com.haalan.order.service.ITRefundService;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -57,7 +57,7 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 	private AlipayProperties alipayProperties;
 
 	@Override
-	@Transactional(rollbackFor = Exception.class)
+	@GlobalTransactional(rollbackFor = Exception.class)
 	public RefundResponseVO applyRefund(Long userId, RefundRequestDTO request) {
 		String orderNo = request.getOrderNo();
 		BigDecimal refundAmount = request.getRefundAmount();
@@ -149,7 +149,7 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 	}
 
 	@Override
-	@Transactional(rollbackFor = Exception.class)
+	@GlobalTransactional(rollbackFor = Exception.class)
 	public void auditRefund(RefundAuditRequestDTO request) {
 		String refundNo = request.getRefundNo();
 		Boolean approved = request.getApproved();

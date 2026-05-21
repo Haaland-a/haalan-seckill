@@ -1,4 +1,4 @@
-FROM openjdk:17-jre-slim
+FROM btgoose/jdk17:latest
 WORKDIR /app
 COPY target/user-service-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8081

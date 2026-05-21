@@ -22,6 +22,7 @@ import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.service.IMessagePushService;
 import com.haalan.order.service.ITOrderItemService;
 import com.haalan.order.service.ITSeckillOrder0Service;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -114,6 +115,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 	}
 
 	@Override
+	@GlobalTransactional(rollbackFor = Exception.class)
 	public void setStatus(OrderTimeoutMessage message) {
 		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
 		UserContext.setUser(message.getUserId());
@@ -244,6 +246,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 	}
 
 	@Override
+	@GlobalTransactional
 	public CancelOrderResponseVO cancelOrder(String orderNo, Long userId, String cancelReason) {
 		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
 		UserContext.setUser(userId);

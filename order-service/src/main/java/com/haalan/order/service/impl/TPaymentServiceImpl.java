@@ -29,6 +29,7 @@ import com.haalan.order.mapper.TSeckillOrder1Mapper;
 import com.haalan.order.service.IMessagePushService;
 import com.haalan.order.service.ITPaymentService;
 import com.haalan.order.service.ITSeckillOrder0Service;
+import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -291,7 +292,7 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	}
 
 	@Override
-	@Transactional(rollbackFor = Exception.class)
+	@GlobalTransactional(rollbackFor = Exception.class)   // 开启全局事务
 	public String handleAlipayCallback(String outTradeNo, String tradeNo, String totalAmount) {
 		log.info("处理支付宝回调 - 订单号: {}, 支付宝交易号: {}, 金额: {}", outTradeNo, tradeNo, totalAmount);
 
@@ -460,7 +461,7 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	/**
 	 * 更新支付记录为成功状态
 	 */
-	@Transactional(rollbackFor = Exception.class)
+	@GlobalTransactional(rollbackFor = Exception.class)
 	public void updatePaymentSuccess(TPayment payment, String tradeNo, String totalAmount) {
 		log.info("更新支付记录为成功, orderNo={}, tradeNo={}", payment.getOrderNo(), tradeNo);
 
