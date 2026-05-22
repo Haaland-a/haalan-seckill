@@ -12,8 +12,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.common.domain.PageResult;
+import com.haalan.common.domain.mq.OrderTimeoutMessage;
+import com.haalan.common.domain.mq.SeckillOrderRefundSuccessMessage;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.order.config.AlipayProperties;
+import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.dto.RefundAuditRequestDTO;
 import com.haalan.order.domain.dto.RefundRequestDTO;
 import com.haalan.order.domain.po.TPayment;
@@ -28,6 +31,11 @@ import com.haalan.order.service.ITRefundService;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -52,6 +60,8 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 
 	private final TSeckillOrder0Mapper seckillOrder0Mapper;
 	private final TSeckillOrder1Mapper seckillOrder1Mapper;
+	private final RabbitTemplate rabbitTemplate;
+	private final StringRedisTemplate stringRedisTemplate;
 
 	@Resource
 	private AlipayProperties alipayProperties;
@@ -252,7 +262,7 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 	}
 
 	/**
-	 * 更新订单状态为已取消
+	 * 更新订单状态为已取消，并回滚库存
 	 */
 	private void updateOrderStatusToCancelled(String orderNo, Long userId) {
 		int tableSuffix = (int) (userId % 2);
@@ -268,6 +278,19 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 				seckillOrder1Mapper.updateById(order);
 			}
 			log.info("订单状态更新为已取消, orderNo={}", orderNo);
+
+			// 回滚Redis库存（复用现有的Lua脚本）
+			OrderTimeoutMessage rollbackMsg = OrderTimeoutMessage.builder()
+					.orderNo(orderNo)
+					.userId(userId)
+					.activityId(order.getActivityId())
+					.seckillProductId(order.getSeckillProductId())
+					.quantity(order.getQuantity())
+					.build();
+			rollbackStockAndBuyRecordWithRetry(rollbackMsg, 3);
+
+			// 发送MQ消息通知秒杀服务回滚DB库存
+			sendRefundSuccessMessage(order, userId);
 		}
 	}
 
@@ -343,5 +366,112 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 			case 3 -> "已拒绝";
 			default -> "未知";
 		};
+	}
+
+	/**
+	 * Lua 脚本原子操作：回滚库存 + 购买记录（带重试）
+	 */
+	private boolean rollbackStockAndBuyRecordWithRetry(OrderTimeoutMessage message, int maxRetries) {
+		for (int i = 0; i < maxRetries; i++) {
+			try {
+				rollbackStockAndBuyRecord(message);
+				return true;
+			} catch (Exception e) {
+				log.warn("回滚失败，重试 {}/{}, orderNo={}, error={}",
+						i + 1, maxRetries, message.getOrderNo(), e.getMessage());
+				if (i == maxRetries - 1) {
+					log.error("回滚最终失败，orderNo={}", message.getOrderNo(), e);
+					return false;
+				}
+				try {
+					Thread.sleep(100 * (i + 1)); // 递增延迟
+				} catch (InterruptedException ie) {
+					Thread.currentThread().interrupt();
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Lua 脚本原子操作：回滚库存 + 购买记录
+	 */
+	private void rollbackStockAndBuyRecord(OrderTimeoutMessage message) {
+		String SECKILL_STOCK = "seckill:stock:";
+		String SECKILL_USER_BUY_PREFIX = "seckill:buy:";
+		String SECKILL_USER_LIMIT_PREFIX = "seckill:limit:";
+		String SECKILL_ACTIVITY_LIMIT_PREFIX = "seckill:limit:activity:";
+
+		String stockKey = SECKILL_STOCK + message.getActivityId()
+				+ ":" + message.getSeckillProductId();
+		String buyKey = SECKILL_USER_BUY_PREFIX + message.getUserId();
+		String productLimitKey = SECKILL_USER_LIMIT_PREFIX + message.getUserId()
+				+ ":" + message.getSeckillProductId();
+		String activityLimitKey = SECKILL_ACTIVITY_LIMIT_PREFIX + message.getActivityId();
+
+		java.util.List<String> keys = java.util.Arrays.asList(
+				stockKey,
+				buyKey,
+				activityLimitKey,  // KEYS[3]: 活动限购key
+				productLimitKey    // KEYS[4]: 商品限购key
+		);
+
+		Object[] args = {
+				String.valueOf(message.getQuantity()),
+				String.valueOf(message.getSeckillProductId()),
+				String.valueOf(message.getActivityId())
+		};
+
+		log.info("执行回滚Lua脚本, keys={}, args={}, orderNo={}",
+				keys, args, message.getOrderNo());
+
+		// 使用 StringRedisTemplate 执行 Lua 脚本，避免 JSON 序列化问题
+		ClassPathResource scriptSource = new ClassPathResource("lua/rollback_seckill.lua");
+		DefaultRedisScript<Long> ROLLBACK_SCRIPT = new DefaultRedisScript<>();
+		ROLLBACK_SCRIPT.setScriptSource(new ResourceScriptSource(scriptSource));
+		ROLLBACK_SCRIPT.setResultType(Long.class);
+
+		Long result = stringRedisTemplate.execute(ROLLBACK_SCRIPT, keys, args);
+
+		if (result == null || result != 0) {
+			log.error("回滚脚本执行失败, result={}, orderNo={}", result, message.getOrderNo());
+			throw new RuntimeException("回滚脚本执行失败，返回码: " + result);
+		}
+
+		log.info("回滚成功, orderNo={}, userId={}, productId={}, quantity={}",
+				message.getOrderNo(), message.getUserId(),
+				message.getSeckillProductId(), message.getQuantity());
+	}
+
+	/**
+	 * 发送退款成功MQ消息，通知秒杀服务回滚数据库库存
+	 *
+	 * @param order  订单信息
+	 * @param userId 用户ID
+	 */
+	private void sendRefundSuccessMessage(TSeckillOrder order, Long userId) {
+		try {
+			SeckillOrderRefundSuccessMessage message = SeckillOrderRefundSuccessMessage.builder()
+					.orderNo(order.getOrderNo())
+					.userId(userId)
+					.activityId(order.getActivityId())
+					.seckillProductId(order.getSeckillProductId())
+					.quantity(order.getQuantity())
+					.build();
+
+			rabbitTemplate.convertAndSend(
+					RabbitConstants.SECKILL_REFUND_SUCCESS_EXCHANGE,
+					RabbitConstants.SECKILL_REFUND_SUCCESS_ROUTING_KEY,
+					message
+			);
+
+			log.info("退款成功MQ消息已发送, orderNo={}, userId={}, seckillProductId={}, quantity={}",
+					order.getOrderNo(), userId, order.getSeckillProductId(), order.getQuantity());
+
+		} catch (Exception e) {
+			// MQ消息发送失败不影响主流程，记录日志即可
+			log.error("发送退款成功MQ消息失败, orderNo={}, userId={}", order.getOrderNo(), userId, e);
+		}
 	}
 }

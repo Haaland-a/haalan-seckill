@@ -1,9 +1,6 @@
 package com.haalan.seckill.domain.po;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -81,6 +78,7 @@ public class TSeckillProduct implements Serializable {
 
 	@ApiModelProperty(value = "乐观锁版本号")
 	@TableField("version")
+	@Version
 	private Integer version;
 
 	@ApiModelProperty(value = "创建时间")

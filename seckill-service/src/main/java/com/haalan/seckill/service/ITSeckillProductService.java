@@ -27,5 +27,20 @@ public interface ITSeckillProductService extends IService<TSeckillProduct> {
 
 	SeckillProductStockUpdateResultVO updateStock(Long seckillProductId, SeckillProductStockUpdateDTO dto);
 
+	/**
+	 * 支付成功后扣减数据库库存（从Redis同步到数据库）
+	 *
+	 * @param seckillProductId 秒杀商品ID
+	 * @param quantity         扣减数量
+	 */
+	void deductStockAfterPayment(Long seckillProductId, Integer quantity);
+
+	/**
+	 * 退款成功后回滚数据库库存
+	 *
+	 * @param seckillProductId 秒杀商品ID
+	 * @param quantity         回滚数量
+	 */
+	void rollbackStockAfterRefund(Long seckillProductId, Integer quantity);
 
 }

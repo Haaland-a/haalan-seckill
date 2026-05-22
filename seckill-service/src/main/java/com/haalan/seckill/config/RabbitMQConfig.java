@@ -401,4 +401,61 @@ public class RabbitMQConfig {
 				.to(seckillOrderCancelDlxExchange())
 				.with(RabbitConstants.SECKILL_ORDER_CANCEL_DLX_ROUTING_KEY);
 	}
+
+	// ==================== 秒杀订单退款成功相关配置 ====================
+
+	/**
+	 * 退款成功交换机
+	 */
+	@Bean
+	public DirectExchange seckillRefundSuccessExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_REFUND_SUCCESS_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 退款成功死信交换机
+	 */
+	@Bean
+	public DirectExchange seckillRefundSuccessDlxExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_REFUND_SUCCESS_DLX_EXCHANGE, true, false);
+	}
+
+	/**
+	 * 退款成功队列（带死信）
+	 */
+	@Bean
+	public Queue seckillRefundSuccessQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_REFUND_SUCCESS_QUEUE)
+				.deadLetterExchange(RabbitConstants.SECKILL_REFUND_SUCCESS_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.SECKILL_REFUND_SUCCESS_DLX_ROUTING_KEY)
+				.build();
+	}
+
+	/**
+	 * 退款成功死信队列
+	 */
+	@Bean
+	public Queue seckillRefundSuccessDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.SECKILL_REFUND_SUCCESS_DLX_QUEUE).build();
+	}
+
+	/**
+	 * 退款成功绑定
+	 */
+	@Bean
+	public Binding seckillRefundSuccessBinding() {
+		return BindingBuilder.bind(seckillRefundSuccessQueue())
+				.to(seckillRefundSuccessExchange())
+				.with(RabbitConstants.SECKILL_REFUND_SUCCESS_ROUTING_KEY);
+	}
+
+	/**
+	 * 退款成功死信绑定
+	 */
+	@Bean
+	public Binding seckillRefundSuccessDlxBinding() {
+		return BindingBuilder.bind(seckillRefundSuccessDlxQueue())
+				.to(seckillRefundSuccessDlxExchange())
+				.with(RabbitConstants.SECKILL_REFUND_SUCCESS_DLX_ROUTING_KEY);
+	}
 }

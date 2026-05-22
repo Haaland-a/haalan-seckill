@@ -18,11 +18,13 @@ public class AsyncConfig {
 		ThreadPoolTaskExecutor executor =
 				new ThreadPoolTaskExecutor();
 
-		executor.setCorePoolSize(8);
+		// 根据CPU核心数动态配置（假设8核CPU）
+		int corePoolSize = Runtime.getRuntime().availableProcessors() * 2;
+		executor.setCorePoolSize(corePoolSize);
 
-		executor.setMaxPoolSize(16);
+		executor.setMaxPoolSize(corePoolSize * 4);
 
-		executor.setQueueCapacity(2000);
+		executor.setQueueCapacity(5000);
 
 		executor.setKeepAliveSeconds(60);
 

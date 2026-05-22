@@ -97,6 +97,13 @@
                 <version>${hutool.version}</version>
             </dependency>
 
+            <!-- Google Guava - 用于布隆过滤器 -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>31.1-jre</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

@@ -14,6 +14,8 @@ import com.haalan.seckill.domain.po.TSeckillActivity;
 import com.haalan.seckill.domain.vo.*;
 import com.haalan.seckill.mapper.TSeckillActivityMapper;
 import com.haalan.seckill.service.ITSeckillActivityService;
+import com.haalan.seckill.util.BloomFilterUtil;
+import com.haalan.seckill.util.CacheEmptyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,7 +26,6 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -41,6 +42,8 @@ import java.util.concurrent.TimeUnit;
 public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMapper, TSeckillActivity> implements ITSeckillActivityService {
 
 	private final StringRedisTemplate redisTemplate;
+	private final BloomFilterUtil bloomFilterUtil;
+	private final CacheEmptyUtil cacheEmptyUtil;
 
 	/**
 	 * <p>
@@ -175,45 +178,38 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 	 * @date 2026/4/23
 	 */
 	@Override
-	@Transactional
 	public List<SeckillActivityCacheVO> getActivityList(Integer status) {
-
 		// =========================
 		// 查全部（null）→ 查 0/1/2 缓存
 		// =========================
-
 		if (status == null) {
-
 			List<SeckillActivityCacheVO> result = new ArrayList<>();
-
 			for (int s = 0; s <= 2; s++) {
-				int ttl = 300 + new Random().nextInt(60);
 				String key = SeckillConstants.SECKILL_ACTIVITY_CACHE_PREFIX + s;
-				String json = redisTemplate.opsForValue().get(key);
 
+				// 使用缓存空对象机制获取数据
+				int finalS = s;
+				List<SeckillActivityCacheVO> cacheList = cacheEmptyUtil.getOrCacheList(
+						key,
+						() -> queryFromDb(finalS),
+						SeckillActivityCacheVO.class
+				);
 
-				if (json == null) {
-					// 👉 没缓存 → 查DB并写缓存
-					List<SeckillActivityCacheVO> cache = queryFromDb(s);
-
-					redisTemplate.opsForValue().set(
-							key,
-							JSONUtil.toJsonStr(cache == null ? Collections.emptyList() : cache),
-							ttl,
-							TimeUnit.SECONDS
-					);
-					result.addAll(cache);
-				}
-
-				if (json != null) {
-					result.addAll(JSONUtil.toList(json, SeckillActivityCacheVO.class));
+				if (cacheList != null && !cacheList.isEmpty()) {
+					result.addAll(cacheList);
+					// 将活动ID添加到布隆过滤器
+					List<Long> activityIds = cacheList.stream()
+							.map(SeckillActivityCacheVO::getActivityId)
+							.filter(Objects::nonNull)
+							.toList();
+					bloomFilterUtil.addActivities(activityIds);
 				}
 			}
 			return result;
 		}
 
 		// =========================
-		// 进行中（status = 1）→ Redis
+		// 进行中（status = 1）→ Redis Set索引
 		// =========================
 		if (status == 1) {
 			String key = SeckillConstants.SECKILL_ACTIVITY_STATUS_INDEX + status;
@@ -223,14 +219,32 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 
 			if (ids != null && !ids.isEmpty()) {
 				for (String idStr : ids) {
-					SeckillActivityCacheVO activity = getActivityFromCache(Long.valueOf(idStr));
+					Long activityId = Long.valueOf(idStr);
+
+					// 先通过布隆过滤器判断
+					if (!bloomFilterUtil.mightContainActivity(activityId)) {
+						log.debug("布隆过滤器判断活动不存在: {}", activityId);
+						continue;
+					}
+
+					SeckillActivityCacheVO activity = getActivityFromCache(activityId);
 					if (activity != null) {
 						result.add(activity);
+					} else {
+						// 缓存中没有，尝试从数据库查询并缓存
+						String activityKey = SeckillConstants.SECKILL_ACTIVITY_LIST + activityId;
+						SeckillActivityCacheVO dbActivity = cacheEmptyUtil.getOrCache(
+								activityKey,
+								() -> queryActivityById(activityId),
+								SeckillActivityCacheVO.class
+						);
+						if (dbActivity != null) {
+							result.add(dbActivity);
+						}
 					}
 				}
 			}
 
-			// 这里不能 return null
 			if (result.isEmpty()) {
 				log.warn("活动未查到");
 				return Collections.emptyList();
@@ -244,26 +258,28 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 			return result;
 		}
 
+		// =========================
+		// 其他状态（0-未开始, 2-已结束）→ 直接查缓存
+		// =========================
 		String key = SeckillConstants.SECKILL_ACTIVITY_CACHE_PREFIX + status;
 
-		String json = redisTemplate.opsForValue().get(key);
-
-		if (json != null) {
-			return JSONUtil.toList(json, SeckillActivityCacheVO.class);
-		}
-
-		// 查DB
-		List<SeckillActivityCacheVO> cache = queryFromDb(status);
-
-		// 写缓存（防攻击DB）
-		redisTemplate.opsForValue().set(
+		// 使用缓存空对象机制获取数据
+		List<SeckillActivityCacheVO> cacheList = cacheEmptyUtil.getOrCacheList(
 				key,
-				JSONUtil.toJsonStr(cache == null ? Collections.emptyList() : cache),
-				300 + new Random().nextInt(60),  // 随机TTL, 防止缓存雪崩
-				TimeUnit.SECONDS
+				() -> queryFromDb(status),
+				SeckillActivityCacheVO.class
 		);
 
-		return cache == null ? Collections.emptyList() : cache;
+		// 将活动ID添加到布隆过滤器
+		if (cacheList != null && !cacheList.isEmpty()) {
+			List<Long> activityIds = cacheList.stream()
+					.map(SeckillActivityCacheVO::getActivityId)
+					.filter(Objects::nonNull)
+					.toList();
+			bloomFilterUtil.addActivities(activityIds);
+		}
+
+		return cacheList == null ? Collections.emptyList() : cacheList;
 	}
 
 	//从数据库中获取活动
@@ -290,6 +306,25 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 		}
 
 		return result;
+	}
+
+	// 从数据库中获取单个活动
+	private SeckillActivityCacheVO queryActivityById(Long activityId) {
+		TSeckillActivity activity = this.getById(activityId);
+		if (activity == null) {
+			return null;
+		}
+
+		return SeckillActivityCacheVO.builder()
+				.activityId(activity.getId())
+				.activityName(activity.getActivityName())
+				.startTime(activity.getStartTime())
+				.endTime(activity.getEndTime())
+				.status(activity.getStatus())
+				.statusName(getStatusName(activity.getStatus()))
+				.activityDesc(activity.getActivityDesc())
+				.productCount(activity.getTotalStock())
+				.build();
 	}
 
 
@@ -389,12 +424,39 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 			throw new BizIllegalException("秒杀商品ID不能为空");
 		}
 
+		// 先通过布隆过滤器判断秒杀商品是否存在
+		if (!bloomFilterUtil.mightContainProduct(seckillProductId)) {
+			log.debug("布隆过滤器判断秒杀商品不存在: {}", seckillProductId);
+			throw new BizIllegalException("秒杀商品不存在或尚未预热");
+		}
+
+		String cacheKey = SeckillConstants.SECKILL_PRODUCT_PREFIX + activityId + ":" + seckillProductId;
+
+		// 使用缓存空对象机制获取数据
+		SeckillProductInfoVO productVO = cacheEmptyUtil.getOrCache(
+				cacheKey,
+				() -> queryProductDetailFromDb(seckillProductId, activityId),
+				SeckillProductInfoVO.class
+		);
+
+		if (productVO == null) {
+			log.warn("秒杀商品不存在或缓存未预热, seckillProductId={}", seckillProductId);
+			throw new BizIllegalException("秒杀商品不存在或尚未预热");
+		}
+
+		log.info("查询秒杀商品详情成功, seckillProductId={}", seckillProductId);
+		return productVO;
+	}
+
+	/**
+	 * 从数据库查询秒杀商品详情
+	 */
+	private SeckillProductInfoVO queryProductDetailFromDb(Long seckillProductId, Long activityId) {
 		String productKey = SeckillConstants.SECKILL_PRODUCT_PREFIX + activityId + ":" + seckillProductId;
 		Map<Object, Object> productData = redisTemplate.opsForHash().entries(productKey);
 
 		if (productData == null || productData.isEmpty()) {
-			log.warn("秒杀商品不存在或缓存未预热, seckillProductId={}", seckillProductId);
-			throw new BizIllegalException("秒杀商品不存在或尚未预热");
+			return null;
 		}
 
 		Object specificationsObj = productData.remove("specifications");
@@ -512,6 +574,9 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 		// 用户已购买数量 只获取当前活动中的
 		Object o = redisTemplate.opsForHash().get(SeckillConstants.SECKILL_USER_BUY_PREFIX + UserContext.getUser(), String.valueOf(seckillProductId));
 		productVO.setUserPurchaseCount(o != null ? Integer.parseInt(o.toString()) : 0);
+
+		// 将秒杀商品ID添加到布隆过滤器
+		bloomFilterUtil.addProduct(seckillProductId);
 
 		log.info("查询秒杀商品详情成功, seckillProductId={}", seckillProductId);
 		return productVO;

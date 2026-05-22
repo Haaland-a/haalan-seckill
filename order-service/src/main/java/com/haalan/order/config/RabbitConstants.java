@@ -62,4 +62,10 @@ public class RabbitConstants {
 
 	// 订单超时（取消）路由
 	public static final String SECKILL_ORDER_CANCEL_ROUTING_KEY = "seckill.order.cancel";
+
+	// ==================== 秒杀订单退款成功相关 ====================
+	// 退款成功交换机
+	public static final String SECKILL_REFUND_SUCCESS_EXCHANGE = "seckill.refund.success.exchange";
+	// 退款成功路由
+	public static final String SECKILL_REFUND_SUCCESS_ROUTING_KEY = "seckill.refund.success";
 }

@@ -295,7 +295,7 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	@GlobalTransactional(rollbackFor = Exception.class)   // 开启全局事务
 	public String handleAlipayCallback(String outTradeNo, String tradeNo, String totalAmount) {
 		log.info("处理支付宝回调 - 订单号: {}, 支付宝交易号: {}, 金额: {}", outTradeNo, tradeNo, totalAmount);
-
+//由于支付宝不给我回调这部分可以忽略
 		try {
 			// 1. 查询支付记录获取userId
 			TPayment payment = this.lambdaQuery()
@@ -376,7 +376,7 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	@Override
 	public PayResultVO getPayResult(String orderNo, Long userId) {
 		log.info("查询支付结果, orderNo={}, userId={}", orderNo, userId);
-//由于支付宝不给我回调这部分可以忽略
+
 		// 1. 查询支付记录
 		TPayment payment = this.lambdaQuery()
 				.eq(TPayment::getOrderNo, orderNo)
@@ -532,7 +532,7 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	}
 
 	/**
-	 * 发送支付成功MQ消息，通知秒杀服务更新秒杀记录状态
+	 * 发送支付成功MQ消息，通知秒杀服务更新秒杀记录状态,以及库存状态
 	 *
 	 * @param order  订单信息
 	 * @param userId 用户ID
@@ -542,6 +542,8 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			SeckillOrderPaySuccessMessage message = SeckillOrderPaySuccessMessage.builder()
 					.orderNo(order.getOrderNo())
 					.userId(userId)
+					.seckillProductId(order.getSeckillProductId())
+					.quantity(order.getQuantity())
 					.build();
 
 			rabbitTemplate.convertAndSend(
@@ -550,7 +552,8 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 					message
 			);
 
-			log.info("支付成功MQ消息已发送, orderNo={}, userId={}", order.getOrderNo(), userId);
+			log.info("支付成功MQ消息已发送, orderNo={}, userId={}, seckillProductId={}, quantity={}",
+					order.getOrderNo(), userId, order.getSeckillProductId(), order.getQuantity());
 
 		} catch (Exception e) {
 			// MQ消息发送失败不影响主流程，记录日志即可

@@ -361,5 +361,63 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 				.build();
 	}
 
+	@Override
+	public void deductStockAfterPayment(Long seckillProductId, Integer quantity) {
+		if (seckillProductId == null) {
+			log.error("秒杀商品ID不能为空");
+			throw new BizIllegalException("秒杀商品ID不能为空");
+		}
+		if (quantity == null || quantity <= 0) {
+			log.error("扣减数量必须大于0, seckillProductId={}, quantity={}", seckillProductId, quantity);
+			throw new BizIllegalException("扣减数量必须大于0");
+		}
+
+		log.info("开始扣减秒杀商品数据库库存, seckillProductId={}, quantity={}", seckillProductId, quantity);
+
+		// 使用乐观锁扣减库存
+		boolean updated = this.lambdaUpdate()
+				.eq(TSeckillProduct::getId, seckillProductId)
+				.ge(TSeckillProduct::getStock, quantity)  // 确保库存充足
+				.setSql("stock = stock - " + quantity)
+				.setSql("sold_stock = sold_stock + " + quantity)
+				.update();
+
+		if (!updated) {
+			log.error("扣减秒杀商品库存失败，可能库存不足或商品不存在, seckillProductId={}, quantity={}",
+					seckillProductId, quantity);
+			throw new BizIllegalException("扣减库存失败，可能库存不足");
+		}
+
+		log.info("秒杀商品数据库库存扣减成功, seckillProductId={}, quantity={}", seckillProductId, quantity);
+	}
+
+	@Override
+	public void rollbackStockAfterRefund(Long seckillProductId, Integer quantity) {
+		if (seckillProductId == null) {
+			log.error("秒杀商品ID不能为空");
+			throw new BizIllegalException("秒杀商品ID不能为空");
+		}
+		if (quantity == null || quantity <= 0) {
+			log.error("回滚数量必须大于0, seckillProductId={}, quantity={}", seckillProductId, quantity);
+			throw new BizIllegalException("回滚数量必须大于0");
+		}
+
+		log.info("开始回滚秒杀商品数据库库存, seckillProductId={}, quantity={}", seckillProductId, quantity);
+
+		// 使用乐观锁回滚库存
+		boolean updated = this.lambdaUpdate()
+				.eq(TSeckillProduct::getId, seckillProductId)
+				.setSql("stock = stock + " + quantity)
+				.setSql("sold_stock = sold_stock - " + quantity)
+				.update();
+
+		if (!updated) {
+			log.error("回滚秒杀商品库存失败，可能商品不存在, seckillProductId={}, quantity={}",
+					seckillProductId, quantity);
+			throw new BizIllegalException("回滚库存失败");
+		}
+
+		log.info("秒杀商品数据库库存回滚成功, seckillProductId={}, quantity={}", seckillProductId, quantity);
+	}
 
 }

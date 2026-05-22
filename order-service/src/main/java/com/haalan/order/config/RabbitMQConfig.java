@@ -175,4 +175,12 @@ public class RabbitMQConfig {
 				.to(orderTimeoutBackupDlxExchange())
 				.with(RabbitConstants.ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY);
 	}
+
+	// ==================== 秒杀订单退款成功相关 ====================
+
+	// 退款成功交换机
+	@Bean
+	public DirectExchange seckillRefundSuccessExchange() {
+		return new DirectExchange(RabbitConstants.SECKILL_REFUND_SUCCESS_EXCHANGE, true, false);
+	}
 }

@@ -2,6 +2,7 @@ package com.haalan.seckill.listener;
 
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderPaySuccessMessage;
+import com.haalan.common.domain.mq.SeckillOrderRefundSuccessMessage;
 import com.haalan.common.domain.mq.UserSeckillRecordMessage;
 import com.haalan.common.utils.BeanUtils;
 import com.haalan.common.utils.UserContext;
@@ -24,6 +25,8 @@ public class SpringRabbitListener {
 	private final ITSeckillLogService seckillLogService;
 
 	private final IUserSeckillRecordService userSeckillRecordService;
+
+	private final com.haalan.seckill.service.ITSeckillProductService seckillProductService;
 
 	@RabbitListener(queues = RabbitConstants.SECKILL_LOG_QUEUE)
 	public void listenSimpleQueueMessage(SeckillUserLogMessage message) {
@@ -79,7 +82,7 @@ public class SpringRabbitListener {
 		log.info("接收到订单支付成功消息：【{}】", message);
 
 		try {
-			// 更新秒杀记录状态为已支付（status=1）- 支持分表
+			// 1. 更新秒杀记录状态为已支付（status=1）- 支持分表
 			boolean updated = userSeckillRecordService.updateStatusByOrderNo(
 					message.getOrderNo(),
 					message.getUserId(),
@@ -93,8 +96,20 @@ public class SpringRabbitListener {
 				log.warn("秒杀记录状态更新失败，可能记录不存在, orderNo={}", message.getOrderNo());
 			}
 
+			// 2. 同步扣减数据库中的秒杀商品库存（Redis中已扣减，现在同步到数据库）
+			if (message.getSeckillProductId() != null && message.getQuantity() != null) {
+				seckillProductService.deductStockAfterPayment(
+						message.getSeckillProductId(),
+						message.getQuantity()
+				);
+				log.info("秒杀商品数据库库存扣减成功, seckillProductId={}, quantity={}",
+						message.getSeckillProductId(), message.getQuantity());
+			} else {
+				log.warn("秒杀商品ID或数量为空，跳过数据库库存扣减, orderNo={}", message.getOrderNo());
+			}
+
 		} catch (Exception e) {
-			log.error("更新秒杀记录支付状态失败, orderNo={}, userId={}",
+			log.error("处理支付成功消息失败, orderNo={}, userId={}",
 					message.getOrderNo(), message.getUserId(), e);
 			throw e; // 重新抛出，让MQ重试
 		}
@@ -146,6 +161,33 @@ public class SpringRabbitListener {
 	}
 
 	/**
+	 * 监听订单退款成功消息，回滚数据库库存
+	 */
+	@RabbitListener(queues = RabbitConstants.SECKILL_REFUND_SUCCESS_QUEUE)
+	public void listenRefundSuccessMessage(SeckillOrderRefundSuccessMessage message) {
+		log.info("接收到订单退款成功消息：【{}】", message);
+
+		try {
+			// 回滚数据库中的秒杀商品库存（因为Redis已经回滚了）
+			if (message.getSeckillProductId() != null && message.getQuantity() != null) {
+				seckillProductService.rollbackStockAfterRefund(
+						message.getSeckillProductId(),
+						message.getQuantity()
+				);
+				log.info("秒杀商品数据库库存回滚成功, seckillProductId={}, quantity={}",
+						message.getSeckillProductId(), message.getQuantity());
+			} else {
+				log.warn("秒杀商品ID或数量为空，跳过数据库库存回滚, orderNo={}", message.getOrderNo());
+			}
+
+		} catch (Exception e) {
+			log.error("处理退款成功消息失败, orderNo={}, userId={}",
+					message.getOrderNo(), message.getUserId(), e);
+			throw e; // 重新抛出，让MQ重试
+		}
+	}
+
+	/**
 	 * 监听支付成功死信队列 - 用于告警和人工干预
 	 */
 	@RabbitListener(queues = RabbitConstants.SECKILL_PAY_SUCCESS_DLX_QUEUE)
@@ -165,6 +207,20 @@ public class SpringRabbitListener {
 	@RabbitListener(queues = RabbitConstants.SECKILL_ORDER_CANCEL_DLX_QUEUE)
 	public void listenOrderCancelDlxMessage(OrderTimeoutMessage message) {
 		log.error("【严重告警】订单取消消息进入死信队列，需要人工干预！消息内容：【{}】", message);
+
+		// TODO: 这里可以添加告警通知
+		// TODO: 也可以记录到专门的失败表中，供后续补偿处理
+
+		// 注意：死信队列的消息不再抛出异常，避免无限循环
+		// 应该通过监控告警，由人工或定时任务进行补偿处理
+	}
+
+	/**
+	 * 监听退款成功死信队列 - 用于告警和人工干预
+	 */
+	@RabbitListener(queues = RabbitConstants.SECKILL_REFUND_SUCCESS_DLX_QUEUE)
+	public void listenRefundSuccessDlxMessage(SeckillOrderRefundSuccessMessage message) {
+		log.error("【严重告警】退款成功消息进入死信队列，需要人工干预！消息内容：【{}】", message);
 
 		// TODO: 这里可以添加告警通知
 		// TODO: 也可以记录到专门的失败表中，供后续补偿处理

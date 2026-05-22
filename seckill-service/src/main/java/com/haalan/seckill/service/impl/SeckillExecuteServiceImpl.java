@@ -420,14 +420,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 			throw new BizIllegalException("预订单失败");
 		}
 
-		// 设置订单超时（用于超时取消）
-		redisTemplate.opsForValue().set(
-				SeckillConstants.SECKILL_ORDER_TIMEOUT_PREFIX + orderNo,
-				String.valueOf(userId),
-				SeckillConstants.ORDER_PAY_TIMEOUT_MINUTES,
-				TimeUnit.MINUTES
-		);
-
 		log.info("预订单创建成功, userId={}, orderNo={}", userId, orderNo);
 		return orderVO;
 	}
@@ -840,13 +832,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				orderNo,
 				SeckillConstants.IDEMPOTENT_EXPIRE_SECONDS,
 				TimeUnit.SECONDS
-		);
-
-		redisTemplate.opsForValue().set(
-				SeckillConstants.SECKILL_ORDER_TIMEOUT_PREFIX + orderNo,
-				String.valueOf(userId),
-				SeckillConstants.ORDER_PAY_TIMEOUT_MINUTES,
-				TimeUnit.MINUTES
 		);
 
 		log.info("秒杀预订单订单创建成功, userId={}, orderNo={}, seckillProductId={}",

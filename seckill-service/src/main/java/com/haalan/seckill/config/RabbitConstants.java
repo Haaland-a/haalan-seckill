@@ -108,5 +108,20 @@ public class RabbitConstants {
 	public static final String SECKILL_ORDER_CANCEL_DLX_QUEUE = "seckill.order.cancel.dlx.queue";
 	// 订单取消死信路由
 	public static final String SECKILL_ORDER_CANCEL_DLX_ROUTING_KEY = "seckill.order.cancel.dlx";
+
+	// ==================== 秒杀订单退款成功相关 ====================
+	// 退款成功交换机
+	public static final String SECKILL_REFUND_SUCCESS_EXCHANGE = "seckill.refund.success.exchange";
+	// 退款成功队列
+	public static final String SECKILL_REFUND_SUCCESS_QUEUE = "seckill.refund.success.queue";
+	// 退款成功路由
+	public static final String SECKILL_REFUND_SUCCESS_ROUTING_KEY = "seckill.refund.success";
+
+	// 退款成功死信交换机
+	public static final String SECKILL_REFUND_SUCCESS_DLX_EXCHANGE = "seckill.refund.success.dlx.exchange";
+	// 退款成功死信队列
+	public static final String SECKILL_REFUND_SUCCESS_DLX_QUEUE = "seckill.refund.success.dlx.queue";
+	// 退款成功死信路由
+	public static final String SECKILL_REFUND_SUCCESS_DLX_ROUTING_KEY = "seckill.refund.success.dlx";
 }
 

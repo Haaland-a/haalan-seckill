@@ -9,13 +9,18 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * 秒杀订单支付成功消息
+ * <p>
+ * 秒杀订单退款成功MQ消息
+ * </p>
+ *
+ * @author haaland
+ * @since 2026-05-22
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SeckillOrderPaySuccessMessage implements Serializable {
+public class SeckillOrderRefundSuccessMessage implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -24,6 +29,9 @@ public class SeckillOrderPaySuccessMessage implements Serializable {
 
 	@ApiModelProperty(value = "用户ID")
 	private Long userId;
+
+	@ApiModelProperty(value = "活动ID")
+	private Long activityId;
 
 	@ApiModelProperty(value = "秒杀商品ID")
 	private Long seckillProductId;

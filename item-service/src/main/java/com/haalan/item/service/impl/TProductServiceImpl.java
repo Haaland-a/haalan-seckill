@@ -15,6 +15,8 @@ import com.haalan.item.domain.po.TSpu;
 import com.haalan.item.domain.vo.ProductDetailVO;
 import com.haalan.item.domain.vo.StockVO;
 import com.haalan.item.service.*;
+import com.haalan.item.util.ItemBloomFilterUtil;
+import com.haalan.item.util.ItemCacheEmptyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -47,13 +49,41 @@ public class TProductServiceImpl implements TProductService {
 	private final ITBrandService brandService;
 	private final ITSpuService spuService;
 	private final StringRedisTemplate redisTemplate;
+	private final ItemBloomFilterUtil itemBloomFilterUtil;
+	private final ItemCacheEmptyUtil itemCacheEmptyUtil;
 
 	@Override
 	public ProductDetailVO getProductDetail(Long spuId) {
+		// 先通过布隆过滤器判断SPU是否存在
+		if (!itemBloomFilterUtil.mightContainSpu(spuId)) {
+			log.debug("布隆过滤器判断SPU不存在: {}", spuId);
+			throw new RuntimeException("商品不存在");
+		}
+
+		String cacheKey = "product:detail:" + spuId;
+
+		// 使用缓存空对象机制获取数据
+		ProductDetailVO vo = itemCacheEmptyUtil.getOrCache(
+				cacheKey,
+				() -> queryProductDetailFromDb(spuId),
+				ProductDetailVO.class
+		);
+
+		if (vo == null) {
+			throw new RuntimeException("商品不存在");
+		}
+
+		return vo;
+	}
+
+	/**
+	 * 从数据库查询商品详情
+	 */
+	private ProductDetailVO queryProductDetailFromDb(Long spuId) {
 		long start = System.currentTimeMillis();
 		TSpu spu = spuService.getById(spuId);
 		if (spu == null) {
-			throw new RuntimeException("商品不存在");
+			return null;
 		}
 		long mid = System.currentTimeMillis();
 		log.info("spu详情查询耗时: {}ms", mid - start);
@@ -105,6 +135,14 @@ public class TProductServiceImpl implements TProductService {
 				.collect(Collectors.toList());
 
 		vo.setSkuList(skuDetailList);
+
+		// 将SPU和SKU ID添加到布隆过滤器
+		itemBloomFilterUtil.addSpu(spu.getId());
+		List<Long> skuIds = skuList.stream()
+				.map(TSku::getId)
+				.filter(id -> id != null)
+				.collect(Collectors.toList());
+		itemBloomFilterUtil.addSkus(skuIds);
 
 		return vo;
 	}
@@ -208,9 +246,35 @@ public class TProductServiceImpl implements TProductService {
 
 	@Override
 	public SkuDetailVO getSkuDetail(Long skuId) {
+		// 先通过布隆过滤器判断SKU是否存在
+		if (!itemBloomFilterUtil.mightContainSku(skuId)) {
+			log.debug("布隆过滤器判断SKU不存在: {}", skuId);
+			throw new RuntimeException("SKU不存在");
+		}
+
+		String cacheKey = "sku:detail:" + skuId;
+
+		// 使用缓存空对象机制获取数据
+		SkuDetailVO vo = itemCacheEmptyUtil.getOrCache(
+				cacheKey,
+				() -> querySkuDetailFromDb(skuId),
+				SkuDetailVO.class
+		);
+
+		if (vo == null) {
+			throw new RuntimeException("SKU不存在");
+		}
+
+		return vo;
+	}
+
+	/**
+	 * 从数据库查询SKU详情
+	 */
+	private SkuDetailVO querySkuDetailFromDb(Long skuId) {
 		TSku tSku = skuService.getById(skuId);
 		if (tSku == null) {
-			throw new RuntimeException("SKU不存在");
+			return null;
 		}
 
 		// 解析规格信息
@@ -218,6 +282,9 @@ public class TProductServiceImpl implements TProductService {
 		if (StrUtil.isNotBlank(tSku.getSpecifications())) {
 			specifications = JSONUtil.toBean(tSku.getSpecifications(), Map.class);
 		}
+
+		// 将SKU ID添加到布隆过滤器
+		itemBloomFilterUtil.addSku(tSku.getId());
 
 		return SkuDetailVO.builder()
 				.skuId(tSku.getId())

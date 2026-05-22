@@ -11,6 +11,7 @@ import com.haalan.seckill.domain.vo.SeckillActivityPreheatVO;
 import com.haalan.seckill.service.ITSeckillActivityService;
 import com.haalan.seckill.service.ITSeckillPreheatService;
 import com.haalan.seckill.service.ITSeckillProductService;
+import com.haalan.seckill.util.BloomFilterUtil;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ public class TSeckillPreheatServiceImpl implements ITSeckillPreheatService {
 	private final StringRedisTemplate redisTemplate;
 	private final LocalSeckillCache localCache;
 	private final ItemServiceClient itemServiceClient;
+	private final BloomFilterUtil bloomFilterUtil;
 
 	@Override
 	@GlobalTransactional
@@ -91,7 +93,15 @@ public class TSeckillPreheatServiceImpl implements ITSeckillPreheatService {
 		// 8. 预热到本地 JVM（只做售罄标记）
 		boolean localPreheated = preheatToLocal(products);
 
-		// 9. 构建返回结果
+		// 9. 将商品ID添加到布隆过滤器
+		List<Long> productIds = products.stream()
+				.map(TSeckillProduct::getId)
+				.filter(id -> id != null)
+				.toList();
+		bloomFilterUtil.addProducts(productIds);
+		log.info("已将 {} 个秒杀商品ID添加到布隆过滤器", productIds.size());
+
+		// 10. 构建返回结果
 		return SeckillActivityPreheatVO.builder()
 				.activityId(activityId)
 				.productCount(products.size())
