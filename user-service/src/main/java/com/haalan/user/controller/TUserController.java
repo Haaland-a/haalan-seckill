@@ -3,6 +3,7 @@ package com.haalan.user.controller;
 import com.haalan.common.domain.R;
 import com.haalan.common.utils.EncryptUtils;
 import com.haalan.common.utils.UserContext;
+import com.haalan.user.annotation.Login;
 import com.haalan.user.domain.dto.ChangePasswordDTO;
 import com.haalan.user.domain.dto.LoginDTO;
 import com.haalan.user.domain.dto.TUserDTO;
@@ -44,6 +45,7 @@ public class TUserController {
 
 	@ApiOperation(value = "用户登录")
 	@PostMapping("/login")
+	@Login
 	public R<LoginVO> login(@RequestBody LoginDTO loginDTO) {
 		LoginVO loginVO = tUserService.login(loginDTO);
 		log.info("用户登录成功 {}", loginVO);
