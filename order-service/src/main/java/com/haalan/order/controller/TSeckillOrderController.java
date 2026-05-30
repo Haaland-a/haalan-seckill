@@ -75,18 +75,4 @@ public class TSeckillOrderController {
 		return R.success(orderList);
 	}
 
-	@GetMapping("/list")
-	@ApiOperation("获取普通订单列表")
-	public R<PageResult<OrderListItemVO>> getNormalOrderList(
-			@RequestParam(defaultValue = "1") Integer pageNum,
-			@RequestParam(defaultValue = "10") Integer pageSize,
-			@RequestParam(required = false) Integer status) {
-		// 从上下文获取当前用户ID
-		Long userId = UserContext.getUser();
-
-		// 查询普通订单列表
-		PageResult<OrderListItemVO> orderList = orderService.getNormalOrderList(userId, pageNum, pageSize, status);
-
-		return R.success(orderList);
-	}
 }

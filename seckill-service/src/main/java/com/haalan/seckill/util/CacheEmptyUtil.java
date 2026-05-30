@@ -21,8 +21,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class CacheEmptyUtil {
 
-	@Resource
-	private StringRedisTemplate redisTemplate;
+	@Resource(name = "stringRedisTemplate")  // 注意 Bean 名称
+	private StringRedisTemplate stringRedisTemplate;
 
 	/**
 	 * 空值标记
@@ -50,7 +50,7 @@ public class CacheEmptyUtil {
 	 */
 	public <T> T getOrCache(String key, DbQueryFunc<T> dbQueryFunc, Class<T> clazz) {
 		// 1. 先从缓存中获取
-		String cachedValue = redisTemplate.opsForValue().get(key);
+		String cachedValue = stringRedisTemplate.opsForValue().get(key);
 
 		// 2. 如果缓存中存在
 		if (cachedValue != null) {
@@ -76,12 +76,12 @@ public class CacheEmptyUtil {
 		// 4. 将结果写入缓存
 		if (dbResult == null) {
 			// 4.1 数据库结果为空，缓存空值标记
-			redisTemplate.opsForValue().set(key, EMPTY_VALUE, EMPTY_CACHE_TTL, TimeUnit.SECONDS);
+			stringRedisTemplate.opsForValue().set(key, EMPTY_VALUE, EMPTY_CACHE_TTL, TimeUnit.SECONDS);
 			log.debug("数据库查询为空，已缓存空值: {}", key);
 		} else {
 			// 4.2 数据库结果不为空，缓存实际数据
 			String jsonValue = JSONUtil.toJsonStr(dbResult);
-			redisTemplate.opsForValue().set(key, jsonValue, NORMAL_CACHE_TTL, TimeUnit.SECONDS);
+			stringRedisTemplate.opsForValue().set(key, jsonValue, NORMAL_CACHE_TTL, TimeUnit.SECONDS);
 			log.debug("数据库查询成功，已缓存数据: {}", key);
 		}
 
@@ -99,7 +99,7 @@ public class CacheEmptyUtil {
 	 */
 	public <T> java.util.List<T> getOrCacheList(String key, DbQueryFunc<java.util.List<T>> dbQueryFunc, Class<T> clazz) {
 		// 1. 先从缓存中获取
-		String cachedValue = redisTemplate.opsForValue().get(key);
+		String cachedValue = stringRedisTemplate.opsForValue().get(key);
 
 		// 2. 如果缓存中存在
 		if (cachedValue != null) {
@@ -125,13 +125,13 @@ public class CacheEmptyUtil {
 		// 4. 将结果写入缓存
 		if (dbResult == null || dbResult.isEmpty()) {
 			// 4.1 数据库结果为空，缓存空值标记
-			redisTemplate.opsForValue().set(key, EMPTY_VALUE, EMPTY_CACHE_TTL, TimeUnit.SECONDS);
+			stringRedisTemplate.opsForValue().set(key, EMPTY_VALUE, EMPTY_CACHE_TTL, TimeUnit.SECONDS);
 			log.debug("数据库查询为空列表，已缓存空值: {}", key);
 			return java.util.Collections.emptyList();
 		} else {
 			// 4.2 数据库结果不为空，缓存实际数据
 			String jsonValue = JSONUtil.toJsonStr(dbResult);
-			redisTemplate.opsForValue().set(key, jsonValue, NORMAL_CACHE_TTL, TimeUnit.SECONDS);
+			stringRedisTemplate.opsForValue().set(key, jsonValue, NORMAL_CACHE_TTL, TimeUnit.SECONDS);
 			log.debug("数据库查询成功，已缓存列表数据: {}", key);
 		}
 
@@ -144,7 +144,7 @@ public class CacheEmptyUtil {
 	 * @param key 缓存键
 	 */
 	public void deleteCache(String key) {
-		redisTemplate.delete(key);
+		stringRedisTemplate.delete(key);
 		log.debug("已删除缓存: {}", key);
 	}
 

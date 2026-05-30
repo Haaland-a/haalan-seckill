@@ -378,4 +378,24 @@ public class TProductServiceImpl implements TProductService {
 
 		return results;
 	}
+
+	@Override
+	public Boolean addStock(Long skuId, Integer stock) {
+		if (skuId == null) {
+			throw new BizIllegalException("skuId不能为空");
+		}
+		if (stock == null || stock < 0) {
+			throw new BizIllegalException("库存数量不合法");
+		}
+		TSku sku = skuService.getById(skuId);
+		if (sku == null) {
+			throw new BizIllegalException("SKU不存在: " + skuId);
+		}
+
+		// 使用条件更新恢复库存，防止并发问题
+		return skuService.lambdaUpdate()
+				.eq(TSku::getId, skuId)
+				.setSql("stock = stock + " + stock)
+				.update();
+	}
 }

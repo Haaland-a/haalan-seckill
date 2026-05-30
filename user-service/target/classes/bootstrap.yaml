@@ -5,7 +5,7 @@ spring:
     active: dev
   cloud:
     nacos:
-      server-addr: 192.168.100.133:8848
+      server-addr: ${NACOS_HOST:nacos}:8848
       config:
         file-extension: yaml # 文件后缀名
         shared-configs: # 共享配置
@@ -13,5 +13,6 @@ spring:
           - dataId: share-log.yaml # 共享日志配置
           - dataId: share-swagger.yaml # 共享日志配置
           - dataId: share-redis.yaml
-#          - dataId: share-seata.yaml
-#          - dataId: rabbit.yaml
+          - dataId: share-seata.yaml
+          - dataId: rabbit.yaml
+#          - dataId: aliyun.yaml

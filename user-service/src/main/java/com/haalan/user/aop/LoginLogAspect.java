@@ -108,12 +108,27 @@ public class LoginLogAspect {
 			}
 		}
 
-		// 如果登录成功，从返回结果中获取userId
+// 如果登录成功，从返回结果中获取userId
 		if (success && result != null) {
 			try {
-				Method getUserIdMethod = result.getClass().getMethod("getUserId");
-				Long userId = (Long) getUserIdMethod.invoke(result);
-				loginLog.setUserId(userId);
+				// 方式1：如果返回的是 R 对象
+				if (result.getClass().getSimpleName().equals("R")) {
+					// 获取 R 对象中的 data
+					Method getDataMethod = result.getClass().getMethod("getData");
+					Object data = getDataMethod.invoke(result);
+
+					// 从 data (LoginVO) 中获取 userId
+					if (data != null) {
+						Method getUserIdMethod = data.getClass().getMethod("getUserId");
+						Long userId = (Long) getUserIdMethod.invoke(data);
+						loginLog.setUserId(userId);
+					}
+				} else {
+					// 方式2：直接获取（如果返回的就是 LoginVO）
+					Method getUserIdMethod = result.getClass().getMethod("getUserId");
+					Long userId = (Long) getUserIdMethod.invoke(result);
+					loginLog.setUserId(userId);
+				}
 			} catch (Exception e) {
 				log.warn("从返回结果中获取userId失败", e);
 			}

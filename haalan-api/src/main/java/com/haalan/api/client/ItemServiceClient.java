@@ -46,4 +46,15 @@ public interface ItemServiceClient {
 	 */
 	@PostMapping("/api/product/inner/batchDeductStock")
 	List<BatchDeductStockResultVO> batchDeductStock(@RequestBody List<BatchDeductStockDTO> stockList);
+
+	/**
+	 * 恢复库存（取消订单时使用）
+	 *
+	 * @param skuId SKU ID
+	 * @param stock 恢复数量
+	 * @return 是否成功
+	 */
+	@GetMapping("/api/product/inner/addStock")
+	Boolean addStock(@RequestParam("skuId") @NotNull(message = "商品SKU ID不能为空") Long skuId,
+					 @RequestParam("stock") @NotNull(message = "库存数量不能为空") Integer stock);
 }
