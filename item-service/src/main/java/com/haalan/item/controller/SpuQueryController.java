@@ -81,4 +81,10 @@ public class SpuQueryController {
 	public SkuDetailVO getSkuDetail(@RequestParam Long skuId) {
 		return productService.getSkuDetail(skuId);
 	}
+
+	@GetMapping("/inner/addStock")
+	@ApiOperation("恢复库存（取消订单时使用）")
+	public Boolean addStock(@RequestParam Long skuId, @RequestParam Integer stock) {
+		return productService.addStock(skuId, stock);
+	}
 }

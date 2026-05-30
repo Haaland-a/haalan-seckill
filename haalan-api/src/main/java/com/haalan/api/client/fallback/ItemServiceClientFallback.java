@@ -22,15 +22,15 @@ public class ItemServiceClientFallback implements FallbackFactory<ItemServiceCli
 	public ItemServiceClient create(Throwable cause) {
 		return new ItemServiceClient() {
 			//弃用
-//			@Override
-//			public ProductDetailVO getProductDetail(Long spuId) {
-//				log.error("调用 item-service 获取商品详情失败, spuId: {}", spuId, cause);
-//				//  返回兜底数据
-//				ProductDetailVO vo = new ProductDetailVO();
-//				vo.setSpuId(spuId);
-//				vo.setSpuName("商品信息获取失败");
-//
-//				return vo;
+			//		@Override
+			//		public ProductDetailVO getProductDetail(Long spuId) {
+			//			log.error("调用 item-service 获取商品详情失败, spuId: {}", spuId, cause);
+			//			//  返回兜底数据
+			//			ProductDetailVO vo = new ProductDetailVO();
+			//			vo.setSpuId(spuId);
+			//			vo.setSpuName("商品信息获取失败");
+			//
+			//			return vo;
 			//	}
 
 			@Override
@@ -81,6 +81,12 @@ public class ItemServiceClientFallback implements FallbackFactory<ItemServiceCli
 								.failReason("服务调用失败")
 								.build())
 						.collect(Collectors.toList());
+			}
+
+			@Override
+			public Boolean addStock(Long skuId, Integer stock) {
+				log.error("调用 item-service 恢复库存失败, skuId: {}, stock: {}", skuId, stock, cause);
+				return false;
 			}
 
 		};

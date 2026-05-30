@@ -6,6 +6,8 @@ import com.haalan.order.mapper.TOrderItemMapper;
 import com.haalan.order.service.ITOrderItemService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * <p>
  * 订单商品明细表 服务实现类
@@ -17,4 +19,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class TOrderItemServiceImpl extends ServiceImpl<TOrderItemMapper, TOrderItem> implements ITOrderItemService {
 
+	@Override
+	public List<TOrderItem> getByOrderNo(String orderNo) {
+		return this.lambdaQuery()
+				.eq(TOrderItem::getOrderNo, orderNo)
+				.list();
+	}
 }

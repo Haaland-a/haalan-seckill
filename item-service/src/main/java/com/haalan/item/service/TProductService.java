@@ -41,4 +41,13 @@ public interface TProductService {
 	 * @return 扣减结果列表
 	 */
 	List<BatchDeductStockResultVO> batchDeductStock(List<BatchDeductStockDTO> stockList);
+
+	/**
+	 * 恢复库存（取消订单时回滚库存）
+	 *
+	 * @param skuId SKU ID
+	 * @param stock 恢复数量
+	 * @return 是否成功
+	 */
+	Boolean addStock(Long skuId, Integer stock);
 }
