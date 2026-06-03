@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.haalan.order.mapper.TOrderMapper">
+
+    <!-- ======================== 管理统计 ======================== -->
+
+    <select id="sumPaidAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(actual_amount), 0)
+        FROM t_order
+        WHERE status IN (1, 2, 3)
+    </select>
+
+    <select id="sumTodayAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(actual_amount), 0)
+        FROM t_order
+        WHERE status IN (1, 2, 3)
+          AND DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="countToday" resultType="java.lang.Long">
+        SELECT COALESCE(COUNT(*), 0)
+        FROM t_order
+        WHERE DATE(create_time) = CURDATE()
+    </select>
+
+    <select id="getDailyTrends" resultType="com.haalan.order.domain.vo.DailyTrendVO">
+        SELECT DATE(create_time)               AS date,
+               COALESCE(COUNT(*), 0)           AS orderCount,
+               COALESCE(SUM(actual_amount), 0) AS amount
+        FROM t_order
+        WHERE status IN (1, 2, 3)
+          AND create_time >= #{startDate}
+        GROUP BY DATE(create_time)
+        ORDER BY date
+    </select>
+
+    <!-- ======================== 秒杀活动统计 ======================== -->
+
+    <select id="getSeckillActivityStatsRaw" resultType="com.haalan.order.domain.ActivityStatsRaw">
+        SELECT activity_id                    AS activityId,
+               COALESCE(COUNT(*), 0)          AS orderCount,
+               COALESCE(SUM(total_amount), 0) AS totalAmount,
+               COALESCE(SUM(quantity), 0)     AS soldStock
+        FROM (SELECT activity_id, total_amount, quantity
+              FROM t_seckill_order_0
+              WHERE status = 1
+              UNION ALL
+              SELECT activity_id, total_amount, quantity
+              FROM t_seckill_order_1
+              WHERE status = 1) t
+        GROUP BY activity_id
+    </select>
+
+    <select id="getSeckillActivityStatsRawById" resultType="com.haalan.order.domain.ActivityStatsRaw">
+        SELECT activity_id                    AS activityId,
+               COALESCE(COUNT(*), 0)          AS orderCount,
+               COALESCE(SUM(total_amount), 0) AS totalAmount,
+               COALESCE(SUM(quantity), 0)     AS soldStock
+        FROM (SELECT activity_id, total_amount, quantity
+              FROM t_seckill_order_0
+              WHERE status = 1
+                AND activity_id = #{activityId}
+              UNION ALL
+              SELECT activity_id, total_amount, quantity
+              FROM t_seckill_order_1
+              WHERE status = 1
+                AND activity_id = #{activityId}) t
+        GROUP BY activity_id
+    </select>
+
+    <select id="getSeckillDailyTrends" resultType="com.haalan.order.domain.vo.DailyTrendVO">
+        SELECT DATE(order_time)               AS date,
+               COALESCE(COUNT(*), 0)          AS orderCount,
+               COALESCE(SUM(total_amount), 0) AS amount
+        FROM (SELECT order_time, total_amount
+              FROM t_seckill_order_0
+              WHERE status = 1
+                AND order_time >= #{startDate}
+              UNION ALL
+              SELECT order_time, total_amount
+              FROM t_seckill_order_1
+              WHERE status = 1
+                AND order_time >= #{startDate}) t
+        GROUP BY DATE(order_time)
+        ORDER BY date
+    </select>
+
+    <!-- ======================== 秒杀订单查询（显式表名，绕开动态表名拦截器） ======================== -->
+
+    <select id="getSeckillOrderByNo" resultType="com.haalan.order.domain.po.TSeckillOrder">
+        SELECT *
+        FROM (SELECT *
+              FROM t_seckill_order_0
+              WHERE order_no = #{orderNo}
+              UNION ALL
+              SELECT *
+              FROM t_seckill_order_1
+              WHERE order_no = #{orderNo}) t
+        LIMIT 1
+    </select>
+
+    <select id="countSeckillOrders" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM (
+        SELECT id FROM t_seckill_order_0 WHERE 1=1
+        <if test="orderNo != null and orderNo != ''">
+            AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND order_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND order_time &lt;= #{endDate}
+        </if>
+        UNION ALL
+        SELECT id FROM t_seckill_order_1 WHERE 1=1
+        <if test="orderNo != null and orderNo != ''">
+            AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND order_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND order_time &lt;= #{endDate}
+        </if>
+        ) t
+    </select>
+
+    <select id="pageSeckillOrders" resultType="com.haalan.order.domain.po.TSeckillOrder">
+        SELECT * FROM (
+        SELECT * FROM t_seckill_order_0 WHERE 1=1
+        <if test="orderNo != null and orderNo != ''">
+            AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND order_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND order_time &lt;= #{endDate}
+        </if>
+        UNION ALL
+        SELECT * FROM t_seckill_order_1 WHERE 1=1
+        <if test="orderNo != null and orderNo != ''">
+            AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        <if test="startDate != null and startDate != ''">
+            AND order_time &gt;= #{startDate}
+        </if>
+        <if test="endDate != null and endDate != ''">
+            AND order_time &lt;= #{endDate}
+        </if>
+        ) t
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+</mapper>
