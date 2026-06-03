@@ -8,11 +8,6 @@ haalan:
     host: 192.168.100.133
   es:
     host: 192.168.100.133:9200
-  mq:
-    host: 192.168.100.133
-  seata:
-    nacoshost: 192.168.100.133:8848
-seata:
-  service:
-    grouplist:
-      default: 192.168.100.133:8099
+  stoken:
+    timeout: 60000
+

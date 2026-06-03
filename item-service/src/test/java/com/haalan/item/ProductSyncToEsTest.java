@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @SpringBootTest
 @ActiveProfiles("local")
+
 public class ProductSyncToEsTest {
 
 	@Autowired

@@ -424,20 +424,13 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 			throw new BizIllegalException("秒杀商品ID不能为空");
 		}
 
-		// 先通过布隆过滤器判断秒杀商品是否存在
+		// 先通过布隆过滤器快速判断，不在过滤器中则可能是未预热
 		if (!bloomFilterUtil.mightContainProduct(seckillProductId)) {
-			log.debug("布隆过滤器判断秒杀商品不存在: {}", seckillProductId);
-			throw new BizIllegalException("秒杀商品不存在或尚未预热");
+			log.warn("布隆过滤器判断秒杀商品可能不存在(可能未预热): {}", seckillProductId);
 		}
 
-		String cacheKey = SeckillConstants.SECKILL_PRODUCT_PREFIX + activityId + ":" + seckillProductId;
-
-		// 使用缓存空对象机制获取数据
-		SeckillProductInfoVO productVO = cacheEmptyUtil.getOrCache(
-				cacheKey,
-				() -> queryProductDetailFromDb(seckillProductId, activityId),
-				SeckillProductInfoVO.class
-		);
+		// 直接从 Redis Hash 读取（预热时写入的格式），内部会回填布隆过滤器
+		SeckillProductInfoVO productVO = queryProductDetailFromDb(seckillProductId, activityId);
 
 		if (productVO == null) {
 			log.warn("秒杀商品不存在或缓存未预热, seckillProductId={}", seckillProductId);

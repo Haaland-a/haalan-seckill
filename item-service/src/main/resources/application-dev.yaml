@@ -8,3 +8,7 @@ haalan:
     password: 123456
   es:
     host: es
+  mq:
+    host: mq
+  seata:
+    nacoshost: nacos

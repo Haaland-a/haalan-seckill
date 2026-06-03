@@ -54,15 +54,14 @@ public class TProductServiceImpl implements TProductService {
 
 	@Override
 	public ProductDetailVO getProductDetail(Long spuId) {
-		// 先通过布隆过滤器判断SPU是否存在
+		// 先通过布隆过滤器快速判断，不在过滤器中则可能是冷启动，继续走缓存/DB兜底
 		if (!itemBloomFilterUtil.mightContainSpu(spuId)) {
-			log.debug("布隆过滤器判断SPU不存在: {}", spuId);
-			throw new RuntimeException("商品不存在");
+			log.warn("布隆过滤器判断SPU可能不存在(可能冷启动): {}", spuId);
 		}
 
 		String cacheKey = "product:detail:" + spuId;
 
-		// 使用缓存空对象机制获取数据
+		// 使用缓存空对象机制获取数据（内部会回填布隆过滤器）
 		ProductDetailVO vo = itemCacheEmptyUtil.getOrCache(
 				cacheKey,
 				() -> queryProductDetailFromDb(spuId),
@@ -246,15 +245,14 @@ public class TProductServiceImpl implements TProductService {
 
 	@Override
 	public SkuDetailVO getSkuDetail(Long skuId) {
-		// 先通过布隆过滤器判断SKU是否存在
+		// 先通过布隆过滤器快速判断，不在过滤器中则可能是冷启动，继续走缓存/DB兜底
 		if (!itemBloomFilterUtil.mightContainSku(skuId)) {
-			log.debug("布隆过滤器判断SKU不存在: {}", skuId);
-			throw new RuntimeException("SKU不存在");
+			log.warn("布隆过滤器判断SKU可能不存在(可能冷启动): {}", skuId);
 		}
 
 		String cacheKey = "sku:detail:" + skuId;
 
-		// 使用缓存空对象机制获取数据
+		// 使用缓存空对象机制获取数据（内部会回填布隆过滤器）
 		SkuDetailVO vo = itemCacheEmptyUtil.getOrCache(
 				cacheKey,
 				() -> querySkuDetailFromDb(skuId),
