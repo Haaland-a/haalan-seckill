@@ -6,11 +6,13 @@ import com.haalan.common.domain.PageResult;
 import com.haalan.common.domain.R;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.user.domain.dto.AdminUserQueryDTO;
+import com.haalan.user.domain.dto.TUserAdminDTO;
 import com.haalan.user.domain.dto.UserStatusUpdateDTO;
 import com.haalan.user.domain.po.TUser;
 import com.haalan.user.domain.po.UserLoginLog;
 import com.haalan.user.domain.vo.AdminUserListVO;
 import com.haalan.user.domain.vo.LoginLogVO;
+import com.haalan.user.domain.vo.TUserVO;
 import com.haalan.user.mapper.UserLoginLogMapper;
 import com.haalan.user.service.TUserService;
 import io.swagger.annotations.Api;
@@ -31,6 +33,13 @@ public class AdminUserController {
 
 	private final TUserService userService;
 	private final UserLoginLogMapper loginLogMapper;
+
+	@PostMapping("/register")
+	@ApiOperation("管理端注册用户")
+	public R<TUserVO> register(@RequestBody TUserAdminDTO userDTO) {
+		TUserVO result = userService.register(userDTO);
+		return R.success("注册成功", result);
+	}
 
 	@GetMapping("/count")
 	@ApiOperation("获取用户总数（内部调用）")
@@ -91,7 +100,11 @@ public class AdminUserController {
 			throw new BizIllegalException("用户不存在");
 		}
 		user.setStatus(dto.getStatus());
-		userService.updateById(user);
+		//禁用后防止继续操作 //管理员最高权限无视禁用规则
+		user.setTokenVersion(user.getTokenVersion());
+		//同步到redis,检查是在redis中检查的
+
+		userService.updateStatus(user);
 		return R.success("状态更新成功");
 	}
 

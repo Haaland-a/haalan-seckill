@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 /**
  * <p>
  * 商品SPU表 前端控制器
@@ -40,5 +42,17 @@ public class TSpuController {
 	@ApiOperation("查询SPU列表")  //由于是管理端,直接从数据库查询
 	public R<PageDTO<SpuListVO>> querySpuList(@Validated SpuQueryDTO queryDTO) {
 		return R.success(spuService.querySpuList(queryDTO));
+	}
+
+	//todo 加到api文档
+	@PutMapping("/{spuId}/status")
+	@ApiOperation("更新SPU状态（上架/下架）")
+	public R<Void> updateSpuStatus(@PathVariable Long spuId, @RequestBody Map<String, Integer> body) {
+		Integer status = body.get("status");
+		if (status == null || (status != 0 && status != 1)) {
+			return R.error("状态值无效，必须为 0（下架）或 1（上架）");
+		}
+		spuService.updateSpuStatus(spuId, status);
+		return R.success("操作成功");
 	}
 }

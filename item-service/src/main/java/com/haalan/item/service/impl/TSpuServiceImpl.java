@@ -173,6 +173,29 @@ public class TSpuServiceImpl extends ServiceImpl<TSpuMapper, TSpu> implements IT
 
 	/**
 	 * <p>
+	 * 更新 SPU 状态（上架/下架）
+	 * </p>
+	 *
+	 * @param spuId  SPU ID
+	 * @param status 0-下架 1-上架
+	 * @author Haaland
+	 * @date 2026/6/4
+	 */
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void updateSpuStatus(Long spuId, Integer status) {
+		TSpu spu = this.getById(spuId);
+		if (spu == null) {
+			throw new BizIllegalException("SPU不存在");
+		}
+		spu.setStatus(status);
+		this.updateById(spu);
+		log.info("SPU {} 状态已更新为 {}", spuId, status == 1 ? "上架" : "下架");
+	}
+
+
+	/**
+	 * <p>
 	 * 从 ES 删除 SPU
 	 * </p>
 	 *

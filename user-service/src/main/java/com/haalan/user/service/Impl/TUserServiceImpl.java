@@ -9,9 +9,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.haalan.common.exception.CommonException;
 import com.haalan.common.utils.BeanUtils;
+import com.haalan.user.config.registerProperties;
 import com.haalan.user.domain.dto.ChangePasswordDTO;
 import com.haalan.user.domain.dto.LoginDTO;
-import com.haalan.user.domain.dto.TUserDTO;
+import com.haalan.user.domain.dto.TUserAdminDTO;
 import com.haalan.user.domain.po.TUser;
 import com.haalan.user.domain.vo.LoginVO;
 import com.haalan.user.domain.vo.TUserVO;
@@ -28,8 +29,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -45,6 +48,8 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 
 	private final StringRedisTemplate stringRedisTemplate;
 
+	@Resource
+	private registerProperties registerProperties;
 	/**
 	 * <p>
 	 * 注册
@@ -56,10 +61,16 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 	 * @date 2026/4/13
 	 */
 	@Override
-	public TUserVO register(TUserDTO userDTO) {
+	public TUserVO register(TUserAdminDTO userDTO) {
 		TUserVO tUserVO = new TUserVO();
 		TUser user = new TUser();
 		BeanUtils.copyProperties(userDTO, user);
+		//todo 数据安全 ,这里直接明文传管理员了, 需要用户传给的唯一加密字符串,使用后不能再使用,等待升级;
+		if (Objects.equals(userDTO.getAdmin(), registerProperties.getUser())) {
+			user.setTokenVersion(0);
+		} else {
+			user.setTokenVersion(1);
+		}
 
 		// 密码加密
 		// 设置传入数据库的密码//再做一层 BCrypt（关键） // 前端传来的“加密密码”
@@ -187,7 +198,10 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 	public void logout(Long userId) {
 		TUser user = tUserMapper.selectById(userId);
 		if (user != null) {
-			Integer newVersion = (user.getTokenVersion() != null ? user.getTokenVersion() : 1) + 1;
+			Integer newVersion = null;
+			//如果是管理员继续设置成0
+			newVersion = (user.getTokenVersion() != null ? user.getTokenVersion() == 0 ? -1 : user.getTokenVersion() : 1) + 1;
+
 			user.setTokenVersion(newVersion);
 			tUserMapper.updateById(user);
 
@@ -248,6 +262,20 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 		stringRedisTemplate.opsForValue().set(redisKey, newVersion.toString(), 2, TimeUnit.HOURS);
 
 		log.info("用户{}修改密码成功，Token版本已更新为: {}", userId, newVersion);
+	}
+
+	@Transactional
+	@Override
+	public void updateStatus(TUser user) {
+
+		//同步Redis
+		Long userId = user.getId();
+		user.setTokenVersion(user.getTokenVersion() == 0 ? 0 : user.getTokenVersion() + 1);
+		Integer newVersion = user.getTokenVersion();
+		//封禁用户
+		tUserMapper.updateById(user);
+
+
 	}
 
 }

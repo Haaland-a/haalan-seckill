@@ -68,6 +68,7 @@ public class AdminOrderServiceImpl implements IAdminOrderService {
 
 	@Override
 	public Map<String, Object> getOrderDetail(String orderNo) {
+		//todo 订单详情
 		TOrder order = orderMapper.selectOne(
 				new LambdaQueryWrapper<TOrder>().eq(TOrder::getOrderNo, orderNo));
 		if (order == null) {
@@ -103,6 +104,7 @@ public class AdminOrderServiceImpl implements IAdminOrderService {
 
 	@Override
 	public PageResult<AdminOrderListVO> listSeckillOrders(AdminOrderQueryDTO query) {
+		// todo 优化查询速度
 		String startDate = StringUtils.hasText(query.getStartDate()) ? query.getStartDate() + " 00:00:00" : null;
 		String endDate = StringUtils.hasText(query.getEndDate()) ? query.getEndDate() + " 23:59:59" : null;
 

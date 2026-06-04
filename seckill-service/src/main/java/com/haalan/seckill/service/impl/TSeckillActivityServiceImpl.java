@@ -5,6 +5,7 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.haalan.api.domain.vo.SeckillActivityBriefVO;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.UserContext;
 import com.haalan.seckill.config.SeckillConstants;
@@ -26,6 +27,7 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -439,6 +441,22 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 
 		log.info("查询秒杀商品详情成功, seckillProductId={}", seckillProductId);
 		return productVO;
+	}
+
+	@Override
+	public List<SeckillActivityBriefVO> getAllActivities() {
+		List<TSeckillActivity> list = this.list(
+				new QueryWrapper<TSeckillActivity>().orderByDesc("create_time"));
+		return list.stream().map(a -> {
+			SeckillActivityBriefVO vo = new SeckillActivityBriefVO();
+			vo.setActivityId(a.getId());
+			vo.setActivityName(a.getActivityName());
+			vo.setStatus(a.getStatus());
+			vo.setStartTime(a.getStartTime());
+			vo.setEndTime(a.getEndTime());
+			vo.setTotalStock(a.getTotalStock());
+			return vo;
+		}).collect(Collectors.toList());
 	}
 
 	/**

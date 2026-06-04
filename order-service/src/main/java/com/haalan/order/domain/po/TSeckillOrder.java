@@ -5,9 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -27,6 +25,8 @@ import java.time.LocalDateTime;
 @Accessors(chain = true)
 
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @ApiModel(value = "TSeckillOrder0对象", description = "秒杀订单表")
 public class TSeckillOrder implements Serializable {
 

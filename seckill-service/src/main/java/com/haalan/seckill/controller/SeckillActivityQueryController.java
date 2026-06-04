@@ -1,5 +1,6 @@
 package com.haalan.seckill.controller;
 
+import com.haalan.api.domain.vo.SeckillActivityBriefVO;
 import com.haalan.common.domain.R;
 import com.haalan.seckill.domain.vo.SeckillActivityCacheVO;
 import com.haalan.seckill.domain.vo.SeckillActivityDetailVO;
@@ -28,6 +29,12 @@ public class SeckillActivityQueryController {
 			@RequestParam(required = false) Integer status) {
 		List<SeckillActivityCacheVO> list = seckillActivityService.getActivityList(status);
 		return R.success(list);
+	}
+
+	@GetMapping("/activities/all")
+	@ApiOperation("查询所有秒杀活动（内部调用，从DB）")
+	public List<SeckillActivityBriefVO> getAllActivities() {
+		return seckillActivityService.getAllActivities();
 	}
 
 	@GetMapping("/activity/{activityId}/products")

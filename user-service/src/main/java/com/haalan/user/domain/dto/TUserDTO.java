@@ -17,8 +17,10 @@ public class TUserDTO {
 	private String phone;  // 必填，11位手机号
 	@JsonProperty("email")
 	private String email; // 可选，邮箱格式
+	// 预留，短信验证码（后续升级）
 	@JsonProperty("smsCode")
 	private String smsCode;
-	// 预留，短信验证码（后续升级）
-
+	//管理员端专属参数
+	@JsonProperty("admin")
+	private String admin;
 }

@@ -21,6 +21,7 @@
             <if test="memberLevel != null">member_level,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateTime != null">update_time,</if>
+            <if test="tokenVersion != null">token_version,</if>
         </trim>
 
         <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
@@ -33,6 +34,7 @@
             <if test="memberLevel != null">#{memberLevel},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateTime != null">#{updateTime},</if>
+            <if test="tokenVersion != null">#{tokenVersion},</if>
         </trim>
 
     </insert>

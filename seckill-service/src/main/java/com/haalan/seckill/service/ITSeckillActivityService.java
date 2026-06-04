@@ -1,6 +1,7 @@
 package com.haalan.seckill.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.haalan.api.domain.vo.SeckillActivityBriefVO;
 import com.haalan.seckill.domain.dto.SeckillActivityCreateDTO;
 import com.haalan.seckill.domain.dto.SeckillActivityUpdateDTO;
 import com.haalan.seckill.domain.po.TSeckillActivity;
@@ -11,14 +12,6 @@ import com.haalan.seckill.domain.vo.SeckillProductInfoVO;
 
 import java.util.List;
 
-/**
- * <p>
- * 秒杀活动表 服务类
- * </p>
- *
- * @author lyc
- * @since 2026-04-23
- */
 public interface ITSeckillActivityService extends IService<TSeckillActivity> {
 
 	SeckillActivityCreateResultVO createActivity(SeckillActivityCreateDTO dto);
@@ -32,4 +25,6 @@ public interface ITSeckillActivityService extends IService<TSeckillActivity> {
 	SeckillActivityDetailVO getActivityDetail(Long activityId);
 
 	SeckillProductInfoVO getProductDetail(Long seckillProductId, Long activityId);
+
+	List<SeckillActivityBriefVO> getAllActivities();
 }

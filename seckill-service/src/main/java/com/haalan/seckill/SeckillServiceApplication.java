@@ -5,12 +5,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 
 @EnableFeignClients(basePackages = "com.haalan.api.client")
 @SpringBootApplication
 @MapperScan("com.haalan.seckill.mapper")
+@EnableScheduling
 public class SeckillServiceApplication {
 	private final Environment environment;
 

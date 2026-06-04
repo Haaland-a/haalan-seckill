@@ -15,5 +15,6 @@ public interface ITSpuService extends IService<TSpu> {
 
 	PageDTO<SpuListVO> querySpuList(SpuQueryDTO queryDTO);
 
+	void updateSpuStatus(Long spuId, Integer status);
 
 }

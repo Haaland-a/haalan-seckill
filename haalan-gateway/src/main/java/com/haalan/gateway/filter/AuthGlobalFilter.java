@@ -40,8 +40,9 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		// 1.获取Request
 		ServerHttpRequest request = exchange.getRequest();
+		String requestPath = request.getPath().toString();
 		// 2.判断是否不需要拦截
-		if (isExclude(request.getPath().toString())) {
+		if (isExclude(requestPath)) {
 			// 无需拦截，直接放行
 			return chain.filter(exchange);
 		}
@@ -99,6 +100,14 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 					response.setRawStatusCode(ResultCode.UNAUTHORIZED);
 					return response.setComplete();
 				}
+				// 检查管理员权限：访问 api/admin/ 路径需要 token_version = 0
+				if (isAdminPath(requestPath) && tokenVersion != 0) {
+					log.warn("用户{} 尝试访问管理员路径 {} 但权限不足，token_version={}",
+							userId, requestPath, tokenVersion);
+					ServerHttpResponse response = exchange.getResponse();
+					response.setRawStatusCode(ResultCode.FORBIDDEN); // 使用403状态码更好区分
+					return response.setComplete();
+				}
 			} else {
 				stringRedisTemplate.opsForValue().set(redisKey, tokenVersion.toString(), 2, TimeUnit.HOURS);
 			}
@@ -121,6 +130,10 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 		return chain.filter(exchange);
 	}
 
+	private boolean isAdminPath(String path) {
+		return path.startsWith("/api/admin");
+	}
+
 	private boolean isExclude(String antPath) {
 		for (String pathPattern : authProperties.getExcludePaths()) {
 			if (antPathMatcher.match(pathPattern, antPath)) {
@@ -129,6 +142,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 		}
 		return false;
 	}
+
 
 	@Override
 	public int getOrder() {

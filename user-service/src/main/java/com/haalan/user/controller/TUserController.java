@@ -1,13 +1,11 @@
 package com.haalan.user.controller;
 
 import com.haalan.common.domain.R;
+import com.haalan.common.utils.BeanUtils;
 import com.haalan.common.utils.EncryptUtils;
 import com.haalan.common.utils.UserContext;
 import com.haalan.user.annotation.Login;
-import com.haalan.user.domain.dto.ChangePasswordDTO;
-import com.haalan.user.domain.dto.LoginDTO;
-import com.haalan.user.domain.dto.TUserDTO;
-import com.haalan.user.domain.dto.UserAddressDTO;
+import com.haalan.user.domain.dto.*;
 import com.haalan.user.domain.po.TUser;
 import com.haalan.user.domain.vo.*;
 import com.haalan.user.service.FileUploadService;
@@ -38,7 +36,9 @@ public class TUserController {
 	@ApiOperation(value = "用户注册")
 	@PostMapping("/register")
 	public R<TUserVO> register(@RequestBody TUserDTO userDTO) {
-		TUserVO tUserVO = tUserService.register(userDTO);
+		TUserAdminDTO tUser = new TUserAdminDTO();
+		BeanUtils.copyProperties(userDTO, tUser);
+		TUserVO tUserVO = tUserService.register(tUser);
 		log.info("用户注册成功 {}", tUserVO);
 		return R.success("注册成功", tUserVO);
 	}
