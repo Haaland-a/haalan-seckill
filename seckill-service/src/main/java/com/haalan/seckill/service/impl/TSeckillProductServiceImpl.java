@@ -9,6 +9,7 @@ import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.BeanUtils;
 import com.haalan.seckill.domain.dto.SeckillActivityAddPDTO;
 import com.haalan.seckill.domain.dto.SeckillProductStockUpdateDTO;
+import com.haalan.seckill.domain.dto.SeckillProductUpdateDTO;
 import com.haalan.seckill.domain.po.TSeckillActivity;
 import com.haalan.seckill.domain.po.TSeckillProduct;
 import com.haalan.seckill.domain.vo.SeckillActivityAddPVO;
@@ -49,6 +50,19 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 	private final ItemServiceClient itemServiceClient;
 	private final ITSeckillActivityService seckillActivityService;
 	private final StringRedisTemplate redisTemplate;
+
+	/**
+	 * 校验活动状态是否为未开始（仅未开始时可修改商品）
+	 */
+	private void checkActivityNotStarted(Long activityId) {
+		TSeckillActivity activity = seckillActivityService.getById(activityId);
+		if (activity == null) {
+			throw new BizIllegalException("活动不存在");
+		}
+		if (activity.getStatus() != 0) {
+			throw new BizIllegalException("活动已开始或已结束，无法修改秒杀商品");
+		}
+	}
 
 	/**
 	 * 添加秒杀商品
@@ -389,6 +403,47 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 		}
 
 		log.info("秒杀商品数据库库存扣减成功, seckillProductId={}, quantity={}", seckillProductId, quantity);
+	}
+
+	@Override
+	@GlobalTransactional(rollbackFor = Exception.class)
+	public void deleteProduct(Long seckillProductId) {
+		TSeckillProduct product = this.getById(seckillProductId);
+		if (product == null) {
+			throw new BizIllegalException("秒杀商品不存在");
+		}
+		checkActivityNotStarted(product.getActivityId());
+
+		// 回滚库存到SKU（添加时从SKU扣减了 stock，删除时要还回去）
+		itemServiceClient.deductStock(product.getSkuId(), -product.getStock());
+
+		// 删除秒杀商品记录
+		boolean removed = this.removeById(seckillProductId);
+		if (!removed) {
+			throw new BizIllegalException("删除秒杀商品失败");
+		}
+		log.info("删除秒杀商品成功, seckillProductId={}, skuId={}", seckillProductId, product.getSkuId());
+	}
+
+	@Override
+	@GlobalTransactional(rollbackFor = Exception.class)
+	public void updateProductInfo(Long seckillProductId, SeckillProductUpdateDTO dto) {
+		TSeckillProduct product = this.getById(seckillProductId);
+		if (product == null) {
+			throw new BizIllegalException("秒杀商品不存在");
+		}
+		checkActivityNotStarted(product.getActivityId());
+
+		boolean updated = this.lambdaUpdate()
+				.eq(TSeckillProduct::getId, seckillProductId)
+				.set(TSeckillProduct::getSeckillPrice, dto.getSeckillPrice())
+				.set(TSeckillProduct::getLimitPerUser, dto.getLimitPerUser())
+				.update();
+		if (!updated) {
+			throw new BizIllegalException("更新秒杀商品信息失败");
+		}
+		log.info("更新秒杀商品信息成功, seckillProductId={}, seckillPrice={}, limitPerUser={}",
+				seckillProductId, dto.getSeckillPrice(), dto.getLimitPerUser());
 	}
 
 	@Override

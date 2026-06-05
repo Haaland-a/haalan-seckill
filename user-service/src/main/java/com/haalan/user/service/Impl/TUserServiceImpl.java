@@ -274,6 +274,9 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 		Integer newVersion = user.getTokenVersion();
 		//封禁用户
 		tUserMapper.updateById(user);
+		//同步Redis
+		String redisKey = "user:token:version:" + userId;
+		stringRedisTemplate.opsForValue().set(redisKey, newVersion.toString(), 2, TimeUnit.HOURS);
 
 
 	}

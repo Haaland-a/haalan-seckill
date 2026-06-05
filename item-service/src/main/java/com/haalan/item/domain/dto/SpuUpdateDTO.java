@@ -10,14 +10,10 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-@ApiModel(value = "SpuCreateDTO", description = "创建SPU请求")
-public class SpuCreateDTO implements Serializable {
+@ApiModel(value = "SpuUpdateDTO", description = "修改SPU请求")
+public class SpuUpdateDTO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-
-	@ApiModelProperty(value = "SPU编码", required = true)
-	@NotBlank(message = "SPU编码不能为空")
-	private String spuCode;
 
 	@ApiModelProperty(value = "商品名称", required = true)
 	@NotBlank(message = "商品名称不能为空")
@@ -33,13 +29,12 @@ public class SpuCreateDTO implements Serializable {
 	@ApiModelProperty(value = "商品描述")
 	private String description;
 
-	@ApiModelProperty(value = "主图URL", required = true)
-	@NotBlank(message = "主图不能为空")
+	@ApiModelProperty(value = "主图URL")
 	private String mainImage;
 
 	@ApiModelProperty(value = "商品图片列表")
 	private List<String> images;
 
 	@ApiModelProperty(value = "状态: 0-下架 1-上架")
-	private Integer status = 1;
+	private Integer status;
 }

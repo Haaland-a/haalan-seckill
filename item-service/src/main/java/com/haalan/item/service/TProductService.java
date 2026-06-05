@@ -24,6 +24,8 @@ public interface TProductService {
 
 	ProductDetailVO getProductDetail(Long spuId);
 
+	ProductDetailVO getAdminProductDetail(Long spuId);
+
 	StockVO getStockBySkuId(Long skuId);
 
 	ProductStringDTO getCode(Long skuId);

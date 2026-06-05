@@ -220,18 +220,14 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 			List<SeckillActivityCacheVO> result = new ArrayList<>();
 
 			if (ids != null && !ids.isEmpty()) {
+				List<Long> fetchedIds = new ArrayList<>();
 				for (String idStr : ids) {
 					Long activityId = Long.valueOf(idStr);
-
-					// 先通过布隆过滤器判断
-					if (!bloomFilterUtil.mightContainActivity(activityId)) {
-						log.debug("布隆过滤器判断活动不存在: {}", activityId);
-						continue;
-					}
 
 					SeckillActivityCacheVO activity = getActivityFromCache(activityId);
 					if (activity != null) {
 						result.add(activity);
+						fetchedIds.add(activityId);
 					} else {
 						// 缓存中没有，尝试从数据库查询并缓存
 						String activityKey = SeckillConstants.SECKILL_ACTIVITY_LIST + activityId;
@@ -242,8 +238,12 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 						);
 						if (dbActivity != null) {
 							result.add(dbActivity);
+							fetchedIds.add(activityId);
 						}
 					}
+				}
+				if (!fetchedIds.isEmpty()) {
+					bloomFilterUtil.addActivities(fetchedIds);
 				}
 			}
 

@@ -5,9 +5,12 @@ import com.haalan.common.domain.PageDTO;
 import com.haalan.common.domain.R;
 import com.haalan.item.domain.dto.SpuCreateDTO;
 import com.haalan.item.domain.dto.SpuQueryDTO;
+import com.haalan.item.domain.dto.SpuUpdateDTO;
+import com.haalan.item.domain.vo.ProductDetailVO;
 import com.haalan.item.domain.vo.SpuCreateResultVO;
 import com.haalan.item.domain.vo.SpuListVO;
 import com.haalan.item.service.ITSpuService;
+import com.haalan.item.service.TProductService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +34,7 @@ import java.util.Map;
 public class TSpuController {
 
 	private final ITSpuService spuService;
+	private final TProductService productService;
 
 	@PostMapping
 	@ApiOperation("创建SPU")
@@ -44,6 +48,16 @@ public class TSpuController {
 		return R.success(spuService.querySpuList(queryDTO));
 	}
 
+	@GetMapping("/{spuId}/detail")
+	@ApiOperation("管理端查询商品详情（含所有SKU，不过滤）")
+	public R<ProductDetailVO> getAdminProductDetail(@PathVariable Long spuId) {
+		ProductDetailVO vo = productService.getAdminProductDetail(spuId);
+		if (vo == null) {
+			return R.error("商品不存在");
+		}
+		return R.success(vo);
+	}
+
 	//todo 加到api文档
 	@PutMapping("/{spuId}/status")
 	@ApiOperation("更新SPU状态（上架/下架）")
@@ -54,5 +68,12 @@ public class TSpuController {
 		}
 		spuService.updateSpuStatus(spuId, status);
 		return R.success("操作成功");
+	}
+
+	@PutMapping("/{spuId}")
+	@ApiOperation("修改SPU信息")
+	public R<Void> updateSpu(@PathVariable Long spuId, @RequestBody @Validated SpuUpdateDTO dto) {
+		spuService.updateSpu(spuId, dto);
+		return R.success("修改成功");
 	}
 }

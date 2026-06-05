@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.Map;
 
 /**
  * <p>
@@ -47,7 +46,7 @@ public class SkuDetailVO implements Serializable {
 	private BigDecimal price;
 
 	@ApiModelProperty("规格参数")
-	private Map<String, String> specifications;
+	private String specifications;
 
 	@ApiModelProperty("库存数量")
 	private Integer stock;

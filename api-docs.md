@@ -129,14 +129,15 @@
 
 **响应数据：** `R<OssUploadCredentialVO>`
 
-| 字段              | 类型     | 说明         |
-|-----------------|--------|------------|
-| accessKeyId     | String | 临时AK       |
-| accessKeySecret | String | 临时SK       |
-| securityToken   | String | 安全Token    |
-| region          | String | OSS Region |
-| bucket          | String | Bucket 名称  |
-| objectKey       | String | 上传路径       |
+| 字段              | 类型     | 说明                  |
+|-----------------|--------|---------------------|
+| accessKeyId     | String | 临时 AccessKey ID     |
+| accessKeySecret | String | 临时 AccessKey Secret |
+| securityToken   | String | 安全令牌（STS Token）     |
+| endpoint        | String | OSS 访问域名            |
+| bucketName      | String | Bucket 名称           |
+| filePrefix      | String | 文件存储路径前缀（avatar）    |
+| expiration      | Long   | 凭证过期时间（秒）           |
 
 **限制规则：**
 
@@ -295,22 +296,22 @@
 
 ### 2.1 创建 SPU（管理端）
 
-- **接口说明**：创建商品 SPU
+- **接口说明**：创建商品 SPU（图片需先通过 OSS 直传获取 URL）
 - **URL**：`POST /api/admin/spu`
 - **是否需要登录**：是（管理端）
 
 **请求参数（JSON Body）：**
 
-| 参数名         | 类型             | 必填 | 说明                |
-|-------------|----------------|----|-------------------|
-| spuCode     | String         | 是  | SPU编码             |
-| name        | String         | 是  | 商品名称              |
-| categoryId  | Long           | 是  | 分类ID              |
-| brandId     | Long           | 是  | 品牌ID              |
-| description | String         | 否  | 商品描述              |
-| mainImage   | String         | 是  | 主图URL             |
-| images      | List\<String\> | 否  | 商品图片列表            |
-| status      | Integer        | 否  | 状态：0-下架 1-上架（默认1） |
+| 参数名         | 类型             | 必填 | 说明                          |
+|-------------|----------------|----|-----------------------------|
+| spuCode     | String         | 是  | SPU编码                       |
+| name        | String         | 是  | 商品名称                        |
+| categoryId  | Long           | 是  | 分类ID                        |
+| brandId     | Long           | 是  | 品牌ID                        |
+| description | String         | 否  | 商品描述                        |
+| mainImage   | String         | 是  | 主图URL（通过 OSS 直传获取）          |
+| images      | List\<String\> | 否  | 商品图片列表（通过 OSS 直传获取的 URL 数组） |
+| status      | Integer        | 否  | 状态：0-下架 1-上架（默认1）           |
 
 **响应数据：** `R<SpuCreateResultVO>`
 
@@ -582,6 +583,42 @@
 | stock | Integer | 是  | 恢复数量   |
 
 **响应数据：** `Boolean`（成功/失败）
+
+---
+
+### 2.16 获取 OSS 上传凭证（管理端上传商品图片）
+
+- **接口说明**：获取阿里云 OSS 前端直传凭证，用于管理端上传商品图片
+- **URL**：`GET /api/admin/oss/credential`
+- **是否需要登录**：是（管理端）
+
+**请求参数：** 无
+
+**响应数据：** `R<OssUploadCredentialVO>`
+
+| 字段              | 类型     | 说明                  |
+|-----------------|--------|---------------------|
+| accessKeyId     | String | 临时 AccessKey ID     |
+| accessKeySecret | String | 临时 AccessKey Secret |
+| securityToken   | String | 安全令牌（STS Token）     |
+| endpoint        | String | OSS 访问域名            |
+| bucketName      | String | Bucket 名称           |
+| filePrefix      | String | 文件存储路径前缀（item）      |
+| expiration      | Long   | 凭证过期时间（秒）           |
+| regionId        | String | OSS Region ID       |
+
+**限制规则：**
+
+- 凭证有效期为 15 分钟（默认）
+- 凭证仅允许上传到 `item/` 目录
+- 管理端无频率限制（可上传多张商品图片）
+
+**前端使用流程：**
+
+1. 调用 `GET /api/admin/oss/credential` 获取 STS 临时凭证
+2. 使用 `ali-oss` SDK 创建 OSS 客户端（填入凭证信息）
+3. 调用 `client.put(fileName, file)` 直接将文件上传到 OSS
+4. 获取返回的 URL 后提交到 SPU/SKU 创建接口
 
 ---
 
@@ -1424,6 +1461,7 @@
 | GET  | `/api/admin/spu/list`                             | item-service    | SPU列表           |
 | POST | `/api/admin/sku`                                  | item-service    | 创建SKU           |
 | PUT  | `/api/admin/sku/{skuId}/stock`                    | item-service    | 更新SKU库存         |
+| GET  | `/api/admin/oss/credential`                       | item-service    | 获取OSS凭证（商品图片上传） |
 | POST | `/api/admin/seckill/activity`                     | seckill-service | 创建秒杀活动          |
 | PUT  | `/api/admin/seckill/activity/{id}`                | seckill-service | 修改秒杀活动          |
 | GET  | `/api/admin/seckill/activity/{id}`                | seckill-service | 回显秒杀活动          |

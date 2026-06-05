@@ -70,7 +70,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 	public void saveMsg(SeckillOrderMessage message) {
 		// 1. 获取SKU详细信息
 		SkuDetailVO skuDetail = itemServiceClient.getSkuDetail(message.getSkuId());
-
+		log.info("获取SKU详细信息: {}", skuDetail);
 		// 2. 保存秒杀订单
 		// 解密地址ID（从加密字符串转为Long）
 		Long decryptedAddressId = message.getAddressId();

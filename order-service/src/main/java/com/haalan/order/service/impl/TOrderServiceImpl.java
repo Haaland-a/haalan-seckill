@@ -196,7 +196,7 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
             orderItem.setPrice(sku.getPrice());
             orderItem.setQuantity(item.getQuantity());
             orderItem.setTotalPrice(sku.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-            Map<String, String> specs = sku.getSpecifications();
+            Map<String, String> specs = JSONUtil.toBean(sku.getSpecifications(), Map.class);
             orderItem.setSpecifications(specs != null ? JSONUtil.toJsonStr(specs) : null);
             orderItem.setCreateTime(LocalDateTime.now());
             orderItems.add(orderItem);
