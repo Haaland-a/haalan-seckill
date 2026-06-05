@@ -3,6 +3,7 @@ package com.haalan.seckill.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.haalan.seckill.domain.dto.SeckillActivityAddPDTO;
 import com.haalan.seckill.domain.dto.SeckillProductStockUpdateDTO;
+import com.haalan.seckill.domain.dto.SeckillProductUpdateDTO;
 import com.haalan.seckill.domain.po.TSeckillProduct;
 import com.haalan.seckill.domain.vo.SeckillActivityAddPVO;
 import com.haalan.seckill.domain.vo.SeckillProductBatchAddResultVO;
@@ -26,6 +27,16 @@ public interface ITSeckillProductService extends IService<TSeckillProduct> {
 	SeckillProductBatchAddResultVO batchAddProducts(Long activityId, List<SeckillActivityAddPDTO> products);
 
 	SeckillProductStockUpdateResultVO updateStock(Long seckillProductId, SeckillProductStockUpdateDTO dto);
+
+	/**
+	 * 删除秒杀商品（仅活动未开始时可操作，同时回滚库存到SKU）
+	 */
+	void deleteProduct(Long seckillProductId);
+
+	/**
+	 * 修改秒杀商品价格和限购（仅活动未开始时可操作）
+	 */
+	void updateProductInfo(Long seckillProductId, SeckillProductUpdateDTO dto);
 
 	/**
 	 * 支付成功后扣减数据库库存（从Redis同步到数据库）

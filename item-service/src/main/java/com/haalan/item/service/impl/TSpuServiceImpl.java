@@ -9,6 +9,7 @@ import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.BeanUtils;
 import com.haalan.item.domain.dto.SpuCreateDTO;
 import com.haalan.item.domain.dto.SpuQueryDTO;
+import com.haalan.item.domain.dto.SpuUpdateDTO;
 import com.haalan.item.domain.po.TBrand;
 import com.haalan.item.domain.po.TCategory;
 import com.haalan.item.domain.po.TSpu;
@@ -29,6 +30,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +83,8 @@ public class TSpuServiceImpl extends ServiceImpl<TSpuMapper, TSpu> implements IT
 		spu.setBrandId(dto.getBrandId());
 		spu.setDescription(dto.getDescription());
 		spu.setMainImage(dto.getMainImage());
-
+		spu.setCreateTime(LocalDateTime.now());
+		spu.setUpdateTime(LocalDateTime.now());
 		//用hutool 转成将字符串转成json
 		if (!CollectionUtils.isEmpty(dto.getImages())) {
 			spu.setImages(JSONUtil.toJsonStr(dto.getImages()));
@@ -189,8 +192,33 @@ public class TSpuServiceImpl extends ServiceImpl<TSpuMapper, TSpu> implements IT
 			throw new BizIllegalException("SPU不存在");
 		}
 		spu.setStatus(status);
+		spu.setUpdateTime(LocalDateTime.now());
 		this.updateById(spu);
 		log.info("SPU {} 状态已更新为 {}", spuId, status == 1 ? "上架" : "下架");
+	}
+
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void updateSpu(Long spuId, SpuUpdateDTO dto) {
+		TSpu spu = this.getById(spuId);
+		if (spu == null) {
+			throw new BizIllegalException("SPU不存在");
+		}
+		spu.setName(dto.getName());
+		spu.setCategoryId(dto.getCategoryId());
+		spu.setBrandId(dto.getBrandId());
+		spu.setDescription(dto.getDescription());
+		spu.setMainImage(dto.getMainImage());
+		if (dto.getImages() != null && !dto.getImages().isEmpty()) {
+			spu.setImages(JSONUtil.toJsonStr(dto.getImages()));
+		}
+		if (dto.getStatus() != null) {
+			spu.setStatus(dto.getStatus());
+		}
+		spu.setUpdateTime(LocalDateTime.now());
+		this.updateById(spu);
+		log.info("SPU {} 信息已更新", spuId);
 	}
 
 

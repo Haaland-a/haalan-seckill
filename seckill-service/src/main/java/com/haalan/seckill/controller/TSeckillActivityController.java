@@ -72,6 +72,21 @@ public class TSeckillActivityController {
 		return R.success("库存更新成功", result);
 	}
 
+	@DeleteMapping("/product/{seckillProductId}")
+	@ApiOperation("删除秒杀商品（仅活动未开始时可操作）")
+	public R<Void> deleteProduct(@PathVariable("seckillProductId") Long seckillProductId) {
+		seckillProductService.deleteProduct(seckillProductId);
+		return R.success("删除成功");
+	}
+
+	@PutMapping("/product/{seckillProductId}")
+	@ApiOperation("修改秒杀商品价格和限购（仅活动未开始时可操作）")
+	public R<Void> updateProductInfo(@PathVariable("seckillProductId") Long seckillProductId,
+									 @RequestBody @Validated SeckillProductUpdateDTO dto) {
+		seckillProductService.updateProductInfo(seckillProductId, dto);
+		return R.success("修改成功");
+	}
+
 
 	@PostMapping("/activity/{activityId}/preheat")
 	@ApiOperation("活动预热（Redis + 本地双层，幂等保护）")

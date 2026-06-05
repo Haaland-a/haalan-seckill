@@ -1,4 +1,4 @@
-package com.haalan.user.service.Impl;
+package com.haalan.item.service.impl;
 
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.exceptions.ClientException;
@@ -8,59 +8,69 @@ import com.aliyuncs.profile.IClientProfile;
 import com.aliyuncs.sts.model.v20150401.AssumeRoleRequest;
 import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
 import com.haalan.common.exception.CommonException;
-import com.haalan.user.config.OssProperties;
-import com.haalan.user.domain.po.TUser;
-import com.haalan.user.domain.vo.OssUploadCredentialVO;
-import com.haalan.user.service.OssDirectUploadService;
-import com.haalan.user.service.TUserService;
+import com.haalan.item.config.OssProperties;
+import com.haalan.item.domain.vo.OssUploadCredentialVO;
+import com.haalan.item.service.ItemOssDirectUploadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
-/**
- * OSS直传服务实现类
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class OssDirectUploadServiceImpl implements OssDirectUploadService {
+public class ItemOssDirectUploadServiceImpl implements ItemOssDirectUploadService {
 
 	private final OssProperties ossProperties;
 
-	private final TUserService tUserService;
 	/**
 	 * <p>
-	 * 获取OSS上传临时凭证（STS）
+	 * 获取OSS上传临时凭证（STS），路径为 /{spuCode}/
 	 * </p>
-	 *
-	 * @return 上传凭证
-	 * @author Haaland
-	 * @date 2026/5/19
 	 */
 	@Override
-	public OssUploadCredentialVO getUploadCredential(Long userId) {
+	public OssUploadCredentialVO getUploadCredential(String spuCode) {
+		return buildCredential(spuCode, null);
+	}
+
+	/**
+	 * <p>
+	 * 获取OSS上传临时凭证（STS），路径为 /{spuCode}/{skuCode}/
+	 * </p>
+	 */
+	@Override
+	public OssUploadCredentialVO getUploadCredential(String spuCode, String skuCode) {
+		return buildCredential(spuCode, skuCode);
+	}
+
+	private OssUploadCredentialVO buildCredential(String spuCode, String skuCode) {
 		try {
 			// 构建请求
 			AssumeRoleRequest request = new AssumeRoleRequest();
 			request.setSysMethod(MethodType.POST);
 			// 设置角色ARN，需要在阿里云RAM控制台创建角色后获取
-			// 格式：acs:ram::${AccountId}:role/${RoleName}
 			request.setRoleArn(ossProperties.getRoleArn());
-			request.setRoleSessionName("OssUploadSession");
+			request.setRoleSessionName("ItemOssUploadSession");
 			request.setDurationSeconds(ossProperties.getStsDuration());
 
-			// 设置策略，限制只能上传到指定目录
+			// 构建资源路径: bucketName/{filePrefix}/{spuCode}/ 或 bucketName/{filePrefix}/{spuCode}/{skuCode}/
+			String resourcePath;
+			String uploadPrefix;
+			if (skuCode != null) {
+				resourcePath = String.format("acs:oss:*:*:%s/%s/%s/%s/*",
+						ossProperties.getBucketName(), ossProperties.getFilePrefix(), spuCode, skuCode);
+				uploadPrefix = String.format("%s/%s/%s", ossProperties.getFilePrefix(), spuCode, skuCode);
+			} else {
+				resourcePath = String.format("acs:oss:*:*:%s/%s/%s/*",
+						ossProperties.getBucketName(), ossProperties.getFilePrefix(), spuCode);
+				uploadPrefix = String.format("%s/%s", ossProperties.getFilePrefix(), spuCode);
+			}
+
 			String policy = String.format(
-					"{\"Version\":\"1\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"oss:PutObject\",\"Resource\":\"acs:oss:*:*:%s/%s/*\"}]}",
-					ossProperties.getBucketName(),
-					ossProperties.getFilePrefix(),
-					userId.toString()
+					"{\"Version\":\"1\",\"Statement\":[{\"Effect\":\"Allow\",\"Action\":\"oss:PutObject\",\"Resource\":\"%s\"}]}",
+					resourcePath
 			);
 			request.setPolicy(policy);
 
-			// 创建客户端
 			IClientProfile profile = DefaultProfile.getProfile(
 					ossProperties.getRegionId(),
 					ossProperties.getAccessKeyId(),
@@ -68,20 +78,10 @@ public class OssDirectUploadServiceImpl implements OssDirectUploadService {
 			);
 			DefaultAcsClient client = new DefaultAcsClient(profile);
 
-			// 获取临时凭证
 			AssumeRoleResponse response = client.getAcsResponse(request);
 			AssumeRoleResponse.Credentials credentials = response.getCredentials();
-			//获取时间,用于限制用户更新头像
-			log.info("生成OSS上传凭证成功，用户ID: {}", userId);
-			TUser tUser = new TUser();
-			tUser.setId(userId);
-			tUser.setTokenAcquireTime(LocalDateTime.now());
-			boolean b = tUserService.updateById(tUser);
-			if (!b) {
-				log.error("更新用户获取凭证时间失败，用户ID: {},暂时无法更新头像", userId);
-				throw new CommonException("更新用户获取凭证时间失败,暂时无法更新头像 " + userId, 500);
-			}
-			log.info("更新用户获取凭证时间成功，用户ID: {}", userId);
+
+			log.info("生成商品图片OSS上传凭证成功, 路径: {}", uploadPrefix);
 
 			return OssUploadCredentialVO.builder()
 					.accessKeyId(credentials.getAccessKeyId())
@@ -89,8 +89,9 @@ public class OssDirectUploadServiceImpl implements OssDirectUploadService {
 					.securityToken(credentials.getSecurityToken())
 					.endpoint(ossProperties.getEndpoint())
 					.bucketName(ossProperties.getBucketName())
-					.filePrefix(ossProperties.getFilePrefix())
+					.filePrefix(uploadPrefix)
 					.expiration(ossProperties.getStsDuration())
+					.regionId(ossProperties.getRegionId())
 					.build();
 
 		} catch (ClientException e) {

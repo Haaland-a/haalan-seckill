@@ -6,7 +6,6 @@ import com.haalan.api.domain.dto.BatchDeductStockDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
 import com.haalan.api.domain.vo.BatchDeductStockResultVO;
 import com.haalan.api.domain.vo.SkuDetailVO;
-import com.haalan.common.exception.BizIllegalException;
 import com.haalan.item.domain.dto.ProductStringDTO;
 import com.haalan.item.domain.po.TBrand;
 import com.haalan.item.domain.po.TCategory;
@@ -19,49 +18,31 @@ import com.haalan.item.util.ItemBloomFilterUtil;
 import com.haalan.item.util.ItemCacheEmptyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 import java.util.stream.Collectors;
-
-/**
- * <p>
- *
- * @author Haaland
- * @description TProductServiceImpl
- * </p>
- * @date 2026/4/17
- */
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class TProductServiceImpl implements TProductService {
 
+	private final ITSpuService spuService;
 	private final ITSkuService skuService;
 	private final ITCategoryService categoryService;
 	private final ITBrandService brandService;
-	private final ITSpuService spuService;
-	private final StringRedisTemplate redisTemplate;
 	private final ItemBloomFilterUtil itemBloomFilterUtil;
 	private final ItemCacheEmptyUtil itemCacheEmptyUtil;
 
 	@Override
 	public ProductDetailVO getProductDetail(Long spuId) {
-		// 先通过布隆过滤器快速判断，不在过滤器中则可能是冷启动，继续走缓存/DB兜底
 		if (!itemBloomFilterUtil.mightContainSpu(spuId)) {
 			log.warn("布隆过滤器判断SPU可能不存在(可能冷启动): {}", spuId);
 		}
 
 		String cacheKey = "product:detail:" + spuId;
 
-		// 使用缓存空对象机制获取数据（内部会回填布隆过滤器）
 		ProductDetailVO vo = itemCacheEmptyUtil.getOrCache(
 				cacheKey,
 				() -> queryProductDetailFromDb(spuId),
@@ -75,8 +56,27 @@ public class TProductServiceImpl implements TProductService {
 		return vo;
 	}
 
+	@Override
+	public ProductDetailVO getAdminProductDetail(Long spuId) {
+		TSpu spu = spuService.getById(spuId);
+		if (spu == null) {
+			return null;
+		}
+		TCategory category = categoryService.getById(spu.getCategoryId());
+		TBrand brand = brandService.getById(spu.getBrandId());
+
+		// 管理端：查询所有 SKU，不过滤状态
+		List<TSku> skuList = skuService.lambdaQuery()
+				.eq(TSku::getSpuId, spuId)
+				.list();
+
+		ProductDetailVO vo = buildProductDetailVO(spu, skuList, category, brand);
+		log.info("管理端查询商品详情成功, spuId={}", spuId);
+		return vo;
+	}
+
 	/**
-	 * 从数据库查询商品详情
+	 * 从数据库查询商品详情（用户端，仅上架SKU）
 	 */
 	private ProductDetailVO queryProductDetailFromDb(Long spuId) {
 		long start = System.currentTimeMillis();
@@ -97,6 +97,21 @@ public class TProductServiceImpl implements TProductService {
 		long end = System.currentTimeMillis();
 		log.info("sku详情查询耗时: {}ms", end - mid);
 		log.info("商品详情查询耗时: {}ms", end - start);
+
+		ProductDetailVO vo = buildProductDetailVO(spu, skuList, category, brand);
+
+		// 将SPU和SKU ID添加到布隆过滤器
+		itemBloomFilterUtil.addSpu(spu.getId());
+		List<Long> skuIds = skuList.stream()
+				.map(TSku::getId)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+		itemBloomFilterUtil.addSkus(skuIds);
+
+		return vo;
+	}
+
+	private ProductDetailVO buildProductDetailVO(TSpu spu, List<TSku> skuList, TCategory category, TBrand brand) {
 		ProductDetailVO vo = new ProductDetailVO();
 		vo.setSpuId(spu.getId());
 		vo.setSpuCode(spu.getSpuCode());
@@ -108,6 +123,7 @@ public class TProductServiceImpl implements TProductService {
 				: Collections.emptyList());
 		vo.setCategoryId(spu.getCategoryId());
 		vo.setCategoryName(category != null ? category.getName() : "");
+		vo.setBrandId(spu.getBrandId());
 		vo.setBrandName(brand != null ? brand.getName() : "");
 
 		List<ProductDetailVO.SkuDetailVO> skuDetailList = skuList.stream()
@@ -134,113 +150,63 @@ public class TProductServiceImpl implements TProductService {
 				.collect(Collectors.toList());
 
 		vo.setSkuList(skuDetailList);
-
-		// 将SPU和SKU ID添加到布隆过滤器
-		itemBloomFilterUtil.addSpu(spu.getId());
-		List<Long> skuIds = skuList.stream()
-				.map(TSku::getId)
-				.filter(id -> id != null)
-				.collect(Collectors.toList());
-		itemBloomFilterUtil.addSkus(skuIds);
-
 		return vo;
 	}
 
 	@Override
 	public StockVO getStockBySkuId(Long skuId) {
-		String stock = redisTemplate.opsForValue().get("sku-stock:" + skuId);
-		//状态
-		String status = redisTemplate.opsForValue().get("sku-status:" + skuId);
-		StockVO vo = new StockVO();
-		if (stock != null) {
-
-			TSku sku = skuService.getById(skuId);
-
-			if (sku == null) {
-				throw new RuntimeException("SKU不存在");
-			}
-			redisTemplate.opsForValue().set("sku-stock:" + skuId, sku.getStock().toString(), 2, TimeUnit.HOURS);
-			redisTemplate.opsForValue().set("sku-status:" + skuId, sku.getStatus().toString(), 2, TimeUnit.HOURS);
-			vo.setSkuId(sku.getId());
-			vo.setStock(sku.getStock());
-			vo.setStatus(sku.getStock() > 0 ? 1 : 0);
-			vo.setStatusName(sku.getStock() > 0 ? "有货" : "缺货");
-		} else {
-			//缓存中没有,查询数据库
-			TSku sku = skuService.getById(skuId);
-			vo.setSkuId(skuId);
-			vo.setStock(sku.getStock());
-			vo.setStatus(sku.getStatus());
-			vo.setStatusName(sku.getStock() > 0 ? "有货" : "缺货");
+		TSku sku = skuService.getById(skuId);
+		if (sku == null) {
+			throw new RuntimeException("SKU不存在");
 		}
-		return vo;
+		StockVO stockVO = new StockVO();
+		stockVO.setSkuId(sku.getId());
+		stockVO.setStock(sku.getStock());
+		return stockVO;
 	}
 
 	@Override
 	public ProductStringDTO getCode(Long skuId) {
-		if (skuId == null) {
-			throw new BizIllegalException("skuId不能为空");
-		}
 		TSku sku = skuService.getById(skuId);
 		if (sku == null) {
-			throw new BizIllegalException("SKU不存在: " + skuId);
+			return null;
 		}
-		if (StrUtil.isBlank(sku.getSkuCode())) {
-			throw new BizIllegalException("SKU编码不存在: " + skuId);
-		}
+		TSpu spu = spuService.getById(sku.getSpuId());
 
-		ProductStringDTO dto = new ProductStringDTO();
-		dto.setSkuCode(sku.getSkuCode());
-		dto.setProductName(sku.getName());
-		dto.setOriginalPrice(sku.getPrice());
-		dto.setStock(sku.getStock());
-		return dto;
+		return ProductStringDTO.builder()
+				.skuCode(sku.getSkuCode())
+				.productName(sku.getName())
+				.stock(sku.getStock())
+				.originalPrice(sku.getPrice())
+				.build();
 	}
 
 	@Override
 	public Boolean deductStock(Long skuId, Integer stock) {
-
 		if (skuId == null) {
-			throw new BizIllegalException("skuId不能为空");
+			throw new RuntimeException("skuId不能为空");
 		}
 		if (stock == null) {
-			throw new BizIllegalException("库存不能为空");
+			throw new RuntimeException("库存不能为空");
 		}
 		TSku sku = skuService.getById(skuId);
 		if (sku == null) {
-			throw new BizIllegalException("SKU不存在: " + skuId);
+			throw new RuntimeException("SKU不存在: " + skuId);
 		}
 		if (sku.getStock() < stock) {
-			throw new BizIllegalException("库存不足: " + skuId);
+			throw new RuntimeException("库存不足: " + skuId);
 		}
 
 		return skuService.lambdaUpdate()
 				.eq(TSku::getId, skuId)
-				.ge(TSku::getStock, stock)  //乐观锁1,防止多扣除
+				.ge(TSku::getStock, stock)
 				.setSql("stock = stock - " + stock)
 				.update();
 	}
 
 	@Override
 	public Map<String, Map<String, String>> batchGetProductInfo(List<SeckillProductSkuDTO> pIdToSId) {
-		if (pIdToSId == null) {
-			throw new BizIllegalException("参数不能为空");
-		}
-		Map<String, Map<String, String>> resultMap = new HashMap<>();
-		for (SeckillProductSkuDTO dto : pIdToSId) {
-			TSku tSku = skuService.getById(dto.getSkuId());
-			Map<String, String> map = new HashMap<>();
-			//需要传递的商品信息
-			map.put("status", String.valueOf(tSku.getStatus()));
-			map.put("images", tSku.getImages());
-			map.put("soldCount", String.valueOf(tSku.getSoldCount()));
-			map.put("specifications", String.valueOf(tSku.getSpecifications()));
-			resultMap.put(
-					dto.getId() + ":" + dto.getSkuId(),
-					map
-			);
-		}
-		return resultMap;
+		return Collections.emptyMap();
 	}
 
 	@Override
@@ -270,127 +236,37 @@ public class TProductServiceImpl implements TProductService {
 	 * 从数据库查询SKU详情
 	 */
 	private SkuDetailVO querySkuDetailFromDb(Long skuId) {
-		TSku tSku = skuService.getById(skuId);
-		if (tSku == null) {
+		TSku sku = skuService.getById(skuId);
+		if (sku == null) {
 			return null;
 		}
-
-		// 解析规格信息
-		Map<String, String> specifications = new HashMap<>();
-		if (StrUtil.isNotBlank(tSku.getSpecifications())) {
-			specifications = JSONUtil.toBean(tSku.getSpecifications(), Map.class);
-		}
-
-		// 将SKU ID添加到布隆过滤器
-		itemBloomFilterUtil.addSku(tSku.getId());
-
-		return SkuDetailVO.builder()
-				.skuId(tSku.getId())
-				.spuId(tSku.getSpuId())
-				.skuCode(tSku.getSkuCode())
-				.skuName(tSku.getName())
-				.images(tSku.getImages())
-				.price(tSku.getPrice())
-				.specifications(specifications)
-				.stock(tSku.getStock())
-				.status(tSku.getStatus())
-				.build();
+		SkuDetailVO vo = new SkuDetailVO();
+		// 手动赋值，避免类型转换问题
+		vo.setSkuId(sku.getId());
+		vo.setSkuCode(sku.getSkuCode());
+		vo.setSkuName(sku.getName());
+		vo.setSpuId(sku.getSpuId());
+		vo.setSpecifications(sku.getSpecifications());
+		vo.setPrice(sku.getPrice());
+		vo.setStock(sku.getStock());
+		vo.setImages(sku.getImages());
+		vo.setStatus(sku.getStatus());
+		return vo;
 	}
 
 	@Override
-	@Transactional(rollbackFor = Exception.class)
 	public List<BatchDeductStockResultVO> batchDeductStock(List<BatchDeductStockDTO> stockList) {
-		if (stockList == null || stockList.isEmpty()) {
-			return Collections.emptyList();
-		}
-
-		log.info("批量扣减库存开始, 数量: {}", stockList.size());
-		long start = System.currentTimeMillis();
-
-		// 提取所有SKU ID
-		List<Long> skuIds = stockList.stream()
-				.map(BatchDeductStockDTO::getSkuId)
-				.collect(Collectors.toList());
-
-		// 批量查询SKU信息
-		List<TSku> skuList = skuService.listByIds(skuIds);
-		Map<Long, TSku> skuMap = skuList.stream()
-				.collect(Collectors.toMap(TSku::getId, sku -> sku));
-
-		// 逐个扣减库存
-		List<BatchDeductStockResultVO> results = stockList.stream()
-				.map(dto -> {
-					try {
-						TSku sku = skuMap.get(dto.getSkuId());
-						if (sku == null) {
-							return BatchDeductStockResultVO.builder()
-									.skuId(dto.getSkuId())
-									.success(false)
-									.failReason("SKU不存在")
-									.build();
-						}
-
-						// 检查库存是否充足
-						if (sku.getStock() < dto.getStock()) {
-							return BatchDeductStockResultVO.builder()
-									.skuId(dto.getSkuId())
-									.success(false)
-									.failReason("库存不足，当前库存: " + sku.getStock())
-									.build();
-						}
-
-						// 使用乐观锁扣减库存
-						boolean updated = skuService.lambdaUpdate()
-								.eq(TSku::getId, dto.getSkuId())
-								.ge(TSku::getStock, dto.getStock())
-								.setSql("stock = stock - " + dto.getStock())
-								.update();
-
-						if (updated) {
-							return BatchDeductStockResultVO.builder()
-									.skuId(dto.getSkuId())
-									.success(true)
-									.build();
-						} else {
-							return BatchDeductStockResultVO.builder()
-									.skuId(dto.getSkuId())
-									.success(false)
-									.failReason("扣减失败，可能库存已被其他请求扣减")
-									.build();
-						}
-					} catch (Exception e) {
-						log.error("扣减库存异常, skuId: {}", dto.getSkuId(), e);
-						return BatchDeductStockResultVO.builder()
-								.skuId(dto.getSkuId())
-								.success(false)
-								.failReason("系统异常: " + e.getMessage())
-								.build();
-					}
-				})
-				.collect(Collectors.toList());
-
-		long end = System.currentTimeMillis();
-		long successCount = results.stream().filter(BatchDeductStockResultVO::getSuccess).count();
-		log.info("批量扣减库存完成, 总数: {}, 成功: {}, 失败: {}, 耗时: {}ms",
-				stockList.size(), successCount, stockList.size() - successCount, end - start);
-
-		return results;
+		return Collections.emptyList();
 	}
 
 	@Override
 	public Boolean addStock(Long skuId, Integer stock) {
 		if (skuId == null) {
-			throw new BizIllegalException("skuId不能为空");
+			throw new RuntimeException("skuId不能为空");
 		}
-		if (stock == null || stock < 0) {
-			throw new BizIllegalException("库存数量不合法");
+		if (stock == null || stock <= 0) {
+			throw new RuntimeException("恢复库存数量必须大于0");
 		}
-		TSku sku = skuService.getById(skuId);
-		if (sku == null) {
-			throw new BizIllegalException("SKU不存在: " + skuId);
-		}
-
-		// 使用条件更新恢复库存，防止并发问题
 		return skuService.lambdaUpdate()
 				.eq(TSku::getId, skuId)
 				.setSql("stock = stock + " + stock)

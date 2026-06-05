@@ -6,6 +6,7 @@ import com.haalan.common.domain.po.ProductDoc;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.item.domain.dto.SkuCreateDTO;
 import com.haalan.item.domain.dto.SkuStockUpdateDTO;
+import com.haalan.item.domain.dto.SkuUpdateDTO;
 import com.haalan.item.domain.po.TBrand;
 import com.haalan.item.domain.po.TCategory;
 import com.haalan.item.domain.po.TSku;
@@ -137,6 +138,42 @@ public class TSkuServiceImpl extends ServiceImpl<TSkuMapper, TSku> implements IT
 				.build();
 	}
 
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void updateSkuInfo(Long skuId, SkuUpdateDTO dto) {
+		TSku sku = this.getById(skuId);
+		if (sku == null) {
+			throw new BizIllegalException("SKU不存在");
+		}
+		sku.setName(dto.getName());
+		sku.setPrice(dto.getPrice());
+		sku.setPromotionPrice(dto.getPromotionPrice());
+		if (dto.getSpecifications() != null) {
+			sku.setSpecifications(JSONUtil.toJsonStr(dto.getSpecifications()));
+		}
+		if (dto.getImages() != null) {
+			sku.setImages(JSONUtil.toJsonStr(dto.getImages()));
+		}
+		this.updateById(sku);
+		syncSpuToEs(sku.getSpuId());
+		log.info("SKU {} 信息已更新", skuId);
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void updateSkuStatus(Long skuId, Integer status) {
+		if (status != 0 && status != 1) {
+			throw new BizIllegalException("状态值无效，必须为 0（禁用）或 1（正常）");
+		}
+		TSku sku = this.getById(skuId);
+		if (sku == null) {
+			throw new BizIllegalException("SKU不存在");
+		}
+		sku.setStatus(status);
+		this.updateById(sku);
+		syncSpuToEs(sku.getSpuId());
+		log.info("SKU {} 状态已更新为 {}", skuId, status == 1 ? "正常" : "禁用");
+	}
 
 	/**
 	 * <p>

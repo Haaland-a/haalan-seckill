@@ -36,6 +36,9 @@ public class ProductDetailVO {
 	@ApiModelProperty("分类名称")
 	private String categoryName;
 
+	@ApiModelProperty("品牌ID")
+	private Long brandId;
+
 	@ApiModelProperty("品牌名称")
 	private String brandName;
 
