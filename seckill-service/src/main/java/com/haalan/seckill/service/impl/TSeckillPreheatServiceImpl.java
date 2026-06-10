@@ -64,6 +64,8 @@ public class TSeckillPreheatServiceImpl implements ITSeckillPreheatService {
 		boolean alreadyPreheated = isAlreadyPreheated(activityId);
 		if (alreadyPreheated && !force) {
 			log.info("活动 {} 已预热过，跳过（force=false），直接返回当前状态", activityId);
+			// 即使已预热，也检查是否需要自动状态转换（开始时间到达后转为进行中）
+			autoUpdateStatusIfTimeMatched(activity);
 			return buildAlreadyPreheatedResult(activity, activityId);
 		}
 
@@ -83,6 +85,9 @@ public class TSeckillPreheatServiceImpl implements ITSeckillPreheatService {
 		}
 
 		int totalStock = products.stream().mapToInt(TSeckillProduct::getStock).sum();
+		// 预热成功 + 时间匹配 → 自动更新为进行中
+		autoUpdateStatusIfTimeMatched(activity);
+
 
 		// 6. 计算动态 TTL
 		long ttlSeconds = calculateTtl(activity);
@@ -116,6 +121,17 @@ public class TSeckillPreheatServiceImpl implements ITSeckillPreheatService {
 	}
 
 	// ==================== 私有方法 ====================
+	private void autoUpdateStatusIfTimeMatched(TSeckillActivity activity) {
+		LocalDateTime now = LocalDateTime.now();
+		boolean timeMatched = activity.getStartTime() != null && !now.isBefore(activity.getStartTime())
+				&& activity.getEndTime() != null && !now.isAfter(activity.getEndTime());
+		if (timeMatched && (activity.getStatus() == null || activity.getStatus() != 1)) {
+			activity.setStatus(1);
+			seckillActivityService.updateById(activity);
+			log.info("活动 {} 时间匹配，自动更新状态为进行中", activity.getId());
+		}
+	}
+
 
 	/**
 	 * 预热到 Redis

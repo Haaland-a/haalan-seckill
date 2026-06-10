@@ -12,27 +12,27 @@ import java.util.List;
 @Component
 public class UserServiceClientFallback implements FallbackFactory<UserServiceClient> {
 
-	@Override
-	public UserServiceClient create(Throwable cause) {
-		return new UserServiceClient() {
+    @Override
+    public UserServiceClient create(Throwable cause) {
+        return new UserServiceClient() {
 
-			@Override
-			public UserAddressVO getUserAddressById(Long addressId, Long userId) {
-				log.error("调用 user-service 获取地址失败, addressId: {}, userId: {}", addressId, userId, cause);
-				return null;
-			}
+            @Override
+            public UserAddressVO getUserAddressById(Long addressId, Long userId) {
+                log.error("调用 user-service 获取地址失败, addressId: {}, userId: {}", addressId, userId, cause);
+                throw new RuntimeException("调用用户服务失败：获取地址信息异常", cause);
+            }
 
-			@Override
-			public List<UserAddressVO> getUserAddresses() {
-				log.error("调用 user-service 获取地址列表失败", cause);
-				return List.of();
-			}
+            @Override
+            public List<UserAddressVO> getUserAddresses() {
+                log.error("调用 user-service 获取地址列表失败", cause);
+                throw new RuntimeException("调用用户服务失败：获取地址列表异常", cause);
+            }
 
-			@Override
-			public Long getUserCount() {
-				log.error("调用 user-service 获取用户数量失败", cause);
-				return 0L;
-			}
-		};
-	}
+            @Override
+            public Long getUserCount() {
+                log.error("调用 user-service 获取用户数量失败", cause);
+                throw new RuntimeException("调用用户服务失败：获取用户数量异常", cause);
+            }
+        };
+    }
 }

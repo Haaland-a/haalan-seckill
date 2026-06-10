@@ -8,6 +8,9 @@ spring:
       enabled: true
   cloud:
     sentinel:
+      eager: true
+      filter:
+        enabled: true
       transport:
         dashboard: ${haalan.sentinel.transport.host:localhost}:8090
     nacos:

@@ -12,15 +12,15 @@ import java.util.List;
 @Component
 public class SeckillServiceClientFallback implements FallbackFactory<SeckillServiceClient> {
 
-	@Override
-	public SeckillServiceClient create(Throwable cause) {
-		return new SeckillServiceClient() {
+    @Override
+    public SeckillServiceClient create(Throwable cause) {
+        return new SeckillServiceClient() {
 
-			@Override
-			public List<SeckillActivityBriefVO> getAllActivities() {
-				log.error("调用 seckill-service 获取活动列表失败", cause);
-				return List.of();
-			}
-		};
-	}
+            @Override
+            public List<SeckillActivityBriefVO> getAllActivities() {
+                log.error("调用 seckill-service 获取活动列表失败", cause);
+                throw new RuntimeException("调用秒杀服务失败：获取活动列表异常", cause);
+            }
+        };
+    }
 }

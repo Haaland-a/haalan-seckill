@@ -6,8 +6,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -25,8 +23,4 @@ public class SeckillActivityUpdateDTO implements Serializable {
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
 	private LocalDateTime endTime;
 
-	@ApiModelProperty(value = "状态: 0-未开始 1-进行中 2-已结束")
-	@Min(value = 0, message = "状态值非法")
-	@Max(value = 2, message = "状态值非法")
-	private Integer status;
 }

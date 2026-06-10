@@ -74,18 +74,6 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 				.build();
 	}
 
-	// 计算状态
-	private Integer calculateStatus(LocalDateTime startTime, LocalDateTime endTime) {
-		LocalDateTime now = LocalDateTime.now();
-		if (now.isBefore(startTime)) {
-			return 0;
-		}
-		if (now.isAfter(endTime)) {
-			return 2;
-		}
-		return 1;
-	}
-
 	/**
 	 * <p>
 	 * 修改活动内容
@@ -103,7 +91,7 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 			throw new BizIllegalException("活动不存在");
 		}
 
-		if (dto.getActivityName() == null && dto.getEndTime() == null && dto.getStatus() == null) {
+		if (dto.getActivityName() == null && dto.getEndTime() == null) {
 			throw new BizIllegalException("至少需要传入一个修改字段");
 		}
 
@@ -119,11 +107,13 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 				throw new BizIllegalException("结束时间必须晚于开始时间");
 			}
 			tSeckillActivity.setEndTime(dto.getEndTime());
+
+			// 更新后检查：若结束时间已过则自动标记为已结束
+			if (tSeckillActivity.getEndTime().isBefore(LocalDateTime.now())) {
+				tSeckillActivity.setStatus(2);
+			}
 		}
 
-		if (dto.getStatus() != null) {
-			tSeckillActivity.setStatus(dto.getStatus());
-		}
 
 		boolean update = this.updateById(tSeckillActivity);
 		if (!update) {
@@ -142,7 +132,7 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 		activity.setEndTime(dto.getEndTime());
 		activity.setActivityDesc(dto.getActivityDesc());
 		activity.setLimitPerUser(dto.getLimitPerUser());
-		activity.setStatus(calculateStatus(dto.getStartTime(), dto.getEndTime()));//判断状态
+		activity.setStatus(dto.getEndTime().isBefore(LocalDateTime.now()) ? 2 : 0);
 		activity.setVersion(0);
 		return activity;
 	}
@@ -166,7 +156,6 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 		return SeckillActivityUpdateDTO.builder()
 				.activityName(tSeckillActivity.getActivityName())
 				.endTime(tSeckillActivity.getEndTime())
-				.status(tSeckillActivity.getStatus())
 				.build();
 	}
 

@@ -25,25 +25,27 @@ public class SeckillPreheatScheduler {
 		try {
 			LocalDateTime now = LocalDateTime.now();
 			LocalDateTime twelveHoursLater = now.plusHours(12);
+			LocalDateTime twelveHoursAgo = now.minusHours(12);
 
 			List<TSeckillActivity> upcomingActivities = activityService.lambdaQuery()
 					.eq(TSeckillActivity::getStatus, 0)
-					.ge(TSeckillActivity::getStartTime, now)
+					.ge(TSeckillActivity::getStartTime, twelveHoursAgo)
 					.le(TSeckillActivity::getStartTime, twelveHoursLater)
+					.gt(TSeckillActivity::getEndTime, now)
 					.list();
 
 			if (upcomingActivities.isEmpty()) {
-				log.debug("没有需要预热的即将开始活动");
+				log.debug("没有需要处理的未开始活动");
 				return;
 			}
 
 			for (TSeckillActivity activity : upcomingActivities) {
 				try {
-					log.info("自动预热活动: id={}, name={}, startTime={}",
+					log.info("自动处理活动: id={}, name={}, startTime={}",
 							activity.getId(), activity.getActivityName(), activity.getStartTime());
 					preheatService.preheatActivity(activity.getId(), false);
 				} catch (Exception e) {
-					log.error("自动预热活动失败: id={}, name={}",
+					log.error("自动处理活动失败: id={}, name={}",
 							activity.getId(), activity.getActivityName(), e);
 				}
 			}
