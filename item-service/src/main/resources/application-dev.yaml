@@ -14,4 +14,4 @@ haalan:
     nacoshost: nacos
   sentinel:
     transport:
-      host: localhost
+      host: 192.168.100.133:8090
