@@ -4,6 +4,7 @@ package com.haalan.seckill.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.haalan.seckill.domain.po.UserSeckillRecord;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -14,6 +15,7 @@ import org.apache.ibatis.annotations.Param;
  * @author haaland
  * @since 2026-05-13
  */
+@Mapper
 public interface UserSeckillRecordMapper extends BaseMapper<UserSeckillRecord> {
 
 	/**

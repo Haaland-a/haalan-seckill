@@ -12,6 +12,9 @@ haalan:
     host: 192.168.100.133
   seata:
     nacoshost: 192.168.100.133:8848
+  sentinel:
+    transport:
+      host: 192.168.100.133
 seata:
   service:
     grouplist:

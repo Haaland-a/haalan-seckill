@@ -12,8 +12,10 @@ import com.haalan.seckill.config.SeckillConstants;
 import com.haalan.seckill.domain.dto.SeckillActivityCreateDTO;
 import com.haalan.seckill.domain.dto.SeckillActivityUpdateDTO;
 import com.haalan.seckill.domain.po.TSeckillActivity;
+import com.haalan.seckill.domain.po.TSeckillProduct;
 import com.haalan.seckill.domain.vo.*;
 import com.haalan.seckill.mapper.TSeckillActivityMapper;
+import com.haalan.seckill.mapper.TSeckillProductMapper;
 import com.haalan.seckill.service.ITSeckillActivityService;
 import com.haalan.seckill.util.BloomFilterUtil;
 import com.haalan.seckill.util.CacheEmptyUtil;
@@ -46,6 +48,7 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 	private final StringRedisTemplate redisTemplate;
 	private final BloomFilterUtil bloomFilterUtil;
 	private final CacheEmptyUtil cacheEmptyUtil;
+	private final TSeckillProductMapper seckillProductMapper;
 
 	/**
 	 * <p>
@@ -66,7 +69,6 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 		if (!saved || activity.getId() == null) {
 			throw new BizIllegalException("创建秒杀活动失败");
 		}
-
 		return SeckillActivityCreateResultVO.builder()
 				.activityId(activity.getId())
 				.build();
@@ -462,6 +464,43 @@ public class TSeckillActivityServiceImpl extends ServiceImpl<TSeckillActivityMap
 	/**
 	 * 从数据库查询秒杀商品详情
 	 */
+	@Override
+	public SeckillActivityDetailVO getActivityDetailFromDb(Long activityId) {
+		TSeckillActivity activity = this.getById(activityId);
+		if (activity == null) {
+			throw new BizIllegalException("活动不存在");
+		}
+		List<TSeckillProduct> products = seckillProductMapper.selectList(
+				new QueryWrapper<TSeckillProduct>()
+						.eq("activity_id", activityId)
+						.orderByAsc("sort"));
+
+		List<SeckillProductDetailVO> productVOs = products.stream().map(p ->
+				SeckillProductDetailVO.builder()
+						.productId(p.getId())
+						.skuId(p.getSkuId())
+						.skuCode(p.getSkuCode())
+						.name(p.getProductName())
+						.images(new ArrayList<>())
+						.specifications(new HashMap<>())
+						.originalPrice(p.getOriginalPrice())
+						.seckillPrice(p.getSeckillPrice())
+						.stock(String.valueOf(p.getStock()))
+						.soldCount(String.valueOf(p.getSoldStock()))
+						.limitPerUser(String.valueOf(p.getLimitPerUser()))
+						.build()
+		).collect(Collectors.toList());
+
+		return SeckillActivityDetailVO.builder()
+				.activityId(activity.getId())
+				.activityName(activity.getActivityName())
+				.startTime(activity.getStartTime())
+				.endTime(activity.getEndTime())
+				.serverTime(LocalDateTime.now())
+				.products(productVOs)
+				.build();
+	}
+
 	private SeckillProductInfoVO queryProductDetailFromDb(Long seckillProductId, Long activityId) {
 		String productKey = SeckillConstants.SECKILL_PRODUCT_PREFIX + activityId + ":" + seckillProductId;
 		Map<Object, Object> productData = redisTemplate.opsForHash().entries(productKey);

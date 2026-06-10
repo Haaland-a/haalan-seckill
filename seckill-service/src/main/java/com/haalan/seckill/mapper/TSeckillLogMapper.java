@@ -1,7 +1,8 @@
 package com.haalan.seckill.mapper;
 
-import com.haalan.seckill.domain.po.TSeckillLog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.haalan.seckill.domain.po.TSeckillLog;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>
@@ -11,6 +12,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author haaland
  * @since 2026-05-12
  */
+@Mapper
 public interface TSeckillLogMapper extends BaseMapper<TSeckillLog> {
 
 }

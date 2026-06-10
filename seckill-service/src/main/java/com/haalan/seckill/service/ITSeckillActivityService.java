@@ -27,4 +27,6 @@ public interface ITSeckillActivityService extends IService<TSeckillActivity> {
 	SeckillProductInfoVO getProductDetail(Long seckillProductId, Long activityId);
 
 	List<SeckillActivityBriefVO> getAllActivities();
+
+	SeckillActivityDetailVO getActivityDetailFromDb(Long activityId);
 }

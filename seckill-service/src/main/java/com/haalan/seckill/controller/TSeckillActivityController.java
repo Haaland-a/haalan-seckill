@@ -51,6 +51,12 @@ public class TSeckillActivityController {
 		return R.success(seckillActivityService.echoActivity(id));
 	}
 
+	@GetMapping("/activity/{activityId}/detail")
+	@ApiOperation("获取秒杀活动详情+商品列表（管理端直接查DB，不走Redis缓存）")
+	public R<SeckillActivityDetailVO> getActivityDetailFromDb(@PathVariable Long activityId) {
+		return R.success(seckillActivityService.getActivityDetailFromDb(activityId));
+	}
+
 	@PostMapping("/activity/{activityId}/product")
 	@ApiOperation("添加秒杀商品")
 	public R<SeckillActivityAddPVO> addProduct(@PathVariable("activityId") Long activityId, @RequestBody @Validated SeckillActivityAddPDTO dto) {

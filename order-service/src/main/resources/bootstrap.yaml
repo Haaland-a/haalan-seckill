@@ -7,6 +7,9 @@ spring:
     circuitbreaker:
       enabled: true
   cloud:
+    sentinel:
+      transport:
+        dashboard: ${haalan.sentinel.transport.host:localhost}:8090
     nacos:
       server-addr: ${NACOS_HOST:nacos}:8848
       discovery: # ← 添加这个

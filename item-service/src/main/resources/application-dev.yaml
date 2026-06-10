@@ -12,3 +12,6 @@ haalan:
     host: mq
   seata:
     nacoshost: nacos
+  sentinel:
+    transport:
+      host: localhost

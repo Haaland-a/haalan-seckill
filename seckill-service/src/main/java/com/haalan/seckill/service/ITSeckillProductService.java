@@ -28,6 +28,7 @@ public interface ITSeckillProductService extends IService<TSeckillProduct> {
 
 	SeckillProductStockUpdateResultVO updateStock(Long seckillProductId, SeckillProductStockUpdateDTO dto);
 
+
 	/**
 	 * 删除秒杀商品（仅活动未开始时可操作，同时回滚库存到SKU）
 	 */

@@ -35,6 +35,12 @@
             <artifactId>haalan-common</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+        <!-- api-->
+        <dependency>
+            <groupId>com.haalan</groupId>
+            <artifactId>haalan-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
         <!--web-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -101,16 +107,15 @@
             <optional>true</optional>
         </dependency>
 
+        <!--seata-->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+        </dependency>
         <!--消息发送mq-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.haalan</groupId>
-            <artifactId>haalan-api</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>

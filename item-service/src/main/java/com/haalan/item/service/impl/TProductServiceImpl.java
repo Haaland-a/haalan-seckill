@@ -206,7 +206,39 @@ public class TProductServiceImpl implements TProductService {
 
 	@Override
 	public Map<String, Map<String, String>> batchGetProductInfo(List<SeckillProductSkuDTO> pIdToSId) {
-		return Collections.emptyMap();
+		if (pIdToSId == null || pIdToSId.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		// 收集所有 skuId
+		List<Long> skuIds = pIdToSId.stream()
+				.map(SeckillProductSkuDTO::getSkuId)
+				.collect(Collectors.toList());
+
+		// 批量查询 SKU
+		List<TSku> skuList = skuService.lambdaQuery()
+				.in(TSku::getId, skuIds)
+				.list();
+
+		Map<Long, TSku> skuMap = skuList.stream()
+				.collect(Collectors.toMap(TSku::getId, s -> s, (a, b) -> a));
+
+		// key = "seckillProductId:skuId"  →  images + specifications
+		Map<String, Map<String, String>> result = new HashMap<>(pIdToSId.size());
+		for (SeckillProductSkuDTO item : pIdToSId) {
+			TSku sku = skuMap.get(item.getSkuId());
+			if (sku == null) {
+				log.warn("batchGetProductInfo: SKU不存在, skuId={}", item.getSkuId());
+				continue;
+			}
+			Map<String, String> info = new HashMap<>();
+			info.put("images", sku.getImages() != null ? sku.getImages() : "[]");
+			info.put("specifications", sku.getSpecifications() != null ? sku.getSpecifications() : "{}");
+			result.put(item.getId() + ":" + item.getSkuId(), info);
+		}
+
+		log.info("batchGetProductInfo: 成功获取 {} 个SKU信息", result.size());
+		return result;
 	}
 
 	@Override
