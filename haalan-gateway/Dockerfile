@@ -1,5 +1,5 @@
 ﻿FROM btgoose/jdk17:latest
 WORKDIR /app
-COPY target/haalan-gateway-0.0.1-SNAPSHOT.jar app.jar
+COPY haalan-gateway/target/haalan-gateway-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=dev"]
