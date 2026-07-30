@@ -10,4 +10,5 @@ haalan:
     host: 192.168.100.133:9200
   stoken:
     timeout: 60000
-
+test:
+  nacos-host: ${NACOS_HOST:NOT_SET}
