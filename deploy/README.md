@@ -85,7 +85,7 @@ root   running(16)    /root/haalan/deploy/docker-compose.apps.yml,/root/docker-c
 | 网络 | `root_haalan` | 全部 17 个容器（含 sentinel-dashboard） |
 | 卷 | `root_redis-data` | redis `/data` |
 | 卷 | `root_es-data` | es `/usr/share/elasticsearch/data` |
-| 卷 | `root_es-plugins` | es plugins（**当前是空的**） |
+| 卷 | `root_es-plugins` | es plugins（**已装 `analysis-ik` 7.12.1**，见 6.7） |
 | 卷 | `root_mq-data` | mq `/var/lib/rabbitmq`（含 haalan 用户与 /haalan vhost） |
 | 卷 | `root_mq-plugins` | mq `/plugins` |
 | 卷 | `root_nacos-data` | nacos `/home/nacos/data`（14 条配置） |
@@ -320,7 +320,14 @@ WARNING: Found orphan containers ([nacos xxl-job-admin mysql8 seata mq kibana re
 **这只是警告，无害。** 但如果加了 `--remove-orphans`，它就会把这 8 个中间件
 **删掉**。`deploy.sh` 里已经刻意不加该参数。
 
-### 6.3 内存只有 1 GB 可用
+### 6.3 内存紧张（可用约 1.5 GB）
+
+实测（2026-09-02，17 个容器全跑）：
+
+```
+total 7802 / used 5987 / buff-cache 1636 / available 1515 MB
+Swap  8063 / used 1283 / free 6780 MB
+```
 
 6 个 Spring Boot 默认堆可能吃掉 3–4 GB。`.env` 里已设置：
 
@@ -331,7 +338,19 @@ JAVA_TOOL_OPTIONS=-Xms256m -Xmx512m -XX:MaxMetaspaceSize=192m
 同时给每个容器加了日志轮转（`max-size: 10m, max-file: 3`），
 避免长期运行把 50 GB 的根分区写满。
 
-**建议**：换到 16 GB 内存的机器，或先把 `kibana` 停掉（它占 240 MB 且平时不用）。
+占内存最大的几个（`docker stats --no-stream`）：
+
+| 容器 | 内存 |
+|---|---|
+| `nacos` | 656 MB（`JVM_XMS/XMX=1g`） |
+| `es` | 616 MB（`-Xms512m -Xmx512m`） |
+| `mysql8` | 418 MB |
+| `sentinel-dashboard` | 232 MB（已限 `-Xmx256m`） |
+| `kibana` | 206 MB |
+| `mq` | 68 MB |
+
+**建议**：换到 16 GB 内存的机器；或先停掉 `kibana`（206 MB，平时不用）。
+`sentinel-dashboard` 虽然不在原编排里，但 232 MB 是可接受的代价。
 
 ### 6.4 服务器连不上 GitHub
 
@@ -444,35 +463,57 @@ done
 > `192.168.100.133:8090:8090`）。三个都已在源码里修好并重新部署，
 > 详见 `deploy-assets/sentinel/README.md`。
 
-### 6.7 ES 的 IK 分词插件目录是空的
+### 6.7 ES 的 IK 分词插件（已装好，2026-09-02）
 
-`root_es-plugins` 卷里没有任何文件，索引 `products` 的 mapping 用的是标准
-分词器（`type: text`），代码里也**没有任何** `ik_max_word` / `ik_smart` 引用
-（全仓库 grep 零命中）。也就是说：**当前搜索功能并不依赖 IK**，中文搜索是
-按标准分词器逐字切的，效果一般但不会报错。
+**原状**：`root_es-plugins` 卷里没有任何文件，`_cat/plugins` 为空，
+索引 `products` 用的是标准分词器。
 
-如果确实想启用 IK：
+**现状**：IK 已安装并生效 ——
 
 ```bash
-# 1. 解压插件到卷目录（卷当前是空的，解压即可，不需要删东西）
-cd /root/haalan/deploy/deploy-assets/es
-mkdir -p /tmp/ik && unzip -q elasticsearch-analysis-ik-7.12.1.zip -d /tmp/ik
-mkdir -p /var/lib/docker/volumes/root_es-plugins/_data/ik
-cp -r /tmp/ik/. /var/lib/docker/volumes/root_es-plugins/_data/ik/
-chown -R 1000:0 /var/lib/docker/volumes/root_es-plugins/_data/ik
-rm -rf /tmp/ik
+$ curl -s 'http://localhost:9200/_cat/plugins?v'
+name         component   version
+b7cdd1cba22c analysis-ik 7.12.1
 
-# 2. 重启 es 让插件生效 —— ⚠ 这属于「修改容器」，需要你确认后再执行
-docker restart es
-docker exec es bin/elasticsearch-plugin list      # 应输出 ik
+$ curl -s -X POST 'http://localhost:9200/_analyze' \
+    -H 'Content-Type: application/json' \
+    -d '{"analyzer":"ik_smart","text":"华为手机秒杀活动"}'
+华为 -> 手机 -> 秒杀 -> 活动          # 对比 standard：华 -> 为 -> 手 -> 机 -> ...
 ```
 
-> 服务器**没有 `unzip`**，但 `es` 容器里有，也可以
-> `docker exec es bin/elasticsearch-plugin install file:///...`。
-> 更简单的办法：在别的机器解压好，直接 scp 整个目录过去。
->
-> 重启 es 后，**已存在的 `products` 索引不会自动换分词器**（mapping 不能改
-> analyzer），要重建索引才生效。所以除非要重建索引，否则不必装。
+安装方式（用的是 ES 官方插件安装器，属主/权限自动正确，不用手工 chown）：
+
+```bash
+docker cp /root/haalan/deploy/deploy-assets/es/elasticsearch-analysis-ik-7.12.1.zip es:/tmp/ik.zip
+docker exec es bin/elasticsearch-plugin install --batch file:///tmp/ik.zip
+docker restart es          # 装完必须重启才生效
+docker exec es bin/elasticsearch-plugin list      # 输出 analysis-ik
+```
+
+> 服务器宿主**没有 `unzip`**（`python3` 有），所以走容器内的安装器最省事。
+> 重启 es 实测约 **30 秒**恢复（`curl localhost:9200` 返回 200），
+> `products` 索引的 8 条数据完好无损。
+
+#### ⚠ 装了 IK 也还不会自动生效
+
+`products` 索引的 mapping **仍是标准分词器**：
+
+```json
+"spuName": {"type": "text", "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}}
+```
+
+mapping 里的 `analyzer` 一旦建索引就**不能改**，而且代码里目前也**没有任何**
+`ik_max_word` / `ik_smart` 引用（全仓库 grep 零命中）——
+`ProductSearchServiceImpl` 用的是 `QueryBuilders.matchQuery("spuName", keyword)`，
+走索引自身的分词器。
+
+所以要让中文搜索真正用上 IK，需要两步：
+
+1. **改代码**：在写 `products` 索引的地方（`TSkuServiceImpl` / `ProductSyncToEsTest`）
+   给 `spuName` 等字段指定 `analyzer: ik_max_word` / `search_analyzer: ik_smart`。
+2. **重建索引**：删掉 `products` 再让程序重新灌数据（8 条，很快）。
+
+在那之前，IK 装着不占多少资源，也不影响现有功能。
 
 ### 6.8 `.env` 里的 `COMPOSE_PROJECT_NAME=root` 是刻意设的
 
