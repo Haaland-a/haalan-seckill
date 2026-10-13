@@ -7,6 +7,9 @@ haalan:
     host: redis
     password: 123456
   es:
-    host: es
+    # 必须带端口。EsProperties.host 直接交给 HttpHost.create()，
+    # 写成 "es" 时端口是 -1，Apache HttpClient 会退化成 http 默认端口 80，
+    # 而 ES 监听的是 9200，结果就是 Connection refused。
+    host: es:9200
   stoken:
     timeout: 60

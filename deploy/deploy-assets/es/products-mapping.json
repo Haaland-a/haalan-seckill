@@ -1,0 +1,28 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  },
+  "mappings": {
+    "properties": {
+      "spuId":        { "type": "long" },
+      "spuCode":      { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "spuName":      { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart",
+                        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "description":  { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart" },
+      "mainImage":    { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "images":       { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "categoryId":   { "type": "long" },
+      "categoryName": { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart",
+                        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "brandId":      { "type": "long" },
+      "brandName":    { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart",
+                        "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "skuList":      { "type": "text", "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } } },
+      "status":       { "type": "long" },
+      "minPrice":     { "type": "long" },
+      "maxPrice":     { "type": "long" },
+      "updateTime":   { "type": "long" }
+    }
+  }
+}

@@ -188,13 +188,17 @@ haalan/deploy/
 │   ├── deploy.ps1               ← 本机侧：编译 + 同步 + 触发远程部署
 │   ├── deploy-sentinel.sh       ← 构建并启动 Sentinel 控制台
 │   ├── backup-volumes.sh        ← 换机前：把全部数据打包成一个目录 ★
-│   └── restore-volumes.sh       ← 换机后：在新机器上还原 ★
+│   ├── restore-volumes.sh       ← 换机后：在新机器上还原 ★
+│   ├── cron-backup.sh           ← 定时备份（crontab 入口 + 按天轮转）
+│   ├── pack-images.sh           ← 断网机器：把全部基础镜像 docker save 出来
+│   └── reindex-products.sh      ← 把 products 索引换成带 IK 分词器的版本
 └── deploy-assets/
     ├── sql/                     ← 01-haalan.sql / 02-xxl-job.sql / 03-seata-at.sql / 04-seata-tc.sql
     ├── nacos/custom.env         ← Nacos 容器环境变量
     ├── nacos/nacos_config_export.zip  ← 14 条配置的导出包
     ├── seata/application.yml    ← Seata 服务端配置
     ├── es/elasticsearch-analysis-ik-7.12.1.zip  ← IK 分词插件
+    ├── es/products-mapping.json ← products 索引的 IK mapping（建索引用）
     ├── sentinel/                ← Sentinel 控制台：jar + Dockerfile + 说明
     └── docker-compose.reference.yml  ← 原 docker-compose.yml，留作对照
 ```
@@ -290,6 +294,45 @@ curl http://localhost:8848/nacos/v1/ns/service/list?pageNo=1&pageSize=100
 Nacos 的 14 条配置需要手工导入：登录 `http://<IP>:8848/nacos` →
 配置管理 → 导入 → 选 `deploy-assets/nacos/nacos_config_export.zip`。
 
+### 5.4 断网机器：先把基础镜像导过去
+
+如果新机器**完全连不上网**（连 Docker Hub 加速器也不通），
+先把 12 个基础镜像打包：
+
+```bash
+# 在能上网的机器上（就是现在这台）
+bash scripts/pack-images.sh -o /root/haalan-images
+# 产出：12 个 .tar.gz（共 2.3 GB）+ load-images.sh + MANIFEST.txt + SHA256SUMS
+
+sha256sum -c /root/haalan-images/SHA256SUMS        # 校验
+rsync -aP /root/haalan-images/ root@<新机IP>:/root/haalan-images/
+
+# 在新机器上
+cd /root/haalan-images && bash load-images.sh       # 不带参数 = 全部导入
+# 只要某几个：bash load-images.sh mysql:8.0.33 redis:7
+```
+
+包含的镜像（实测大小）：
+
+| 镜像 | 大小 |
+|---|---|
+| mysql:8.0.33 | 155M |
+| redis:7 | 43M |
+| nacos/nacos-server:v2.1.0-slim | 182M |
+| elasticsearch:7.12.1 | 410M |
+| kibana:7.12.1 | 389M |
+| rabbitmq:3.8-management | 105M |
+| seataio/seata-server:1.6.1 | 305M |
+| xuxueli/xxl-job-admin:2.4.1 | 106M |
+| btgoose/jdk17:latest | 254M |
+| node:22-alpine | 57M |
+| nginx:1.25-alpine | 19M |
+| haalan/sentinel-dashboard:1.8.6 | 273M |
+
+> `pack-images.sh` 管的是**镜像**，`backup-volumes.sh` 管的是**数据**，两者互不替代。
+> 应用镜像（`root-*`）不用单独打包 —— 新机器上 `mvn package` + `docker compose build`
+> 会重新构建出来，而且那才保证和最新代码一致。
+
 ---
 
 ## 六、务必注意的坑
@@ -380,6 +423,33 @@ curl: (7) Failed connect to github.com:443; Connection refused
 > ```
 >
 > 代理关掉后记得 `git config --unset http.proxy` 去掉，否则会连不上。
+
+#### 顺带一提：非登录 shell 的 PATH（2026-09-02 已修）
+
+`/etc/profile` 里确实有 `JAVA_HOME` / `MAVEN_HOME`，但
+**ssh 执行单条命令时不会加载它** —— 于是出现「明明装了 JDK，`java -version`
+却报 `java: 未找到命令`」这种反直觉现象。
+
+已经补好两层兜底：
+
+```bash
+# 1) /etc/profile.d/java.sh（登录 shell 走这条）
+export JAVA_HOME=/usr/local/jdk17
+export MAVEN_HOME=/usr/local/maven
+case ":$PATH:" in
+  *":$JAVA_HOME/bin:"*) ;;
+  *) export PATH="$JAVA_HOME/bin:$MAVEN_HOME/bin:$PATH" ;;
+esac
+
+# 2) /usr/local/bin 下的软链（非登录 shell 走这条，因为它在默认 PATH 里）
+java -> /usr/local/jdk17/bin/java
+javac / jar / jps / keytool 同理
+mvn -> /usr/local/maven/bin/mvn
+```
+
+验证：`ssh root@<IP> 'which java && which mvn'` 现在能直接解析。
+`deploy.sh` 里仍然显式 export 一次（不依赖上面两层），因为脚本可能在
+更极端的环境里被调用。
 
 ### 6.5 Nacos 健康检查原本是假的（新编排已修好）
 
@@ -494,26 +564,88 @@ docker exec es bin/elasticsearch-plugin list      # 输出 analysis-ik
 > 重启 es 实测约 **30 秒**恢复（`curl localhost:9200` 返回 200），
 > `products` 索引的 8 条数据完好无损。
 
-#### ⚠ 装了 IK 也还不会自动生效
+#### 光装插件不够：索引也要用上 IK（2026-09-02 已完成）
 
-`products` 索引的 mapping **仍是标准分词器**：
+装好插件只是让 `ik_max_word` / `ik_smart` **可被引用**，索引本身不会自动换分词器。
+而且 mapping 里的 `analyzer` 一旦建好索引就**不能原地修改** —— 只能重建。
+
+所以做了三步：
+
+**第 1 步：让代码自动建对索引**
+
+新增 `item-service/src/main/java/com/haalan/item/config/ProductIndexInitializer.java`
+（`ApplicationRunner`，启动时检查 `products` 是否存在，不存在就用
+`deploy-assets/es/products-mapping.json` 建好）。字段映射：
 
 ```json
-"spuName": {"type": "text", "fields": {"keyword": {"type": "keyword", "ignore_above": 256}}}
+"spuName": {
+  "type": "text",
+  "analyzer": "ik_max_word",        // 写入时细粒度切
+  "search_analyzer": "ik_smart",    // 查询时粗粒度切
+  "fields": { "keyword": { "type": "keyword", "ignore_above": 256 } }
+}
 ```
 
-mapping 里的 `analyzer` 一旦建索引就**不能改**，而且代码里目前也**没有任何**
-`ik_max_word` / `ik_smart` 引用（全仓库 grep 零命中）——
-`ProductSearchServiceImpl` 用的是 `QueryBuilders.matchQuery("spuName", keyword)`，
-走索引自身的分词器。
+`brandName` / `categoryName` / `description` 同样处理。
+注意 **`.keyword` 子字段必须保留** —— 排序和聚合还在用它。
 
-所以要让中文搜索真正用上 IK，需要两步：
+**第 2 步：重建已有索引（用脚本，不动容器）**
 
-1. **改代码**：在写 `products` 索引的地方（`TSkuServiceImpl` / `ProductSyncToEsTest`）
-   给 `spuName` 等字段指定 `analyzer: ik_max_word` / `search_analyzer: ik_smart`。
-2. **重建索引**：删掉 `products` 再让程序重新灌数据（8 条，很快）。
+```bash
+bash scripts/reindex-products.sh --dry-run   # 先看它要干什么
+bash scripts/reindex-products.sh -y          # 备份 → 删 → 按 IK mapping 重建 → reindex 回来
+```
 
-在那之前，IK 装着不占多少资源，也不影响现有功能。
+脚本顺序：现有 `products` 复制到 `products_pre_ik`（安全网，**保留不删**）
+→ 删 `products` → 按 IK mapping 重建 → 从 `products_pre_ik` reindex 回来。
+
+**回滚**（两条命令）：
+
+```bash
+curl -X DELETE 'localhost:9200/products'
+curl -X POST 'localhost:9200/_reindex?wait_for_completion=true' -H 'Content-Type: application/json' \
+  -d '{"source":{"index":"products_pre_ik"},"dest":{"index":"products"}}'
+```
+
+**第 3 步：验证**
+
+```bash
+$ curl -s 'localhost:9200/products/_mapping?pretty' | grep -A3 '"spuName"'
+      "spuName" : {
+        "type" : "text",
+        "analyzer" : "ik_max_word",
+        "search_analyzer" : "ik_smart"
+
+$ curl -s 'localhost:9200/_analyze' -H 'Content-Type: application/json' \
+    -d '{"analyzer":"ik_smart","text":"华为手机"}'
+华为 / 手机          # 标准分词器会是 华 / 为 / 手 / 机
+```
+
+实测搜索 `keyword=华为` 返回 `华为 Mate 60 Pro`（`total: 1`），
+`products` 8 条数据完好。
+
+#### ⚠ 顺带修掉的一个隐藏 bug：ES 端口
+
+排查「搜索报 500」时发现 `Connection refused`。根因在配置：
+
+```yaml
+haalan:
+  es:
+    host: es          # ← 端口是 -1
+```
+
+`EsProperties.host` 直接交给 `HttpHost.create()`，端口为 `-1` 时
+Apache HttpClient 会退化成 **http 默认端口 80**，而 ES 监听 9200。
+6 个服务的 `application-dev.yaml` 全部改成：
+
+```yaml
+  es:
+    host: es:9200
+```
+
+> 这是**一直存在的 bug**，只是之前没人从容器内真正调过搜索接口。
+> 修复前 `GET /api/product/search?keyword=华为` 返回
+> `{"code":500,"message":"服务器内部错误"}`，修复后返回正常结果。
 
 ### 6.8 `.env` 里的 `COMPOSE_PROJECT_NAME=root` 是刻意设的
 
@@ -541,7 +673,7 @@ mapping 里的 `analyzer` 一旦建索引就**不能改**，而且代码里目�
 |---|---|---|---|
 | Docker 卷 | `root_redis-data` | Redis 25 个 key（RDB） | `tar` 打包 → 解包 |
 | Docker 卷 | `root_es-data` | ES `products` 等全部索引 | `tar` 打包 → 解包 |
-| Docker 卷 | `root_es-plugins` | ES 插件（**当前为空**） | `tar` 打包 → 解包 |
+| Docker 卷 | `root_es-plugins` | ES 插件（**已装 analysis-ik**） | `tar` 打包 → 解包 |
 | Docker 卷 | `root_mq-data` | RabbitMQ 用户/vhost/队列（349 MB） | `tar` 打包 → 解包 |
 | Docker 卷 | `root_mq-plugins` | RabbitMQ 插件（16 MB） | `tar` 打包 → 解包 |
 | Docker 卷 | `root_nacos-data` | 14 条 Nacos 配置 | `tar` 打包 → 解包 |
@@ -752,6 +884,38 @@ docker run --rm -v <新项目名>_redis-data:/data alpine chown -R 999:999 /data
    `/root/haalan/deploy` 下的文件；备份放在 `/root/haalan-backup`（同级）
    最安全。
 
+### 7.7 定时备份（已配好）
+
+`scripts/cron-backup.sh` 是 `backup-volumes.sh` 的定时包装，2026-09-02 已装进
+root 的 crontab：
+
+```bash
+$ crontab -l
+30 3 * * 0 cd /root/haalan/deploy && bash scripts/cron-backup.sh \
+    --out /root/haalan-backup --keep 14 >> /root/haalan-backup/cron.log 2>&1
+    # haalan-backup (deploy/scripts/cron-backup.sh)
+```
+
+即**每周日 03:30** 跑一次，保留 **14 天**。每次产出到
+`/root/haalan-backup/<YYYY-MM-DD>/`，并把 `latest` 软链指向最新一份。
+
+```bash
+bash scripts/cron-backup.sh              # 手工立刻跑一次
+bash scripts/cron-backup.sh --dry-run    # 只打印计划
+bash scripts/cron-backup.sh --keep 30    # 改成保留 30 天（下次安装时生效）
+bash scripts/cron-backup.sh --status     # 看 crontab + 备份目录 + 磁盘
+bash scripts/cron-backup.sh --install    # 安装/更新 crontab（幂等，不会重复加）
+bash scripts/cron-backup.sh --uninstall  # 移除
+```
+
+三个设计要点：
+
+- **轮转只匹配 `YYYY-MM-DD` 形式的目录名**，绝不碰 `latest` 软链或别的文件。
+- **脚本内部显式设置 `JAVA_HOME` / `PATH`** —— crond 不读 `/etc/profile`，
+  靠登录环境会找不到 java。
+- **轮转在备份成功之后才执行**；备份失败会保留现场并以非 0 退出，
+  `cron.log` 里能看到原因。
+
 ---
 
 ## 八、回滚
@@ -791,14 +955,24 @@ docker tag root-gateway:latest root-gateway:$(date +%Y%m%d-%H%M%S)
    `deploy/docker-compose.yml`（属于「修改容器」，要先确认）。
    **在那之前不要删 `/root/docker-compose.yml`。**
 2. ~~**`search-service` 归队**~~ —— ✅ 已于 2026-09-02 完成，见 1.3 节。
-3. **给服务器装 JDK/Maven 的 PATH 兜底** —— 目前 ssh 非登录 shell 读不到
-   `/etc/profile`，脚本里已经硬编码了路径，但手工敲命令时容易踩。
-4. **离线镜像包** —— 如果要部署到完全断网的机器，需要把
-   `mysql:8.0.33 / redis:7 / nacos:v2.1.0-slim / elasticsearch:7.12.1 /
-   kibana:7.12.1 / rabbitmq:3.8-management / seataio/seata-server:1.6.1 /
-   xuxueli/xxl-job-admin:2.4.1 / btgoose/jdk17 / node:22-alpine / nginx:1.25-alpine`
-   逐个 `docker save` 出来。（`backup-volumes.sh` 管的是**数据**，镜像要另做。）
-5. **清理 57 个 `<none>` 悬空镜像** —— `docker system df` 显示可回收 5.7 GB
-   （属于删除操作，需先确认）。
-6. **把备份做成定时任务** —— 现在 `backup-volumes.sh` 是手工跑的，
-   可以加进 crontab（例如每周日凌晨），顺带删掉 N 天前的旧备份。
+3. ~~**给服务器装 JDK/Maven 的 PATH 兜底**~~ —— ✅ 已于 2026-09-02 完成：
+   `/etc/profile.d/java.sh`（`JAVA_HOME` + 条件式追加 `PATH`）
+   + `/usr/local/bin/{java,javac,jar,jps,keytool,mvn,mvnDebug}` 软链，
+   非登录 shell 里 `which java` / `which mvn` 已能直接解析。见 6.4 节。
+4. ~~**离线镜像包**~~ —— ✅ 已于 2026-09-02 完成，见 5.4 节：
+   `bash scripts/pack-images.sh -o /root/haalan-images` 产出 12 个 `.tar.gz`
+   （共 2.3 GB，含 sentinel 镜像），配 `load-images.sh` + `MANIFEST.txt` + `SHA256SUMS`。
+5. **清理 `<none>` 悬空镜像** —— `docker system df` 显示可回收 5.7 GB
+   （属于删除操作，需先确认；`docker image prune` 只删无标签镜像，不影响在用镜像）。
+6. ~~**把备份做成定时任务**~~ —— ✅ 已于 2026-09-02 完成：
+   `scripts/cron-backup.sh --install` 已写入 root 的 crontab
+   （`30 3 * * 0`，每周日 03:30，保留 14 天，日志 `/root/haalan-backup/cron.log`），
+   已真跑一次验证。见 7.7 节。
+7. **给 `products` 之外的中文搜索调优** —— 目前只有 `spuName` / `brandName` /
+   `categoryName` / `description` 用了 IK；`search-service` 的
+   `ProductSearchServiceImpl` 仍是单个 `matchQuery("spuName")`，
+   可以考虑 multi_match + 字段权重。属于功能改进，不是部署问题。
+8. **把本机 `deploy.ps1` 的 SSH 凭据收好** —— 目前靠
+   `_sshhelper/askpass.cmd` 明文放密码，只适合本地临时用；
+   长期建议换成 SSH 公钥（服务器 `~/.ssh/authorized_keys` 加上本机
+   `id_ed25519.pub`），之后 `deploy.ps1` 可以去掉 ASKPASS 那几行。
