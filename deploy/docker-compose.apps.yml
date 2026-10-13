@@ -1,0 +1,131 @@
+# =============================================================================
+#  haalan 应用层编排（只含 6 个微服务 + 2 个前端，不含中间件）
+#  ---------------------------------------------------------------------------
+#  为什么要单独有这份文件：
+#     在现有这台虚拟机上，中间件（mysql8 / redis / nacos / es / kibana / mq /
+#     seata / xxl-job-admin）已经在跑，而且带着数据。用包含中间件的完整编排
+#     执行 `docker compose up -d` 会把它们**全部重建**（实测 dry-run 确认），
+#     这违反「不许关闭、修改任何容器」的约束。
+#
+#     所以日常迭代只用这份 apps 文件：它只声明 8 个应用服务，
+#     通过 external network 接入已经存在的 root_haalan 网络，
+#     `up -d` 只会动应用容器，中间件一个都不碰。
+#
+#  ── 用法（在 haalan/deploy/ 目录下）──────────────────────────────────────
+#      # 先在仓库根编译 jar
+#      cd .. && mvn -o clean package -DskipTests && cd deploy
+#
+#      # 只重建并替换某个服务
+#      docker compose -f docker-compose.apps.yml up -d --build gateway
+#      docker compose -f docker-compose.apps.yml up -d --build user-service
+#      docker compose -f docker-compose.apps.yml up -d --build frontend admin
+#
+#      # 全部 8 个应用
+#      docker compose -f docker-compose.apps.yml up -d --build
+#
+#      # 看状态
+#      docker compose -f docker-compose.apps.yml ps
+#
+#  ── 安全保证 ────────────────────────────────────────────────────────────
+#      · 网络用 external，compose 不会创建/删除网络
+#      · 不声明任何 volumes，不会碰数据卷
+#      · 不声明中间件服务，up/--build 都不会波及它们
+#      · 不加 --remove-orphans，就不会去清理别的容器
+#
+#  换机器时：把 .env 里的 HAALAN_NETWORK 改成目标机器上实际的网络名，
+#           中间件用 docker-compose.yml（完整版）另起一套。
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+#  微服务公共片段
+# ---------------------------------------------------------------------------
+x-backend-common: &backend-common
+  restart: always
+  networks: [haalan]
+  environment:
+    - NACOS_HOST=nacos
+    # 服务器 7.8 GB 内存、已跑 16 个容器、实测可用约 1 GB。
+    # 6 个 Spring Boot 必须封顶，否则并发重建时会触发 OOM Killer。
+    # 想用 JVM 默认堆，把 .env 里 JAVA_TOOL_OPTIONS 留空。
+    - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:--Xms256m -Xmx512m -XX:MaxMetaspaceSize=192m}
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+
+  gateway:
+    <<: *backend-common
+    build:
+      context: ..
+      dockerfile: haalan-gateway/Dockerfile
+    image: root-gateway:latest
+    container_name: gateway
+    ports: ["8080:8080"]
+
+  user-service:
+    <<: *backend-common
+    build:
+      context: ..
+      dockerfile: user-service/Dockerfile
+    image: root-user-service:latest
+    container_name: user-service
+
+  item-service:
+    <<: *backend-common
+    build:
+      context: ..
+      dockerfile: item-service/Dockerfile
+    image: root-item-service:latest
+    container_name: item-service
+
+  order-service:
+    <<: *backend-common
+    build:
+      context: ..
+      dockerfile: order-service/Dockerfile
+    image: root-order-service:latest
+    container_name: order-service
+
+  search-service:
+    <<: *backend-common
+    build:
+      context: ..
+      dockerfile: search-service/Dockerfile
+    image: root-search-service:latest
+    container_name: search-service
+
+  seckill-service:
+    <<: *backend-common
+    build:
+      context: ..
+      dockerfile: seckill-service/Dockerfile
+    image: root-seckill-service:latest
+    container_name: seckill-service
+
+  frontend:
+    build:
+      context: ../../haalan_
+      dockerfile: Dockerfile
+    image: root-frontend:latest
+    container_name: frontend
+    ports: ["80:80"]
+    restart: always
+    networks: [haalan]
+
+  admin:
+    build:
+      context: ../../haalan-admin
+      dockerfile: Dockerfile
+    image: root-admin:latest
+    container_name: haalan-admin
+    ports: ["81:81"]
+    restart: always
+    networks: [haalan]
+
+networks:
+  haalan:
+    external: true
+    name: ${HAALAN_NETWORK:-root_haalan}
