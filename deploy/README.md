@@ -216,6 +216,14 @@ cd D:\dswork\work1\haalan\deploy\scripts
 .\deploy.ps1 -Plan                # 只打印将要做什么，不动任何东西
 ```
 
+> **如果提示 `cannot be loaded ... is not digitally signed`**
+> 本机当前用户策略是 `RemoteSigned`。若所在目录被策略限制，加个参数即可：
+> ```powershell
+> powershell -NoProfile -ExecutionPolicy Bypass -File .\deploy.ps1 gateway
+> ```
+> 实测：本机 `D:\dswork\work1` 目录下未签名 `.ps1` 会被拦，`D:\dswork`
+> 及其它位置不会。加 `-ExecutionPolicy Bypass` 两种情况都能跑。
+
 ---
 
 ## 五、换机 / 从零部署
