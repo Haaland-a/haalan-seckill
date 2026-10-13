@@ -35,14 +35,16 @@ MySQL 有 7 个业务库。
 > `docker run` 起来的（原因见 6.6）。它加入 `root_haalan` 网络，所以能被
 > 应用容器按容器名 `sentinel-dashboard:8090` 访问。
 
-### 1.3 ⚠ 关键发现：服务器上存在两套 compose 编排
+### 1.3 历史上存在两套 compose 编排（2026-09-02 已统一）
+
+改造**之前**服务器上有两个 compose 项目：
 
 | compose 项目 | 配置文件 | 包含的服务 |
 |---|---|---|
 | `root` | `/root/docker-compose.yml` | **15 个**：8 个中间件 + 6 个微服务 + 2 个前端 |
 | `haalan` | `/root/haalan/docker-compose.yml` | 7 个：6 微服务 + frontend |
 
-实测各容器的归属：
+各容器的归属（改造前）：
 
 ```
 root 项目    → mysql8 redis nacos es kibana mq seata xxl-job-admin
@@ -51,21 +53,30 @@ root 项目    → mysql8 redis nacos es kibana mq seata xxl-job-admin
 haalan 项目  → search-service        ← 唯一一个从 /root/haalan 起起来的
 ```
 
-**`search-service` 是个特例**：它的镜像是 `haalan-search-service`（构建于
-2026-05-31），而不是像其他 5 个后端那样的 `root-*`（构建于 2026-07-30）。
+**`search-service` 当时是个特例**：镜像是 `haalan-search-service`（构建于
+2026-05-31），而不是像其他 5 个后端那样的 `root-*`（构建于 2026-07-30）；
 它还**同时接在两个网络上**（`haalan` 和 `root_haalan`）—— 这是历史上
 排查它连不上 Nacos 时手工 `docker network connect` 留下的痕迹。
 
-> ✅ **已于 2026-09-02 归队**：它现在是 `root` 项目的
+> ✅ **已于 2026-09-02 归队**：现在是 `root` 项目的
 > `root-search-service:latest`，单网络 `root_haalan`（172.19.0.13）。
 > 旧镜像 `haalan-search-service:latest` 和旧容器参数
 > （`/root/search-service-old-inspect.json`）都保留着，需要时可回退。
 
-> 影响：如果用 `/root/haalan/docker-compose.yml` 去 `up -d`，会创建一个
-> 只含 7 个服务的新项目上下文；而用 `/root/docker-compose.yml` 则会认为
-> `search-service` 是孤儿。归队后这个混乱已经消除 —— 现在 16 个服务
-> （8 中间件 + 8 应用）全在 `root` 项目下，日常只用
-> `deploy/docker-compose.apps.yml`。
+统一之后 `docker compose ls -a` 只剩一个项目：
+
+```
+NAME   STATUS         CONFIG FILES
+root   running(16)    /root/haalan/deploy/docker-compose.apps.yml,/root/docker-compose.yml
+```
+
+> 归队后各容器的 `com.docker.compose.project.config_files` 标签是这样的：
+> 8 个中间件 + `gateway`/`user-service`/`frontend`/`haalan-admin` 仍标着
+> `/root/docker-compose.yml`（它们是旧文件创建的），而
+> `item-service`/`order-service`/`search-service`/`seckill-service` 标着
+> `/root/haalan/deploy/docker-compose.apps.yml`。**两者都是 `project=root`**，
+> 所以互相认得，不是孤儿。**不要删 `/root/docker-compose.yml`** ——
+> 删了之后那 12 个容器下次操作时会被当成孤儿。
 
 ### 1.4 数据卷与网络（必须复用，不能重建）
 
@@ -333,6 +344,24 @@ curl: (7) Failed connect to github.com:443; Connection refused
 - 服务器上的 `/root/haalan` 等目录**不能** `git pull`，只能靠本机 scp
 - 你在工作区做的 git 提交，只能在**本机** push
 
+> **本机 push 也需要走代理**。本机直连 `github.com:443` 同样不通
+> （`git push` 报 `Failed to connect to github.com port 443 after 21084 ms`），
+> 但本机装了代理（`127.0.0.1:7890`，`ProxyEnable=1`）。`git` 不读 IE/WinHTTP
+> 代理设置，所以要么每次带参数：
+>
+> ```bash
+> git -c http.proxy=http://127.0.0.1:7890 -c https.proxy=http://127.0.0.1:7890 push origin master
+> ```
+>
+> 要么一次性写进仓库配置（只影响这个仓库）：
+>
+> ```bash
+> git config http.proxy http://127.0.0.1:7890
+> git config https.proxy http://127.0.0.1:7890
+> ```
+>
+> 代理关掉后记得 `git config --unset http.proxy` 去掉，否则会连不上。
+
 ### 6.5 Nacos 健康检查原本是假的（新编排已修好）
 
 原编排写的是：
@@ -400,9 +429,20 @@ Dockerfile 里已经写好这 10 个参数，不要删。
 正常的安全行为，不是故障。想看「控制台有没有连上客户端」，看容器内日志：
 
 ```bash
-docker exec order-service tail -20 /root/logs/csp/command-center.log.*
-# 出现 Socket income: GET /metric?... addr: /172.19.0.18  就是连上了
+for s in item-service order-service search-service seckill-service; do
+  n=$(docker exec $s sh -c 'cat /root/logs/csp/command-center.log.* 2>/dev/null | grep -c "Socket income"')
+  echo "$s: $n"
+done
 ```
+
+计数会随时间增长（控制台每约 10 秒拉一次）。2026-09-02 修复后的实测：
+`item-service 106 / order-service 105 / search-service 15 / seckill-service 107`。
+
+> 注意：`search-service` 一开始是**完全没配** sentinel 的（`bootstrap.yaml`
+> 里没有 `sentinel` 段），占位符落到 `localhost:8090` 所以连不上；`item-service`
+> 和 `seckill-service` 则是端口写了两遍（`192.168.100.133:8090` 拼成
+> `192.168.100.133:8090:8090`）。三个都已在源码里修好并重新部署，
+> 详见 `deploy-assets/sentinel/README.md`。
 
 ### 6.7 ES 的 IK 分词插件目录是空的
 
@@ -493,23 +533,35 @@ bash scripts/backup-volumes.sh -o /root/haalan-backup
 6. 记录 `docker-compose.yml` / `.env` / 镜像清单 / 容器清单
 7. 生成 `SHA256SUMS`
 
-实测产出：
+实测产出（2026-09-02 真实跑出来的字节数）：
 
 ```
 /root/haalan-backup/                        总计 25 MB
-├── MANIFEST.txt              卷名、属主、大小清单
-├── SHA256SUMS                完整性校验
-├── mysql/all-databases.sql.gz        3.3 M
-├── volumes/redis-data.tar.gz         4.0 K
-├── volumes/es-data.tar.gz            3.9 M
-├── volumes/es-plugins.tar.gz         0
-├── volumes/mq-data.tar.gz            349 M  ← 最大头
-├── volumes/mq-plugins.tar.gz         16 M
-├── volumes/nacos-data.tar.gz         457 M（压缩后 22 M）
-├── binds/seata.tar.gz                80 K
-├── rabbitmq/definitions.json
-└── compose/{docker-compose.yml,docker-compose.apps.yml,.env,images.txt,containers.txt,volumes.txt,networks.txt}
+├── MANIFEST.txt                       430   卷名、属主、大小清单
+├── SHA256SUMS                        1546   完整性校验（17 项）
+├── mysql/all-databases.sql.gz     3444941   3.3 M ← 全部业务数据
+├── volumes/redis-data.tar.gz         1503
+├── volumes/es-data.tar.gz         2107412   2.0 M
+├── volumes/es-plugins.tar.gz          107   （源目录是空的，所以只有 107 字节）
+├── volumes/mq-data.tar.gz         3608576   3.4 M
+├── volumes/mq-plugins.tar.gz     15733191   15 M
+├── volumes/nacos-data.tar.gz       475344   464 K
+├── binds/seata.tar.gz                7238   7.1 K
+├── rabbitmq/definitions.json         7688   7.5 K
+└── compose/                                 docker-compose.yml(11906)
+                                             docker-compose.apps.yml(4607)
+                                             .env(2666) images.txt(2347)
+                                             containers.txt(743)
+                                             volumes.txt(307) networks.txt(270)
 ```
+
+> 注意压缩率：源卷 `mq-data` 349 MB → tar.gz 只有 **3.4 MB**，
+> `nacos-data` 457 MB → **464 KB**（那 457 MB 几乎全是 `protocol/` 里的
+> raft 日志，全是零字节，压缩后可以忽略）。所以整个备份只有 25 MB，
+> 随便怎么传都行。
+>
+> 反过来说：**`tar` 卷目录 ≠ 可用的逻辑备份**。MySQL 之所以不走 tar，
+> 见 7.1 的说明。
 
 > `mq-data` 里是 RabbitMQ 的 mnesia 库。它的节点名是 **`rabbit@mq`**，由
 > compose 的 `container_name: mq` 决定。只要新机器上容器名还叫 `mq`，mnesia
@@ -605,7 +657,14 @@ docker exec redis redis-cli -a 123456 --no-auth-warning DBSIZE    # 应为 25
 curl -s 'http://localhost:8848/nacos/v1/ns/service/list?pageNo=1&pageSize=100'
 docker exec mysql8 mysql -uroot -p123456 -e 'SHOW DATABASES'      # 7 个业务库
 curl -s 'http://localhost:9200/_cat/indices?v' | grep products
+for s in item-service order-service search-service seckill-service; do
+  echo "$s: $(docker exec $s sh -c 'cat /root/logs/csp/command-center.log.* 2>/dev/null | grep -c "Socket income"')"
+done                                                  # Sentinel 四个都应有计数
 ```
+
+> 注意 `docker compose ps` 在没有 `-f` 时只列**当前目录对应编排**的服务。
+> 新机器上如果只放了 `deploy/docker-compose.yml`（完整版），在 `deploy/`
+> 目录下执行就能看到全部 17 个。
 
 ### 7.5 只迁一个中间件的部分数据
 
@@ -686,9 +745,10 @@ docker tag root-gateway:latest root-gateway:$(date +%Y%m%d-%H%M%S)
 
 ## 九、下一步可以做的
 
-1. **消除双编排混乱** —— 把 `/root/docker-compose.yml` 的 16 个服务统一到
-   `/root/haalan/deploy/docker-compose.yml`（需要一次停起全部容器的窗口，
-   属于「修改容器」，要先确认）。
+1. **彻底统一编排** —— `/root/docker-compose.yml` 仍在给 12 个容器提供
+   compose 标签。想彻底归一，需要一次「停起全部容器」的窗口把中间件也纳入
+   `deploy/docker-compose.yml`（属于「修改容器」，要先确认）。
+   **在那之前不要删 `/root/docker-compose.yml`。**
 2. ~~**`search-service` 归队**~~ —— ✅ 已于 2026-09-02 完成，见 1.3 节。
 3. **给服务器装 JDK/Maven 的 PATH 兜底** —— 目前 ssh 非登录 shell 读不到
    `/etc/profile`，脚本里已经硬编码了路径，但手工敲命令时容易踩。
