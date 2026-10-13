@@ -8,3 +8,9 @@ haalan:
     password: 123456
   es:
     host: es
+  sentinel:
+    transport:
+      # 只填「控制台主机」，端口由 bootstrap.yaml 的 `:8090` 补上。
+      # search-service 依赖 haalan-api，所以也有 sentinel 客户端；
+      # 此前没配这个值，默认落到 localhost:8090（容器内没有控制台）而连不上。
+      host: sentinel-dashboard

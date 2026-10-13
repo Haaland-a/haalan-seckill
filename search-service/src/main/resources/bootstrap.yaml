@@ -7,6 +7,13 @@ spring:
     circuitbreaker:
       enabled: true
   cloud:
+    sentinel:
+      eager: true
+      filter:
+        enabled: true
+      transport:
+        # 只填主机名，端口由这里的 `:8090` 补上；host 的值见 application-dev.yaml
+        dashboard: ${haalan.sentinel.transport.host:localhost}:8090
     nacos:
       server-addr: ${NACOS_HOST:nacos}:8848
       config:

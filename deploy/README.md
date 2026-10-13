@@ -56,9 +56,16 @@ haalan 项目  → search-service        ← 唯一一个从 /root/haalan 起起
 它还**同时接在两个网络上**（`haalan` 和 `root_haalan`）—— 这是历史上
 排查它连不上 Nacos 时手工 `docker network connect` 留下的痕迹。
 
+> ✅ **已于 2026-09-02 归队**：它现在是 `root` 项目的
+> `root-search-service:latest`，单网络 `root_haalan`（172.19.0.13）。
+> 旧镜像 `haalan-search-service:latest` 和旧容器参数
+> （`/root/search-service-old-inspect.json`）都保留着，需要时可回退。
+
 > 影响：如果用 `/root/haalan/docker-compose.yml` 去 `up -d`，会创建一个
 > 只含 7 个服务的新项目上下文；而用 `/root/docker-compose.yml` 则会认为
-> `search-service` 是孤儿。这正是本次要消除的混乱。
+> `search-service` 是孤儿。归队后这个混乱已经消除 —— 现在 16 个服务
+> （8 中间件 + 8 应用）全在 `root` 项目下，日常只用
+> `deploy/docker-compose.apps.yml`。
 
 ### 1.4 数据卷与网络（必须复用，不能重建）
 
@@ -679,19 +686,17 @@ docker tag root-gateway:latest root-gateway:$(date +%Y%m%d-%H%M%S)
 
 ## 九、下一步可以做的
 
-1. **消除双编排混乱** —— 把 `/root/docker-compose.yml` 的 15 个服务统一到
+1. **消除双编排混乱** —— 把 `/root/docker-compose.yml` 的 16 个服务统一到
    `/root/haalan/deploy/docker-compose.yml`（需要一次停起全部容器的窗口，
    属于「修改容器」，要先确认）。
-2. **`search-service` 归队** —— 它现在是 `haalan-search-service` 镜像 + 双网络，
-   下次重建时会变成 `root-search-service` + 单网络，届时那个多余的 `haalan`
-   网络连接会消失。
+2. ~~**`search-service` 归队**~~ —— ✅ 已于 2026-09-02 完成，见 1.3 节。
 3. **给服务器装 JDK/Maven 的 PATH 兜底** —— 目前 ssh 非登录 shell 读不到
    `/etc/profile`，脚本里已经硬编码了路径，但手工敲命令时容易踩。
 4. **离线镜像包** —— 如果要部署到完全断网的机器，需要把
    `mysql:8.0.33 / redis:7 / nacos:v2.1.0-slim / elasticsearch:7.12.1 /
    kibana:7.12.1 / rabbitmq:3.8-management / seataio/seata-server:1.6.1 /
    xuxueli/xxl-job-admin:2.4.1 / btgoose/jdk17 / node:22-alpine / nginx:1.25-alpine`
-   逐个 `docker save` 出来。
+   逐个 `docker save` 出来。（`backup-volumes.sh` 管的是**数据**，镜像要另做。）
 5. **清理 57 个 `<none>` 悬空镜像** —— `docker system df` 显示可回收 5.7 GB
    （属于删除操作，需先确认）。
 6. **把备份做成定时任务** —— 现在 `backup-volumes.sh` 是手工跑的，

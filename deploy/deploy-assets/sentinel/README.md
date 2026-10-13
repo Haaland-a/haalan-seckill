@@ -134,6 +134,8 @@ spring:
 注意末尾的 `:8090`。所以 `haalan.sentinel.transport.host` **只能填主机名/IP，
 不能带端口**。
 
+### bug 1：端口写了两遍（item / seckill）
+
 **修复前**的 `item-service` / `seckill-service` 的 `application-dev.yaml` 写的是
 `host: 192.168.100.133:8090`，拼出来的地址是 `192.168.100.133:8090:8090`。
 Sentinel 的 `TransportConfig` 只接受恰好一个冒号的地址，多出来的直接丢弃，
@@ -144,7 +146,16 @@ WARNING Parse port of dashboard server failed: 192.168.100.133:8090:8090
 WARNING [SimpleHttpHeartbeatSender] Dashboard server address not configured or not available
 ```
 
-**修复后**三个服务统一写成容器名：
+### bug 2：search-service 完全没配（默认落到 localhost）
+
+`search-service` 也依赖 `haalan-api`，所以 classpath 里有 sentinel 客户端，
+但它的 `bootstrap.yaml` 里**根本没有 `sentinel` 段**，`application-dev.yaml`
+里也没有 `haalan.sentinel.transport.host`。于是占位符取默认值
+`localhost`，解析成 `localhost:8090` —— 容器里当然没有控制台，连不上。
+
+### 修复后的统一写法
+
+4 个服务的 `application-dev.yaml` 都写成容器名：
 
 ```yaml
 haalan:
@@ -153,8 +164,33 @@ haalan:
       host: sentinel-dashboard      # 不要带端口
 ```
 
+`bootstrap.yaml` 里的 `sentinel` 段（4 个服务都要有）：
+
+```yaml
+spring:
+  cloud:
+    sentinel:
+      eager: true
+      filter:
+        enabled: true
+      transport:
+        dashboard: ${haalan.sentinel.transport.host:localhost}:8090
+```
+
 用容器名的好处：换服务器 IP 不用改配置；且 `sentinel-dashboard` 容器就接在
 `root_haalan` 网络上，各服务按容器名直连 8090 即可。
 
 > 端口 8719 是**客户端**的命令端口（`command-center.log` 里会打印
 > `Begin listening at port 8719`），由控制台主动来连，不需要在编排里映射。
+
+### 验证是否连上
+
+```bash
+for s in item-service order-service search-service seckill-service; do
+  n=$(docker exec $s sh -c 'cat /root/logs/csp/command-center.log.* 2>/dev/null | grep -c "Socket income"')
+  echo "$s: $n"
+done
+```
+
+计数会随时间增长（控制台每约 10 秒拉一次）。实测修复后：
+`item-service 106 / order-service 105 / search-service 15 / seckill-service 107`。
