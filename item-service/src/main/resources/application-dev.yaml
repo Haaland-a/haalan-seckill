@@ -14,4 +14,9 @@ haalan:
     nacoshost: nacos
   sentinel:
     transport:
-      host: 192.168.100.133:8090
+      # 这里只填「控制台主机」，端口由 bootstrap.yaml 的 `:8090` 补上。
+      # 原来写成 192.168.100.133:8090，拼出 dashboard=192.168.100.133:8090:8090，
+      # Sentinel 的 TransportConfig 只接受「恰好一个冒号」的地址，会直接丢弃，
+      # 日志里出现 WARNING Parse port of dashboard server failed。
+      # 改成容器名后与宿主机 IP 解耦，换机器不用改。
+      host: sentinel-dashboard

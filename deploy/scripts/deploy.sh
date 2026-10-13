@@ -23,7 +23,10 @@
 # =============================================================================
 set -euo pipefail
 
-DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# 脚本放在 deploy/scripts/ 下，所以要退两层才是仓库根。
+# 之前这里少退了一层，导致 REPO_ROOT 算成 deploy/，mvn 找不到 pom.xml。
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DEPLOY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$DEPLOY_DIR/.." && pwd)"
 COMPOSE_FILE="$DEPLOY_DIR/docker-compose.apps.yml"
 

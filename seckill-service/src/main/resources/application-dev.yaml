@@ -14,7 +14,9 @@ haalan:
     nacoshost: nacos
   sentinel:
     transport:
-      host: 192.168.100.133:8090
+      # 同 item-service：只填主机名，端口由 bootstrap.yaml 补 :8090。
+      # 原值 192.168.100.133:8090 会拼成 192.168.100.133:8090:8090 而被丢弃。
+      host: sentinel-dashboard
   xxl:
     admin:
       addresses: http://xxl-job-admin:8080/xxl-job-admin
