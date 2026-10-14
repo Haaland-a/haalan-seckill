@@ -179,6 +179,7 @@ git 状态：
 ```
 haalan/deploy/
 ├── README.md                    ← 本文件（方案 + 操作手册）
+├── skill/SKILL.md               ← 部署运维 skill（可给 AI 助手直接加载，内容与本文同源）
 ├── .env                         ← 项目名、IP、口令、JVM 参数
 ├── .env.example                 ← 同上，提交进 git 的模板
 ├── docker-compose.yml           ← 完整编排（中间件 + 应用），用于换机从零部署
