@@ -207,6 +207,38 @@ haalan/deploy/
 
 ## 四、日常部署（最常用）
 
+### 4.0 快捷命令 `hs` / `hd`（本机已装好，敲两个字母）
+
+不用再敲 `ssh root@192.168.100.133`。本机已配置**密钥免密登录**并装了两个包装脚本：
+
+| 命令 | 作用 | 例子 |
+|---|---|---|
+| `hs` | SSH 上服务器 | `hs` 进交互式；`hs docker ps` 直接跑一条命令 |
+| `hd` | 在服务器上编译 + 重建应用容器 | `hd gateway`；`hd` 全量；`hd -Status` 只看状态 |
+
+```powershell
+hs                                  # 交互式登录
+hs docker ps                        # 跑一条命令就回来
+hs "docker logs --tail 50 gateway"  # 带空格的命令加引号
+
+hd                                  # 全量：编译 + 重建 8 个应用
+hd gateway                          # 只重建 gateway
+hd gateway admin                    # 重建指定的几个
+hd -NoBuild gateway                 # 跳过 mvn，用现有 jar 重建镜像
+hd -List                            # 列出可用服务名
+hd -Status                          # 只看容器状态，不部署
+```
+
+**装在哪、怎么来的**（换电脑时照做一遍）：
+
+- 密钥：本机 `C:\Users\Haaland\.ssh\id_ed25519.pub` 已追加到服务器 `/root/.ssh/authorized_keys`
+- 别名：`C:\Users\Haaland\.ssh\config` 里定义了 `Host haalan` 和 `Host 133`，所以 `ssh haalan` 也能直接连
+- 脚本：`C:\Users\Haaland\.local\bin\hs.ps1`、`hd.ps1`（另有同名 `.cmd` 供 cmd.exe 用）
+  `C:\Users\Haaland\.local\bin` 已在本机 PATH 里，所以**新开终端**就能直接用
+
+> `hd` 底层就是 `cd /root/haalan/deploy && bash scripts/deploy.sh …`，等价于 4.1–4.3 的手工步骤。
+> 它**只操作 8 个应用容器**，绝不碰中间件。
+
 ### 4.1 只改了一个后端服务（推荐姿势）
 
 ```bash
