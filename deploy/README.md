@@ -807,30 +807,75 @@ hs "md5sum /root/haalan/user-service/src/main/java/com/haalan/user/aop/LoginLogA
 
 两边一致才说明同步成功。实测 `hd` 同步后 8 个模块 **353/353 个文件 MD5 完全一致**。
 
-### 6.10 服务器系统时钟慢了 41 天（`timedatectl` 显示 NTP 已启用但没生效）
+### 6.10 服务器系统时钟曾慢 41 天（✅ 已于 2026-10-14 修好并做了持久化）
 
-实测（2026-10-14）：
+**问题**（2026-10-14 发现）：
 
 ```
-本机:   2026-10-14 09:29:25
-服务器: 2026-09-03 06:16:55 CST     ← 系统时间慢约 41 天
-RTC:    2026-10-14 01:29:26          ← 硬件时钟是对的
+本机:   2026-10-14 10:01:40
+服务器: 2026-09-03 06:51:51 CST     ← 系统时间慢约 41 天（3553803 秒）
+RTC:    2026-10-14 10:01:41          ← 硬件时钟是对的
 ```
 
-症状：往服务器传源码时 `tar` 会刷一屏警告
-`时间戳 2026-10-14 00:50:36 是未来的 3522839 秒之后`。
-**这不影响解包结果**（实测 353 个文件全部 MD5 一致），但会让 `ls -l` 的时间看起来很奇怪。
+`timedatectl` 显示 `NTP enabled: yes` 但 `NTP synchronized: no`，
+`chronyc sources` 里 4 个源都是好的（`^*` / `^+`），`chronyc tracking` 却写着
+`System time: 3553803.5 seconds slow of NTP time` —— **chronyd 在跑，就是追不上**。
 
-要修的话（属于改系统配置，需要你确认）：
+**根因**在 `/etc/chrony.conf` 第 13 行：
+
+```
+makestep 1.0 3
+```
+
+`3` 的含义是「只在 chronyd 启动后的**前 3 次**校时里允许时间跳变，之后只能缓慢 slew」。
+这台 VM 应该是被挂起过（或从快照恢复），系统时钟冻结在 9 月 3 日。
+chronyd 启动于 9月02，那 3 次机会早用完了，此后只能以微秒级速度追赶 —— 41 天永远追不上。
+
+症状：往服务器传源码时 `tar` 刷一屏警告
+`时间戳 2026-10-14 00:50:36 是未来的 3522839 秒之后`（**不影响解包结果**，实测 353 个文件 MD5 全一致）。
+
+**已做的修复**（两步）：
 
 ```bash
-hs "systemctl restart chronyd && sleep 5 && date"
-# 或直接校准一次：
-hs "chronyc makestep && date"
+# 1. 立刻跳变到正确时间
+chronyc makestep
+#    2026-09-03 06:53:56  →  2026-10-14 10:03:53
+
+# 2. 持久化：把 "makestep 1.0 3" 改成 "makestep 1.0 -1"
+sed -i 's|^makestep 1.0 3$|makestep 1.0 -1|' /etc/chrony.conf
+systemctl restart chronyd
 ```
 
-> 未修复的原因：这会动服务器的系统时间，可能影响正在运行的容器与定时任务，
-> 属于「修改环境」范畴，按约定需你同意后再做。
+`-1` 表示「任何时候偏移 >1 秒就直接跳变」，这样下次 VM 再被挂起也能自愈。
+`/etc/chrony.conf` 原文件已备份到 `/root/clock-fix-20261014/chrony.conf.bak`。
+
+修复后：
+
+```
+NTP enabled: yes
+NTP synchronized: yes          ← 从 no 变成 yes
+System time: 0.000679368 seconds fast of NTP time
+```
+
+**跳变的副作用（实测，已确认无影响）**：
+
+| 项目 | 结果 |
+|---|---|
+| 17 个容器 | ✅ 全部存活，`Up 5 weeks`（只是显示变了） |
+| Redis | ⚠️ 25 个 key 里 **23 个过期消失** —— 它们 TTL 只剩 ~16.6 天，前跳 41 天必然过期 |
+| 消失的 key | 全是 `seckill:*` 缓存（stock/product/limit/activity），对应**活动 1**，其 `end_time` 是 **2026-09-23 已结束**，本来也该过期 |
+| 存活的 key | `seckill:buy:15`、`seckill:buy:20`（无 TTL 的限购记录） |
+| 各服务 ERROR | 时钟跳变后（10:03 起）**0 条** |
+| 冒烟 | 前端 200 / 管理端 200 / Sentinel 200 / Nacos 200 / 网关 401 / ES 200 |
+| Nacos 注册 | 6 个服务全部 `healthy: true` |
+| ES 数据 | `products` 仍是 8 条 |
+| MySQL | 7 个业务库齐全 |
+| xxl-job | 跳变瞬间记了一条 `schedule misfire, jobId = 2`（`misfire_strategy: DO_NOTHING`，不补跑），之后按新时间正常每 10 分钟调度 |
+
+> ⚠️ 如果将来再遇到「时钟大幅偏移」，**跳变前先给 Redis 落盘**（`BGSAVE`），
+> 并记下 key 清单 —— 带 TTL 的 key 会不可逆地过期。快照脚本见本节改动前的做法：
+> `/root/clock-fix-20261014/`（含 `before-date.txt`、`redis-keys-with-ttl.txt`、
+> `before-activities.txt`、`before-containers.txt`、`chrony.conf.bak`）。
 
 ---
 
@@ -1155,4 +1200,4 @@ docker tag root-gateway:latest root-gateway:$(date +%Y%m%d-%H%M%S)
    ~~长期建议换成 SSH 公钥~~ ✅ **已于 2026-10-14 完成**：本机 `id_ed25519.pub`
    已加入服务器 `/root/.ssh/authorized_keys`，`hs` / `hd` / `ssh haalan` 均为免密。
    遗留：`deploy.ps1` 里仍留着 ASKPASS 那几行（不影响使用，可后续清理）。
-9. **修服务器系统时钟** —— 慢约 41 天（见 6.10）。属改系统配置，需你确认后再动。
+9. ~~修服务器系统时钟~~ ✅ **已于 2026-10-14 修好并持久化**，见 6.10 节。
