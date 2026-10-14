@@ -3,10 +3,10 @@ package com.haalan.item.service.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.haalan.api.domain.dto.BatchDeductStockDTO;
+import com.haalan.api.domain.dto.ProductStringDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
 import com.haalan.api.domain.vo.BatchDeductStockResultVO;
 import com.haalan.api.domain.vo.SkuDetailVO;
-import com.haalan.item.domain.dto.ProductStringDTO;
 import com.haalan.item.domain.po.TBrand;
 import com.haalan.item.domain.po.TCategory;
 import com.haalan.item.domain.po.TSku;
@@ -178,6 +178,8 @@ public class TProductServiceImpl implements TProductService {
 				.productName(sku.getName())
 				.stock(sku.getStock())
 				.originalPrice(sku.getPrice())
+				.alipayProductCode(sku.getAlipayProductCode())
+				.wechatProductCode(sku.getWechatProductCode())
 				.build();
 	}
 

@@ -53,6 +53,14 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> implements ITPaymentService {
+
+	/**
+	 * 支付宝 PC 网页支付(alipay.trade.page.pay)的固定销售产品码。
+	 * 注意：只要 biz_content 里带了 product_code，值就必须是这个，
+	 * 传空串会被收银台判为「订单信息无法识别」。
+	 */
+	private static final String DEFAULT_ALIPAY_PRODUCT_CODE = "FAST_INSTANT_TRADE_PAY";
+
 	private final ITSeckillOrder0Service seckillOrderService;
 	private final TSeckillOrder0Mapper seckillOrder0Mapper;
 	private final TSeckillOrder1Mapper seckillOrder1Mapper;
@@ -200,7 +208,12 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			//从数据库获取
 			TSeckillOrder allByNo = seckillOrderService.getAllByNo(orderNo, userId);
 			String alipayProductCode = allByNo.getAlipayProductCode();
-			model.setProductCode(alipayProductCode != null ? alipayProductCode : "FAST_INSTANT_TRADE_PAY"); // 销售产品码
+			// 销售产品码：支付宝 page.pay 必须传 FAST_INSTANT_TRADE_PAY，
+			// 空串/空白串同样会导致收银台报「订单信息无法识别」，所以这里一并兜底
+			if (alipayProductCode == null || alipayProductCode.isBlank()) {
+				alipayProductCode = DEFAULT_ALIPAY_PRODUCT_CODE;
+			}
+			model.setProductCode(alipayProductCode);
 			model.setQrPayMode("1"); // PC扫码支付模式
 			Integer timeOut = mqProperties.getTimeOut();
 			// 超时时间

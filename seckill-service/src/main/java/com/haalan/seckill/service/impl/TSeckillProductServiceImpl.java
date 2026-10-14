@@ -153,9 +153,11 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 		}
 		tSeckillProduct.setSkuCode(value.getSkuCode());
 		tSeckillProduct.setProductName(value.getProductName());
+		//商品的初始价值不是必要的
 		tSeckillProduct.setOriginalPrice(
 				value.getOriginalPrice() != null ? value.getOriginalPrice() : dto.getSeckillPrice()
 		);
+		//
 		tSeckillProduct.setAlipayProductCode(value.getAlipayProductCode());
 		tSeckillProduct.setWechatProductCode(value.getWechatProductCode());
 

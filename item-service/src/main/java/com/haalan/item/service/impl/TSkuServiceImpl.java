@@ -50,6 +50,13 @@ public class TSkuServiceImpl extends ServiceImpl<TSkuMapper, TSku> implements IT
 	private final ITBrandService brandService;
 	private final RestHighLevelClient restHighLevelClient;
 
+	/**
+	 * 空串/空白串都算未填写，避免把 "" 写进 alipay_product_code 导致收银台「订单信息无法识别」
+	 */
+	private static boolean isBlank(String value) {
+		return value == null || value.isBlank();
+	}
+
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public SkuCreateResultVO createSku(SkuCreateDTO dto) {
@@ -69,8 +76,8 @@ public class TSkuServiceImpl extends ServiceImpl<TSkuMapper, TSku> implements IT
 		sku.setSkuCode(dto.getSkuCode());
 		sku.setSpuId(dto.getSpuId());
 		sku.setName(dto.getName());
-		sku.setAlipayProductCode(dto.getAlipayProductCode() != null ? dto.getAlipayProductCode() : "FAST_INSTANT_TRADE_PAY");
-		sku.setWechatProductCode(dto.getWechatProductCode() != null ? dto.getWechatProductCode() : "FAST_INSTANT_TRADE_PAY");
+		sku.setAlipayProductCode(isBlank(dto.getAlipayProductCode()) ? "FAST_INSTANT_TRADE_PAY" : dto.getAlipayProductCode());
+		sku.setWechatProductCode(isBlank(dto.getWechatProductCode()) ? "FAST_INSTANT_TRADE_PAY" : dto.getWechatProductCode());
 		if (dto.getSpecifications() != null) {
 			sku.setSpecifications(JSONUtil.toJsonStr(dto.getSpecifications()));
 		}

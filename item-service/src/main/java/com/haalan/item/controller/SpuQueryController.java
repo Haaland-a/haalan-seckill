@@ -1,11 +1,11 @@
 package com.haalan.item.controller;
 
 import com.haalan.api.domain.dto.BatchDeductStockDTO;
+import com.haalan.api.domain.dto.ProductStringDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
 import com.haalan.api.domain.vo.BatchDeductStockResultVO;
 import com.haalan.api.domain.vo.SkuDetailVO;
 import com.haalan.common.domain.R;
-import com.haalan.item.domain.dto.ProductStringDTO;
 import com.haalan.item.domain.vo.ProductDetailVO;
 import com.haalan.item.domain.vo.StockVO;
 import com.haalan.item.service.TProductService;
@@ -57,7 +57,7 @@ public class SpuQueryController {
 	}
 
 	@GetMapping("/inner/deductStock")
-	@ApiOperation("修改库存")
+	@ApiOperation("扣减库存")
 	public Boolean deductStock(@RequestParam Long skuId, @RequestParam Integer stock) {
 		return productService.deductStock(skuId, stock);
 	}

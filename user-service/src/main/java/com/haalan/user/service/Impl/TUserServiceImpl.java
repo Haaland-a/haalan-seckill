@@ -277,8 +277,6 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 		//同步Redis
 		String redisKey = "user:token:version:" + userId;
 		stringRedisTemplate.opsForValue().set(redisKey, newVersion.toString(), 2, TimeUnit.HOURS);
-
-
 	}
 
 }

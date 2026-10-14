@@ -1,10 +1,10 @@
 package com.haalan.item.service;
 
 import com.haalan.api.domain.dto.BatchDeductStockDTO;
+import com.haalan.api.domain.dto.ProductStringDTO;
 import com.haalan.api.domain.dto.SeckillProductSkuDTO;
 import com.haalan.api.domain.vo.BatchDeductStockResultVO;
 import com.haalan.api.domain.vo.SkuDetailVO;
-import com.haalan.item.domain.dto.ProductStringDTO;
 import com.haalan.item.domain.vo.ProductDetailVO;
 import com.haalan.item.domain.vo.StockVO;
 

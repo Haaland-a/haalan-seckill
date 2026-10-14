@@ -42,7 +42,7 @@ public class LoginLogAspect {
 	 * @param joinPoint 连接点
 	 * @param result    返回结果
 	 */
-	@AfterReturning(pointcut = "loginPointcut()", returning = "result")
+	@AfterReturning(pointcut = "loginPointcut()", returning = "result")  //如果返回正确的结果格式,这登陆成功
 	public void doAfterReturning(JoinPoint joinPoint, Object result) {
 		try {
 			UserLoginLog loginLog = buildLoginLog(joinPoint, result, true, null);
@@ -58,7 +58,7 @@ public class LoginLogAspect {
 	 * @param joinPoint 连接点
 	 * @param exception 异常信息
 	 */
-	@AfterThrowing(pointcut = "loginPointcut()", throwing = "exception")
+	@AfterThrowing(pointcut = "loginPointcut()", throwing = "exception")  //如果是错误的,就是抛出的异常
 	public void doAfterThrowing(JoinPoint joinPoint, Throwable exception) {
 		try {
 			UserLoginLog loginLog = buildLoginLog(joinPoint, null, false, exception.getMessage());
