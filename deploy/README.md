@@ -185,7 +185,8 @@ haalan/deploy/
 ├── docker-compose.apps.yml      ← 应用层编排（只含 8 个应用），用于日常迭代 ★
 ├── scripts/
 │   ├── deploy.sh                ← 服务器侧：编译 + 构建 + 替换（推荐日常用）
-│   ├── deploy.ps1               ← 本机侧：编译 + 同步 + 触发远程部署
+│   ├── sync-source.ps1          ← 本机侧：把源码打成 170 KB 包同步到服务器 ★
+│   ├── deploy.ps1               ← 本机侧：本机编译 + 上传 jar（约 700 MB）
 │   ├── deploy-sentinel.sh       ← 构建并启动 Sentinel 控制台
 │   ├── backup-volumes.sh        ← 换机前：把全部数据打包成一个目录 ★
 │   ├── restore-volumes.sh       ← 换机后：在新机器上还原 ★
@@ -202,6 +203,14 @@ haalan/deploy/
     ├── sentinel/                ← Sentinel 控制台：jar + Dockerfile + 说明
     └── docker-compose.reference.yml  ← 原 docker-compose.yml，留作对照
 ```
+
+本机另有两个快捷命令（不在这个目录里，见 4.0 节）：
+
+| 位置 | 内容 |
+|---|---|
+| `C:\Users\Haaland\.local\bin\hs.ps1` / `hs.cmd` | `hs` —— SSH 上服务器 |
+| `C:\Users\Haaland\.local\bin\hd.ps1` / `hd.cmd` | `hd` —— 同步源码 + 编译 + 重建应用 |
+| `C:\Users\Haaland\.ssh\config` | `Host haalan` / `Host 133` 别名 |
 
 ---
 
@@ -221,13 +230,35 @@ hs                                  # 交互式登录
 hs docker ps                        # 跑一条命令就回来
 hs "docker logs --tail 50 gateway"  # 带空格的命令加引号
 
-hd                                  # 全量：编译 + 重建 8 个应用
-hd gateway                          # 只重建 gateway
+hd                                  # 同步源码 + 全量重建 8 个应用
+hd gateway                          # 同步源码 + 只重建 gateway
 hd gateway admin                    # 重建指定的几个
+hd -NoSync gateway                  # 跳过源码同步，用服务器现有源码重建
 hd -NoBuild gateway                 # 跳过 mvn，用现有 jar 重建镜像
+hd -SyncOnly                        # 只同步源码，不编译不部署
+hd -Plan gateway                    # 只打印将要做什么，不动任何东西
 hd -List                            # 列出可用服务名
 hd -Status                          # 只看容器状态，不部署
 ```
+
+**⚠️ 为什么 `hd` 默认会先同步源码（这是最容易踩的坑）**
+
+`deploy.sh` 是在**服务器上**跑 `mvn`，编译的是 `/root/haalan` 里的源码。
+
+所以如果你在本机改完代码、直接跑 `hd gateway`，而源码没同步过去 —— 服务器编译的还是旧代码，**部署了等于没部署**，容器重建了但行为没变，很容易误判成"改动没生效"。
+
+`hd` 因此把「同步源码」作为默认第一步：
+
+```
+本机源码打包（约 170 KB）
+   → scp 上传 /tmp/haalan-src.tar.gz
+   → 服务器上 tar -xzf --overwrite 解包到 /root/haalan
+   → cd /root/haalan/deploy && bash scripts/deploy.sh <服务名>
+```
+
+实测：本机 8 个模块源码 353 个文件、打包 173.7 KB、上传+解包后与服务器 **353/353 文件 MD5 完全一致**。
+
+打包只收 `pom.xml` 与各模块的 `src/`、`pom.xml`，**不含** `target/`、`.git/`、`.idea/`、`logs/`；解包用 `--overwrite` 只覆盖同名文件，**不删除**服务器上任何东西。
 
 **装在哪、怎么来的**（换电脑时照做一遍）：
 
@@ -235,9 +266,19 @@ hd -Status                          # 只看容器状态，不部署
 - 别名：`C:\Users\Haaland\.ssh\config` 里定义了 `Host haalan` 和 `Host 133`，所以 `ssh haalan` 也能直接连
 - 脚本：`C:\Users\Haaland\.local\bin\hs.ps1`、`hd.ps1`（另有同名 `.cmd` 供 cmd.exe 用）
   `C:\Users\Haaland\.local\bin` 已在本机 PATH 里，所以**新开终端**就能直接用
+- 同步脚本：`D:\dswork\work1\haalan\deploy\scripts\sync-source.ps1`（`hd` 内部调用它，也可单独用）
 
-> `hd` 底层就是 `cd /root/haalan/deploy && bash scripts/deploy.sh …`，等价于 4.1–4.3 的手工步骤。
-> 它**只操作 8 个应用容器**，绝不碰中间件。
+> `hd` **只操作 8 个应用容器**，绝不碰中间件。
+
+### 4.0.1 三条路的对比（选一条就行）
+
+| 方式 | 命令 | 编译在哪 | 传输量 | 耗时 | 适用 |
+|---|---|---|---|---|---|
+| **服务器编译**（推荐） | `hd gateway` | 服务器 | 源码 ~170 KB | 编译 ≈26 秒 | 日常改后端 |
+| 本机编译 | `.\deploy.ps1 gateway` | 本机 | jar ~700 MB | 本机 mvn ≈2 分钟 | 本机想先跑测试 |
+| 纯手工 | `hs` 进去敲 `deploy.sh` | 服务器 | 0（需自己先同步源码） | ≈26 秒 | 调试脚本时 |
+
+> 手工方式务必记得先把源码弄上去，否则同样会踩「编译旧代码」的坑。
 
 ### 4.1 只改了一个后端服务（推荐姿势）
 
@@ -269,7 +310,7 @@ bash scripts/deploy.sh gateway user-service order-service
 bash scripts/deploy.sh frontend admin
 ```
 
-### 4.4 从本机一键推
+### 4.4 从本机一键推（本机编译 + 上传 jar）
 
 ```powershell
 cd D:\dswork\work1\haalan\deploy\scripts
@@ -279,6 +320,10 @@ cd D:\dswork\work1\haalan\deploy\scripts
 .\deploy.ps1 -Plan                # 只打印将要做什么，不动任何东西
 ```
 
+> ⚠️ 这个脚本**只上传 jar，不上传源码**。所以它编译的是**本机**的代码（本机 mvn），
+> 结果是对的；但如果你之后改用服务器编译（`hd` / `deploy.sh`），服务器上的源码
+> 可能还是旧的 —— 那种情况下先跑 `.\sync-source.ps1` 或直接用 `hd`。
+
 > **如果提示 `cannot be loaded ... is not digitally signed`**
 > 本机当前用户策略是 `RemoteSigned`。若所在目录被策略限制，加个参数即可：
 > ```powershell
@@ -286,6 +331,17 @@ cd D:\dswork\work1\haalan\deploy\scripts
 > ```
 > 实测：本机 `D:\dswork\work1` 目录下未签名 `.ps1` 会被拦，`D:\dswork`
 > 及其它位置不会。加 `-ExecutionPolicy Bypass` 两种情况都能跑。
+
+### 4.5 只同步源码，不部署
+
+改了代码但想稍后再部署，或想先确认源码已同步：
+
+```powershell
+cd D:\dswork\work1\haalan\deploy\scripts
+.\sync-source.ps1 -SyncOnly       # 只打包 + 上传 + 解包，不编译不部署
+.\sync-source.ps1 -Plan           # 只打印将要做什么
+.\sync-source.ps1 -NoSync gateway # 跳过同步，只用服务器现有源码重建
+```
 
 ---
 
@@ -686,6 +742,67 @@ Apache HttpClient 会退化成 **http 默认端口 80**，而 ES 监听 9200。
 **换机器时务必清空这一行**，否则会去连一台机器上不存在的资源。
 详见**第七节「换服务器：数据卷怎么一并迁移」**。
 
+### 6.9 ⛔ 别在本机改完代码就直接跑 `deploy.sh`（源码不同步的坑）
+
+`deploy.sh` 在服务器上跑 `mvn`，编译的是 `/root/haalan` 里的源码。
+**本机的改动不会自动出现在服务器上。**
+
+最容易踩的场景：
+
+```powershell
+# 本机改完 LoginLogAspect.java，然后：
+hd -NoSync user-service        # ← 或者手工 ssh 进去跑 deploy.sh
+# 结果：容器重建了，但跑的还是旧代码 —— 改动看起来"没生效"
+```
+
+实测证据（2026-10-14）：本机与服务器各 313 个 `.java` 文件，其中
+`user-service/src/main/java/com/haalan/user/aop/LoginLogAspect.java` 与
+`.../service/Impl/TUserServiceImpl.java` 两个文件内容不同 —— 本机有未提交的改动，
+服务器还是旧版。
+
+**正确做法**：用 `hd`（默认先同步源码），或先单独跑 `.\sync-source.ps1`：
+
+```powershell
+hd user-service                          # 推荐：自动同步源码 + 部署
+.\sync-source.ps1 -SyncOnly              # 或只同步，稍后再部署
+```
+
+判断源码是否同步的办法 —— 比对 MD5：
+
+```powershell
+# 本机
+Get-FileHash D:\dswork\work1\haalan\user-service\src\main\java\com\haalan\user\aop\LoginLogAspect.java -Algorithm MD5
+# 服务器
+hs "md5sum /root/haalan/user-service/src/main/java/com/haalan/user/aop/LoginLogAspect.java"
+```
+
+两边一致才说明同步成功。实测 `hd` 同步后 8 个模块 **353/353 个文件 MD5 完全一致**。
+
+### 6.10 服务器系统时钟慢了 41 天（`timedatectl` 显示 NTP 已启用但没生效）
+
+实测（2026-10-14）：
+
+```
+本机:   2026-10-14 09:29:25
+服务器: 2026-09-03 06:16:55 CST     ← 系统时间慢约 41 天
+RTC:    2026-10-14 01:29:26          ← 硬件时钟是对的
+```
+
+症状：往服务器传源码时 `tar` 会刷一屏警告
+`时间戳 2026-10-14 00:50:36 是未来的 3522839 秒之后`。
+**这不影响解包结果**（实测 353 个文件全部 MD5 一致），但会让 `ls -l` 的时间看起来很奇怪。
+
+要修的话（属于改系统配置，需要你确认）：
+
+```bash
+hs "systemctl restart chronyd && sleep 5 && date"
+# 或直接校准一次：
+hs "chronyc makestep && date"
+```
+
+> 未修复的原因：这会动服务器的系统时间，可能影响正在运行的容器与定时任务，
+> 属于「修改环境」范畴，按约定需你同意后再做。
+
 ---
 
 ## 七、换服务器：数据卷怎么一并迁移
@@ -1006,5 +1123,7 @@ docker tag root-gateway:latest root-gateway:$(date +%Y%m%d-%H%M%S)
    可以考虑 multi_match + 字段权重。属于功能改进，不是部署问题。
 8. **把本机 `deploy.ps1` 的 SSH 凭据收好** —— 目前靠
    `_sshhelper/askpass.cmd` 明文放密码，只适合本地临时用；
-   长期建议换成 SSH 公钥（服务器 `~/.ssh/authorized_keys` 加上本机
-   `id_ed25519.pub`），之后 `deploy.ps1` 可以去掉 ASKPASS 那几行。
+   ~~长期建议换成 SSH 公钥~~ ✅ **已于 2026-10-14 完成**：本机 `id_ed25519.pub`
+   已加入服务器 `/root/.ssh/authorized_keys`，`hs` / `hd` / `ssh haalan` 均为免密。
+   遗留：`deploy.ps1` 里仍留着 ASKPASS 那几行（不影响使用，可后续清理）。
+9. **修服务器系统时钟** —— 慢约 41 天（见 6.10）。属改系统配置，需你确认后再动。
