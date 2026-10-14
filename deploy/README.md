@@ -282,19 +282,48 @@ hd -Status                          # 只看容器状态，不部署
 
 ### 4.1 只改了一个后端服务（推荐姿势）
 
-```bash
-# SSH 上服务器
-ssh root@192.168.100.133
+假设你在本机改了 `user-service` 的代码：
 
-cd /root/haalan
-mvn -o clean package -DskipTests          # ≈ 26 秒
-
-cd deploy
-bash scripts/deploy.sh --no-build gateway # 只重建 gateway
+```powershell
+hd user-service
 ```
 
-`deploy.sh` 会自动：设置 JAVA_HOME/PATH → 记录中间件状态 → 构建 → 替换 →
-等待注册 → 冒烟检查 → 再次核对中间件状态未变。
+就这一条。它内部依次做四件事：
+
+```
+1/4 打包本机源码（8 个模块的 src + pom.xml，约 170 KB）
+2/4 scp 上传到 /tmp/haalan-src.tar.gz
+3/4 服务器 tar -xzf --overwrite 解包到 /root/haalan（只覆盖，不删）
+4/4 cd /root/haalan/deploy && bash scripts/deploy.sh user-service
+      └─ 服务器 mvn -o clean package -DskipTests   （≈26 秒）
+      └─ docker compose build user-service
+      └─ docker compose up -d user-service          （只重建这一个容器）
+      └─ 等 Nacos 注册 + 冒烟检查 + 核对中间件未受影响
+```
+
+耗时约 1 分钟。**中间件一个都不会动**（deploy.sh 用的是 `docker-compose.apps.yml`，
+里面只有 8 个应用）。
+
+不想直接部署、想先看看它会做什么：
+
+```powershell
+hd -Plan user-service      # 只打印计划，不动任何东西
+hd -SyncOnly               # 只同步源码，稍后再部署
+hd -Status                 # 只看容器状态
+```
+
+**纯手工方式**（不用 `hd`，调试脚本时用）：
+
+```bash
+hs                                    # SSH 上服务器（= ssh haalan）
+cd /root/haalan
+mvn -o clean package -DskipTests      # ≈ 26 秒
+cd deploy
+bash scripts/deploy.sh --no-build user-service
+```
+
+> ⚠️ 手工方式**务必先同步源码**（`.\sync-source.ps1 -SyncOnly`），
+> 否则服务器编译的还是旧代码 —— 见 6.9 节。
 
 ### 4.2 改了前端
 
