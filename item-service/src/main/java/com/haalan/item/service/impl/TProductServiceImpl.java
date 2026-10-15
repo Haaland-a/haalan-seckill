@@ -199,11 +199,19 @@ public class TProductServiceImpl implements TProductService {
 			throw new RuntimeException("库存不足: " + skuId);
 		}
 
-		return skuService.lambdaUpdate()
+		boolean updated = skuService.lambdaUpdate()
 				.eq(TSku::getId, skuId)
 				.ge(TSku::getStock, stock)
 				.setSql("stock = stock - " + stock)
 				.update();
+
+		if (updated) {
+			// 库存在下单/取消/退款时都会变动，缓存不清会让搜索页和详情页长期显示旧库存。
+			// 顺序必须是「先更新 DB 再删缓存」：反过来并发读可能拿到旧值回填缓存，造成长期脏数据。
+			itemCacheEmptyUtil.invalidateProductRelatedCache(sku.getSpuId(),
+					Collections.singletonList(skuId));
+		}
+		return updated;
 	}
 
 	@Override
@@ -371,9 +379,23 @@ public class TProductServiceImpl implements TProductService {
 		if (stock == null || stock <= 0) {
 			throw new RuntimeException("恢复库存数量必须大于0");
 		}
-		return skuService.lambdaUpdate()
+
+		TSku sku = skuService.getById(skuId);
+		if (sku == null) {
+			throw new RuntimeException("SKU不存在: " + skuId);
+		}
+
+		boolean updated = skuService.lambdaUpdate()
 				.eq(TSku::getId, skuId)
 				.setSql("stock = stock + " + stock)
 				.update();
+
+		if (updated) {
+			// 取消订单/退款/管理员补货都会走这里，同样必须失效库存与详情缓存，
+			// 否则用户端会一直看到「已售罄」或与实际不符的库存数。
+			itemCacheEmptyUtil.invalidateProductRelatedCache(sku.getSpuId(),
+					Collections.singletonList(skuId));
+		}
+		return updated;
 	}
 }

@@ -46,10 +46,16 @@ x-backend-common: &backend-common
   networks: [haalan]
   environment:
     - NACOS_HOST=nacos
-    # 服务器只有 7.8 GB 内存、已经在跑 16 个容器（实测可用内存约 1 GB）。
-    # 不封顶的话，6 个 Spring Boot 一起重启很容易把内存打满触发 OOM。
-    # 想恢复 JVM 默认堆大小，把 .env 里的 JAVA_TOOL_OPTIONS 留空即可。
-    - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:--Xms256m -Xmx512m -XX:MaxMetaspaceSize=192m}
+    # 与 docker-compose.apps.yml 保持一致：JVM 参数按服务分级，写在各服务自己的
+    # environment 里（YAML 的 << 不深合并 environment，服务一旦自己声明就会整体
+    # 覆盖，所以每个服务都必须重复写 NACOS_HOST）。
+    #
+    # 服务器 7.8 GB / 18 个容器 / 实测 available 仅 336 MB。老配置
+    # （统一 -Xms256m -Xmx512m -XX:MaxMetaspaceSize=192m）的真正问题不只在堆：
+    # 64 位 JVM 默认 ReservedCodeCacheSize=240m、MaxDirectMemorySize≈Xmx，
+    # 6 个服务自己就预留约 5 GB。现在每个服务都封顶了堆外三块，并带
+    # -XX:+ExitOnOutOfMemoryError，让 OOM 时退出交给 restart 而不是反复 Full GC。
+    # 详见 docker-compose.apps.yml 顶部注释。
   logging:
     driver: json-file
     options:
@@ -220,6 +226,9 @@ services:
   # =========================================================================
   gateway:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=64m -XX:MaxDirectMemorySize=192m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: haalan-gateway/Dockerfile
@@ -231,6 +240,9 @@ services:
 
   user-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms160m -Xmx320m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=96m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: user-service/Dockerfile
@@ -243,6 +255,9 @@ services:
 
   item-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=160m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: item-service/Dockerfile
@@ -256,6 +271,9 @@ services:
 
   order-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: order-service/Dockerfile
@@ -268,6 +286,9 @@ services:
 
   search-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms160m -Xmx320m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: search-service/Dockerfile
@@ -280,6 +301,9 @@ services:
 
   seckill-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=96m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: seckill-service/Dockerfile

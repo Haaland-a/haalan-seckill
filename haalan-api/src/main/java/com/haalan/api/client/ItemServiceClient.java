@@ -66,4 +66,14 @@ public interface ItemServiceClient {
 	@GetMapping("/api/product/inner/addStock")
 	Boolean addStock(@RequestParam("skuId") @NotNull(message = "商品SKU ID不能为空") Long skuId,
 					 @RequestParam("stock") @NotNull(message = "库存数量不能为空") Integer stock);
+
+	/**
+	 * 累加 SKU 销量（支付成功后调用）
+	 *
+	 * @param skuId SKU ID
+	 * @param num   增加数量
+	 * @return 累加后的销量
+	 */
+	@GetMapping("/api/product/inner/incrSoldCount")
+	Integer incrSoldCount(@RequestParam("skuId") Long skuId, @RequestParam("num") Integer num);
 }

@@ -15,6 +15,7 @@ import com.haalan.common.domain.PageResult;
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderMessage;
 import com.haalan.common.exception.BizIllegalException;
+import com.haalan.common.utils.ImageUtils;
 import com.haalan.common.utils.UserContext;
 import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.po.TOrderItem;
@@ -34,6 +35,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -71,7 +73,19 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 	}
 
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public void saveMsg(SeckillOrderMessage message) {
+		// 幂等：MQ 可能重投（ACK 超时、消费者重启）。
+		// 原来没有这道判断，同一条消息消费两次就会插两条同 order_no 的订单，
+		// 订单列表出现重复行、明细也翻倍。
+		Long existed = this.lambdaQuery()
+				.eq(TSeckillOrder::getOrderNo, message.getPreOrderNo())
+				.count();
+		if (existed != null && existed > 0) {
+			log.info("秒杀订单已存在，跳过重复消费: orderNo={}", message.getPreOrderNo());
+			return;
+		}
+
 		// 1. 获取SKU详细信息
 		SkuDetailVO skuDetail = itemServiceClient.getSkuDetail(message.getSkuId());
 		log.info("获取SKU详细信息: {}", skuDetail);
@@ -105,7 +119,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 		orderItem.setSkuId(message.getSkuId());
 		orderItem.setSkuCode(skuDetail.getSkuCode());
 		orderItem.setProductName(skuDetail.getSkuName());
-		orderItem.setProductImage(skuDetail.getImages());
+		orderItem.setProductImage(ImageUtils.extractFirstImage(skuDetail.getImages()));
 		orderItem.setPrice(message.getSeckillPrice());
 		orderItem.setQuantity(message.getQuantity());
 		orderItem.setTotalPrice(message.getTotalAmount());

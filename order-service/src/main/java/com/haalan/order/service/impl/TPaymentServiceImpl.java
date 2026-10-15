@@ -13,6 +13,7 @@ import com.alipay.api.response.AlipayTradePagePayResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.haalan.api.client.ItemServiceClient;
 import com.haalan.common.domain.mq.SeckillOrderPaySuccessMessage;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.order.config.AlipayProperties;
@@ -85,6 +86,9 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 
 	@Resource
 	private RabbitTemplate rabbitTemplate;
+
+	@Resource
+	private ItemServiceClient itemServiceClient;
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
@@ -185,7 +189,7 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			}
 			return new PayableOrder(normalOrder.getOrderNo(), normalOrder.getUserId(),
 					normalOrder.getTotalAmount(), normalOrder.getStatus(),
-					normalOrder.getPayTime(), NormalOrderType.NORMAL, productName, null, null);
+					normalOrder.getPayTime(), NormalOrderType.NORMAL, productName, null, null, null);
 		}
 
 		TSeckillOrder seckillOrder = selectOrder(userId, orderNo);
@@ -195,7 +199,8 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 		return new PayableOrder(seckillOrder.getOrderNo(), seckillOrder.getUserId(),
 				seckillOrder.getTotalAmount(), seckillOrder.getStatus(),
 				seckillOrder.getPayTime(), NormalOrderType.SECKILL,
-				seckillOrder.getProductName(), seckillOrder.getSeckillProductId(), seckillOrder.getQuantity());
+				seckillOrder.getProductName(), seckillOrder.getSeckillProductId(),
+				seckillOrder.getQuantity(), seckillOrder.getSkuId());
 	}
 
 	/**
@@ -223,6 +228,8 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 		private Long seckillProductId;
 		/** 购买数量（仅秒杀订单） */
 		private Integer quantity;
+		/** SKU ID（仅秒杀订单，用于支付成功后累加销量） */
+		private Long skuId;
 	}
 
 	private TSeckillOrder selectOrder(Long userId, String orderNo) {
@@ -386,6 +393,29 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 
 			// 2. 查询订单（普通订单优先，秒杀表兜底）
 			PayableOrder payableOrder = selectPayableOrder(userId, outTradeNo);
+
+			// 2.5 校验回调金额
+			//     回调里的 totalAmount 原来只打了条日志就扔了，全程没和订单金额比对过。
+			//     后果：任何人构造一个 POST /api/payment/callback/alipay?outTradeNo=<别人的订单号>
+			//     &tradeNo=x&totalAmount=0.01 就能把别人的订单刷成「已支付」——白嫖。
+			//     金额必须和订单应付金额完全一致（支付宝回调传的是元，BigDecimal.compareTo 无视标度）。
+			//     顺带在这里挡掉「订单还没支付却被回调」的情况：selectPayableOrder 对 status!=0 会抛。
+			if (totalAmount == null || totalAmount.isBlank()) {
+				log.error("支付宝回调未携带金额，拒绝处理: orderNo={}", outTradeNo);
+				return "fail";
+			}
+			BigDecimal callbackAmount;
+			try {
+				callbackAmount = new BigDecimal(totalAmount);
+			} catch (NumberFormatException e) {
+				log.error("支付宝回调金额不是合法数字: orderNo={}, totalAmount={}", outTradeNo, totalAmount);
+				return "fail";
+			}
+			if (callbackAmount.compareTo(payableOrder.getTotalAmount()) != 0) {
+				log.error("支付宝回调金额与订单金额不符，拒绝处理: orderNo={}, 回调={}, 订单={}",
+						outTradeNo, callbackAmount, payableOrder.getTotalAmount());
+				return "fail";
+			}
 
 			// 3. 更新订单状态为已支付（乐观锁：仅待支付订单才更新）
 			boolean orderUpdated = markOrderPaid(payableOrder, tradeNo);
@@ -560,11 +590,45 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 		if (orderUpdated) {
 			log.info("订单状态更新为已支付, orderNo={}", payment.getOrderNo());
 
-			// 3. 推送WebSocket消息通知客户端
+			// 3. 累加SKU销量
+			// 放在 markOrderPaid 成功之后：它用乐观锁（where status=0）保证同一订单只成功一次，
+			// 所以这里天然幂等，重复回调不会把销量加两遍。
+			incrSoldCountAfterPaid(payableOrder);
+
+			// 4. 推送WebSocket消息通知客户端
 			messagePushService.pushPaymentSuccess(payableOrder.getUserId(), payment.getOrderNo());
 
-			// 4. 发送MQ消息通知秒杀服务更新秒杀记录状态（仅秒杀订单）
+			// 5. 发送MQ消息通知秒杀服务更新秒杀记录状态（仅秒杀订单）
 			sendPaySuccessMessage(payableOrder, payableOrder.getUserId());
+		}
+	}
+
+	/**
+	 * 支付成功后累加商品销量。
+	 * <p>
+	 * 之前全项目没有任何地方累加 {@code t_sku.sold_count}，导致商品详情销量、搜索列表销量、
+	 * 销量排序永远是 0。
+	 * </p>
+	 */
+	private void incrSoldCountAfterPaid(PayableOrder order) {
+		try {
+			if (order.getOrderType() == NormalOrderType.SECKILL) {
+				if (order.getSkuId() == null || order.getQuantity() == null || order.getQuantity() <= 0) {
+					return;
+				}
+				itemServiceClient.incrSoldCount(order.getSkuId(), order.getQuantity());
+			} else {
+				List<TOrderItem> items = orderItemService.getByOrderNo(order.getOrderNo());
+				for (TOrderItem item : items) {
+					if (item.getSkuId() == null || item.getQuantity() == null || item.getQuantity() <= 0) {
+						continue;
+					}
+					itemServiceClient.incrSoldCount(item.getSkuId(), item.getQuantity());
+				}
+			}
+		} catch (Exception e) {
+			// 销量只是展示用的统计值，不影响资金与库存，不能因为它失败就把已支付的订单回滚
+			log.error("累加商品销量失败, orderNo={}", order.getOrderNo(), e);
 		}
 	}
 

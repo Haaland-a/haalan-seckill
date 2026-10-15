@@ -150,6 +150,101 @@ public class ItemCacheEmptyUtil {
 	}
 
 	/**
+	 * 批量删除缓存
+	 *
+	 * @param keys 缓存键列表
+	 */
+	public void deleteCacheBatch(java.util.Collection<String> keys) {
+		if (keys == null || keys.isEmpty()) {
+			return;
+		}
+		stringRedisTemplate.delete(keys);
+		log.debug("已批量删除缓存, count={}", keys.size());
+	}
+
+	/**
+	 * 商品详情缓存 key 前缀。
+	 * <p>
+	 * 必须与 {@code TProductServiceImpl#getProductDetail} 里读缓存用的 key 字面量一致，
+	 * 所以在这里统一定义生成方法：写操作（改状态/改库存/改价）失效缓存时调用它，
+	 * 避免 Service 层各写一遍字符串，一旦前缀写歪就「删了假缓存」，用户端继续读旧数据。
+	 */
+	private static final String PRODUCT_DETAIL_KEY_PREFIX = "product:detail:";
+
+	/**
+	 * SKU 详情缓存 key 前缀
+	 */
+	private static final String SKU_DETAIL_KEY_PREFIX = "sku:detail:";
+
+	/**
+	 * SPU 详情缓存 key
+	 */
+	public static String productDetailKey(Long spuId) {
+		return PRODUCT_DETAIL_KEY_PREFIX + spuId;
+	}
+
+	/**
+	 * SKU 详情缓存 key
+	 */
+	public static String skuDetailKey(Long skuId) {
+		return SKU_DETAIL_KEY_PREFIX + skuId;
+	}
+
+	/**
+	 * SKU 库存缓存 key 前缀。
+	 * <p>
+	 * 与 search-service 的 {@code ProductSearchServiceImpl#fetchStockAndSales} 读取的前缀必须一致，
+	 * 之前搜索页库存/销量恒为 0 就是因为两边前缀对不上（那边读 "stock:"/"sales:"，这边写 "sku-stock:"/"sku-sales:"）。
+	 */
+	private static final String SKU_STOCK_KEY_PREFIX = "sku-stock:";
+
+	/**
+	 * SKU 销量缓存 key 前缀
+	 */
+	private static final String SKU_SALES_KEY_PREFIX = "sku-sales:";
+
+	/**
+	 * SKU 库存缓存 key
+	 */
+	public static String skuStockKey(Long skuId) {
+		return SKU_STOCK_KEY_PREFIX + skuId;
+	}
+
+	/**
+	 * SKU 销量缓存 key
+	 */
+	public static String skuSalesKey(Long skuId) {
+		return SKU_SALES_KEY_PREFIX + skuId;
+	}
+
+	/**
+	 * 一次性失效某个 SPU 及其全部 SKU 的所有缓存（详情 / SKU 详情 / 库存 / 销量）。
+	 * <p>
+	 * 商品侧所有会改数据的写操作（改状态、改库存、改价、上架下架、删除）都应该调用这里，
+	 * 而不是各自只清一部分。之前「管理端下架了、用户端还能看能买」就是漏清导致的。
+	 *
+	 * @param spuId  SPU ID，可为 null（只清 SKU 维度时传 null）
+	 * @param skuIds 需要失效的 SKU ID 集合，可为 null 或空
+	 */
+	public void invalidateProductRelatedCache(Long spuId, java.util.Collection<Long> skuIds) {
+		java.util.List<String> keys = new java.util.ArrayList<>();
+		if (spuId != null) {
+			keys.add(productDetailKey(spuId));
+		}
+		if (skuIds != null) {
+			for (Long skuId : skuIds) {
+				if (skuId == null) {
+					continue;
+				}
+				keys.add(skuDetailKey(skuId));
+				keys.add(skuStockKey(skuId));
+				keys.add(skuSalesKey(skuId));
+			}
+		}
+		deleteCacheBatch(keys);
+	}
+
+	/**
 	 * 数据库查询函数接口
 	 *
 	 * @param <T> 返回类型

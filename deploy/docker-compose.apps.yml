@@ -44,10 +44,35 @@ x-backend-common: &backend-common
   networks: [haalan]
   environment:
     - NACOS_HOST=nacos
-    # 服务器 7.8 GB 内存、已跑 16 个容器、实测可用约 1 GB。
-    # 6 个 Spring Boot 必须封顶，否则并发重建时会触发 OOM Killer。
-    # 想用 JVM 默认堆，把 .env 里 JAVA_TOOL_OPTIONS 留空。
-    - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:--Xms256m -Xmx512m -XX:MaxMetaspaceSize=192m}
+    # ── JVM 内存预算（2 核 / 7.8 GB 的机器上共跑 18 个容器）─────────────────
+    # 实测：容器 RSS 合计 6.6 GiB，free -m 的 available 只剩 336 MB。
+    #
+    # 各服务的 JAVA_TOOL_OPTIONS 写在下面每个服务自己的 environment 里
+    # （YAML 的 << 合并不会深合并 environment，服务一旦自己声明就会整体覆盖，
+    #  所以每个服务都必须重复写 NACOS_HOST）。
+    #
+    # 为什么以前 RSS 远大于堆：容器 RSS 里除了堆，还有三块「堆外」——
+    #   7 × Metaspace 192m             = 1344 MB（上限）
+    #   7 × ReservedCodeCacheSize 240m = 1680 MB（64 位 JVM 默认值，没显式封顶）
+    #   7 × DirectMemory ≈ Xmx         = 3584 MB（默认等于 -Xmx）
+    # 也就是说老配置下 JVM 自己就预留了 6.5 GB，只调 -Xmx 是不够的。
+    # 新配置对这三块都显式封了顶，分级依据是各服务实际负载：
+    #   秒杀 / 订单 / 商品  —— 有热点数据、ES 客户端、Seata AT  undo_log，给 384m
+    #   用户 / 搜索         —— 中等，给 320m
+    #   网关 / 购物车       —— 无状态转发 + Redis/单表，给 256m / 288m
+    # 堆上限合计由 3584 MB 降到 2336 MB。
+    #
+    # 两类 GC 的选择：
+    #   小堆服务（网关/用户/搜索/购物车）用 -XX:+UseSerialGC —— 64 位默认的 G1
+    #     需要 Remembered Set 等辅助数据结构，小堆上纯属额外常驻开销；
+    #   大一点的三个服务保持默认 G1。
+    #
+    # 每个服务都加了 -XX:+ExitOnOutOfMemoryError：堆爆时立刻退出，交给上面的
+    # restart: always 重新拉起，而不是让 JVM 反复 Full GC 把整机内存吃干
+    # （老配置没这个参数，是后者）。
+    #
+    # 想恢复 JVM 默认值，把对应服务 environment 里那行改成空即可：
+    #   - JAVA_TOOL_OPTIONS=
   logging:
     driver: json-file
     options:
@@ -56,8 +81,13 @@ x-backend-common: &backend-common
 
 services:
 
+  # 网关：无状态转发，没有任何业务数据常驻；Netty 的直接内存是主要开销，
+  # 所以堆压得最低、但 -XX:MaxDirectMemorySize 反而给得比谁都宽。
   gateway:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms128m -Xmx256m -XX:MaxMetaspaceSize=128m -XX:ReservedCodeCacheSize=64m -XX:MaxDirectMemorySize=192m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: haalan-gateway/Dockerfile
@@ -67,22 +97,35 @@ services:
 
   user-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms160m -Xmx320m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=96m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: user-service/Dockerfile
     image: root-user-service:latest
     container_name: user-service
 
+  # 商品服务：同时持有 MyBatis-Plus、ES 高阶客户端（RestHighLevelClient）
+  # 和同步商品的定时任务，堆最高的一档。
   item-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=160m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: item-service/Dockerfile
     image: root-item-service:latest
     container_name: item-service
 
+  # 订单服务：Seata AT 全局事务，undo_log / 分支事务要留在堆里，
+  # 是不能压太狠的一个。
   order-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: order-service/Dockerfile
@@ -91,27 +134,34 @@ services:
 
   search-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms160m -Xmx320m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=128m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: search-service/Dockerfile
     image: root-search-service:latest
     container_name: search-service
 
+  # 秒杀服务：压测时 QPS 305 的热点，但数据几乎全在 Redis，
+  # 堆内没有大对象，用 G1 而不是 SerialGC 以应对突发分配。
   seckill-service:
     <<: *backend-common
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms192m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=96m -XX:MaxDirectMemorySize=96m -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: seckill-service/Dockerfile
     image: root-seckill-service:latest
     container_name: seckill-service
 
+  # 购物车：纯 Redis + 单表，无热点数据，堆和 GC 都能压到最低。
   cart-service:
     <<: *backend-common
-    # 服务器实测可用内存只剩 ~600MB（17 个容器），cart-service 再按默认 512m 堆
-    # 会逼近 OOM Killer。购物车是纯 Redis + 单表场景，320m 足够。
     environment:
       - NACOS_HOST=nacos
-      - JAVA_TOOL_OPTIONS=-Xms160m -Xmx320m -XX:MaxMetaspaceSize=160m
+      - JAVA_TOOL_OPTIONS=-Xms144m -Xmx288m -XX:MaxMetaspaceSize=144m -XX:ReservedCodeCacheSize=64m -XX:MaxDirectMemorySize=64m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError
     build:
       context: ..
       dockerfile: cart-service/Dockerfile

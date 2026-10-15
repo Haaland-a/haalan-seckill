@@ -14,6 +14,7 @@ import com.haalan.api.domain.vo.UserAddressVO;
 import com.haalan.common.domain.PageResult;
 import com.haalan.common.exception.BizIllegalException;
 import com.haalan.common.utils.EncryptUtils;
+import com.haalan.common.utils.ImageUtils;
 import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.dto.CreateOrderRequestDTO;
 import com.haalan.order.domain.dto.OrderItemDTO;
@@ -331,15 +332,31 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
         }
 
         // 4. 恢复库存
+        //
+        // 这里原来把 addStock 的失败和异常都 catch 掉只打日志，结果是：
+        // 订单已经是「已取消」且事务提交，用户再也没法触发第二次恢复，
+        // 而 SKU 的库存永远少了这一单 —— 账实不符，且没有任何补偿机制能发现。
+        //
+        // 改成往上抛：本方法是本地事务，抛异常会让第 3 步的 status=4 回滚回 status=0，
+        // 订单回到「待支付」，用户可以重新取消，库存也还在。
+        // item-service 的 fallback 对写操作本来就是抛异常，正好能落到这里。
         List<TOrderItem> orderItems = orderItemService.getByOrderNo(orderNo);
         for (TOrderItem item : orderItems) {
             try {
                 Boolean success = itemServiceClient.addStock(item.getSkuId(), item.getQuantity());
-                if (!success) {
-                    log.error("恢复库存失败, skuId={}, quantity={}", item.getSkuId(), item.getQuantity());
+                if (Boolean.FALSE.equals(success)) {
+                    log.error("恢复库存失败, skuId={}, quantity={}, orderNo={}",
+                            item.getSkuId(), item.getQuantity(), orderNo);
+                    throw new RuntimeException("恢复库存失败: skuId=" + item.getSkuId());
                 }
+            } catch (RuntimeException e) {
+                // 上面自己抛的也要进来统一处理，但不要把 BizIllegalException 之类改写掉
+                log.error("恢复库存异常, skuId={}, orderNo={}, 订单状态将回滚为待支付",
+                        item.getSkuId(), orderNo, e);
+                throw e;
             } catch (Exception e) {
-                log.error("调用恢复库存接口异常, skuId={}", item.getSkuId(), e);
+                log.error("调用恢复库存接口异常, skuId={}, orderNo={}", item.getSkuId(), orderNo, e);
+                throw new RuntimeException("恢复库存失败: skuId=" + item.getSkuId(), e);
             }
         }
 
@@ -427,27 +444,7 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
      *   2) 逗号分隔：https://a.jpg,https://b.jpg
      */
     private String extractFirstImage(String images) {
-        if (StrUtil.isBlank(images)) {
-            return null;
-        }
-        String trimmed = images.trim();
-        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-            try {
-                List<String> list = JSONUtil.toList(trimmed, String.class);
-                return list.isEmpty() ? null : list.get(0);
-            } catch (Exception e) {
-                // JSON 解析失败就退回按逗号切分
-                log.warn("商品图片 JSON 解析失败，按逗号分隔处理, images={}", images);
-            }
-        }
-        String[] arr = trimmed.split(",");
-        for (String s : arr) {
-            String url = s.trim().replace("[", "").replace("]", "").replace("\"", "");
-            if (StrUtil.isNotBlank(url)) {
-                return url;
-            }
-        }
-        return null;
+        return ImageUtils.extractFirstImage(images);
     }
 
     /**

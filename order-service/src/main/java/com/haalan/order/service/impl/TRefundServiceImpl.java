@@ -11,6 +11,7 @@ import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.haalan.api.client.ItemServiceClient;
 import com.haalan.common.domain.PageResult;
 import com.haalan.common.domain.mq.OrderTimeoutMessage;
 import com.haalan.common.domain.mq.SeckillOrderRefundSuccessMessage;
@@ -20,6 +21,7 @@ import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.dto.RefundAuditRequestDTO;
 import com.haalan.order.domain.dto.RefundRequestDTO;
 import com.haalan.order.domain.po.TOrder;
+import com.haalan.order.domain.po.TOrderItem;
 import com.haalan.order.domain.po.TPayment;
 import com.haalan.order.domain.po.TRefund;
 import com.haalan.order.domain.po.TSeckillOrder;
@@ -28,6 +30,7 @@ import com.haalan.order.domain.vo.RefundResponseVO;
 import com.haalan.order.mapper.TRefundMapper;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.mapper.TSeckillOrder1Mapper;
+import com.haalan.order.service.ITOrderItemService;
 import com.haalan.order.service.ITOrderService;
 import com.haalan.order.service.ITPaymentService;
 import com.haalan.order.service.ITRefundService;
@@ -67,6 +70,8 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 	private final ITPaymentService paymentService;
 	private final RabbitTemplate rabbitTemplate;
 	private final StringRedisTemplate stringRedisTemplate;
+	private final ITOrderItemService orderItemService;
+	private final ItemServiceClient itemServiceClient;
 	@Resource
 	private AlipayProperties alipayProperties;
 
@@ -147,7 +152,7 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 			}
 			return new TPaymentServiceImpl.PayableOrder(normalOrder.getOrderNo(), normalOrder.getUserId(),
 					normalOrder.getTotalAmount(), normalOrder.getStatus(),
-					normalOrder.getPayTime(), TPaymentServiceImpl.NormalOrderType.NORMAL, null, null, null);
+					normalOrder.getPayTime(), TPaymentServiceImpl.NormalOrderType.NORMAL, null, null, null, null);
 		}
 
 		TSeckillOrder seckillOrder = selectOrder(userId, orderNo);
@@ -157,7 +162,8 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 		return new TPaymentServiceImpl.PayableOrder(seckillOrder.getOrderNo(), seckillOrder.getUserId(),
 				seckillOrder.getTotalAmount(), seckillOrder.getStatus(),
 				seckillOrder.getPayTime(), TPaymentServiceImpl.NormalOrderType.SECKILL,
-				seckillOrder.getProductName(), seckillOrder.getSeckillProductId(), seckillOrder.getQuantity());
+				seckillOrder.getProductName(), seckillOrder.getSeckillProductId(),
+				seckillOrder.getQuantity(), seckillOrder.getSkuId());
 	}
 
 	private TSeckillOrder selectOrder(Long userId, String orderNo) {
@@ -265,8 +271,11 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 				refund.setCompleteTime(LocalDateTime.now());
 				this.updateById(refund);
 
-				// 5. 更新订单状态为已取消
-				updateOrderStatusToCancelled(refund.getOrderNo(), refund.getUserId());
+				// 5. 更新订单状态为已取消（按订单类型分发）
+				//    注意：不能一律调 updateOrderStatusToCancelled —— 它只查秒杀分表，
+				//    普通订单进去必然抛「订单不存在」，而此时支付宝退款已经不可逆地成功了，
+				//    结果是钱退了、订单还是「已支付」、库存也没回来。
+				afterRefundSucceeded(refund);
 
 				log.info("支付宝退款成功, refundNo={}, refundTradeNo={}", refund.getRefundNo(), response.getTradeNo());
 			} else {
@@ -282,6 +291,44 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 			log.error("调用支付宝退款API异常, refundNo={}", refund.getRefundNo(), e);
 			throw new BizIllegalException("支付宝退款失败");
 		}
+	}
+
+	/**
+	 * 退款成功后收尾：按订单类型把订单推进到终态并归还库存。
+	 * <p>
+	 * 拆出独立方法而不是直接内联，是因为「订单类型」只有调用方查得到：
+	 * executeAlipayRefund 手里只有一个 TRefund。
+	 * </p>
+	 */
+	private void afterRefundSucceeded(TRefund refund) {
+		TOrder normalOrder = orderService.getByOrderNo(refund.getOrderNo());
+		if (normalOrder != null) {
+			// 普通订单：t_order.status 1(已支付) → 4(已取消)，并归还 SKU 库存
+			boolean cancelled = orderService.lambdaUpdate()
+					.eq(TOrder::getOrderNo, refund.getOrderNo())
+					.eq(TOrder::getStatus, 1)
+					.set(TOrder::getStatus, 4)
+					.set(TOrder::getCancelTime, LocalDateTime.now())
+					.set(TOrder::getRemark, "退款成功: " + refund.getRefundNo())
+					.update();
+			if (!cancelled) {
+				// 可能已被并发取消/超时关单，订单已不在「已支付」态，不能盲目加库存
+				log.warn("退款成功但普通订单状态已变更，未归还库存, orderNo={}", refund.getOrderNo());
+				return;
+			}
+			// 归还失败必须抛，不能像原来那样 catch 掉：钱已经退了，库存补不回来就是实亏
+			for (TOrderItem item : orderItemService.getByOrderNo(refund.getOrderNo())) {
+				Boolean ok = itemServiceClient.addStock(item.getSkuId(), item.getQuantity());
+				if (!Boolean.TRUE.equals(ok)) {
+					throw new BizIllegalException("退款成功但归还库存失败: skuId=" + item.getSkuId());
+				}
+			}
+			log.info("普通订单退款收尾完成, orderNo={}, status=4", refund.getOrderNo());
+			return;
+		}
+
+		// 秒杀订单：走原来的分表 + Redis Lua + MQ 回滚链路
+		updateOrderStatusToCancelled(refund.getOrderNo(), refund.getUserId());
 	}
 
 	/**

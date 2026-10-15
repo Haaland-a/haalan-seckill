@@ -8,6 +8,8 @@ import com.haalan.api.domain.vo.SkuDetailVO;
 import com.haalan.common.domain.R;
 import com.haalan.item.domain.vo.ProductDetailVO;
 import com.haalan.item.domain.vo.StockVO;
+import com.haalan.item.service.ITSkuService;
+import com.haalan.item.service.ProductIndexService;
 import com.haalan.item.service.TProductService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,6 +28,10 @@ import java.util.Map;
 public class SpuQueryController {
 
 	private final TProductService productService;
+
+	private final ITSkuService skuService;
+
+	private final ProductIndexService productIndexService;
 
 	@GetMapping("/inner/detail/{spuId}")
 	@ApiOperation("获取商品详情")
@@ -92,5 +98,17 @@ public class SpuQueryController {
 	@ApiOperation("恢复库存（取消订单时使用）")
 	public Boolean addStock(@RequestParam Long skuId, @RequestParam Integer stock) {
 		return productService.addStock(skuId, stock);
+	}
+
+	@GetMapping("/inner/incrSoldCount")
+	@ApiOperation("累加SKU销量（支付成功后调用）")
+	public Integer incrSoldCount(@RequestParam Long skuId, @RequestParam Integer num) {
+		return skuService.incrSoldCount(skuId, num);
+	}
+
+	@PostMapping("/inner/rebuildIndex")
+	@ApiOperation("重建商品ES索引（全量对账用）")
+	public R<ProductIndexService.ReindexResult> rebuildIndex() {
+		return R.success(productIndexService.rebuildAllIndex());
 	}
 }

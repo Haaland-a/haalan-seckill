@@ -80,6 +80,13 @@ public class ItemServiceClientFallback implements FallbackFactory<ItemServiceCli
 				throw new RuntimeException("调用商品服务恢复库存失败, skuId: " + skuId + ", stock: " + stock, cause);
 			}
 
+			@Override
+			public Integer incrSoldCount(Long skuId, Integer num) {
+				log.error("调用 item-service 累加销量失败, skuId: {}, num: {}", skuId, num, cause);
+				// ✅ 写操作：抛出异常，触发分布式事务回滚
+				throw new RuntimeException("调用商品服务累加销量失败, skuId: " + skuId + ", num: " + num, cause);
+			}
+
 		};
 	}
 }
