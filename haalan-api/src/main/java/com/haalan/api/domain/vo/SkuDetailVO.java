@@ -51,6 +51,9 @@ public class SkuDetailVO implements Serializable {
 	@ApiModelProperty("库存数量")
 	private Integer stock;
 
+	@ApiModelProperty("销量")
+	private Integer soldCount;
+
 	@ApiModelProperty("状态：0-下架，1-上架")
 	private Integer status;
 }

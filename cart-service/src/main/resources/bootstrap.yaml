@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: cart-service
+  profiles:
+    active: dev
+  feign:
+    circuitbreaker:
+      enabled: true # 开启 Feign 熔断降级（fallbackFactory 生效的前提）
+  cloud:
+    sentinel:
+      eager: true
+      filter:
+        enabled: true
+      transport:
+        dashboard: ${haalan.sentinel.transport.host:localhost}:8090
+    nacos:
+      server-addr: ${NACOS_HOST:nacos}:8848
+      discovery: # ← 添加这个
+        enabled: true
+      config:
+        file-extension: yaml # 文件后缀名
+        shared-configs: # 共享配置
+          - dataId: share-jdbc.yaml # 共享mybatis配置
+          - dataId: share-log.yaml # 共享日志配置
+          - dataId: share-swagger.yaml # 共享 swagger 配置
+          - dataId: share-redis.yaml

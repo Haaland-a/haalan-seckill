@@ -53,6 +53,12 @@ public class OrderDetailVO {
 	@ApiModelProperty("创建时间")
 	private LocalDateTime createTime;
 
+	@ApiModelProperty("支付时间")
+	private LocalDateTime payTime;
+
+	@ApiModelProperty("取消时间")
+	private LocalDateTime cancelTime;
+
 	@ApiModelProperty("支付过期时间")
 	private LocalDateTime payExpireTime;
 

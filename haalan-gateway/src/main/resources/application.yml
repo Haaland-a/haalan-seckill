@@ -20,8 +20,16 @@ haalan:
     port: 6379
     password: 123456
   auth:
+    # /inner/** 一律禁止从网关外部访问（见 InnerApiGuardFilter）：
+    # item-service 的内部接口挂在 /api/product/inner/**，而网关的 item 路由是 /api/product/**，
+    # 不拦的话任何登录用户都能调用 addStock 直接改库存。
+    blockedPaths:
+      - /**/inner/**
+      - /api/product/inner/**
     excludePaths:
-      - /search/**
+      # 真实搜索路径是 /api/product/search（search-service 的 ProductSearchController），
+      # 原来写的 /search/** 永远匹配不上，等于白名单没生效。
+      - /api/product/search
       - /api/user/login
       - /api/user/register
       - /api/payment/callback/**

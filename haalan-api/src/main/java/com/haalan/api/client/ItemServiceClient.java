@@ -39,6 +39,15 @@ public interface ItemServiceClient {
 	SkuDetailVO getSkuDetail(@RequestParam("skuId") Long skuId);
 
 	/**
+	 * 批量查询 SKU 详情（购物车结算用，避免 N 次远程调用）
+	 *
+	 * @param skuIds SKU ID 列表
+	 * @return SKU 详情列表
+	 */
+	@PostMapping("/api/product/inner/getSkuDetailBatch")
+	List<SkuDetailVO> getSkuDetailBatch(@RequestBody List<Long> skuIds);
+
+	/**
 	 * 批量扣减库存
 	 *
 	 * @param stockList 扣减库存列表

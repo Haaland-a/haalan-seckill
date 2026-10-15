@@ -1,5 +1,6 @@
 package com.haalan.order.domain.po;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -80,8 +81,18 @@ public class TOrder implements Serializable {
 	private LocalDateTime createTime;
 
 	@ApiModelProperty(value = "更新时间")
-	@TableField("update_time")
+	@TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
 	private LocalDateTime updateTime;
 
+	@ApiModelProperty(value = "支付时间")
+	@TableField(value = "pay_time", fill = FieldFill.INSERT_UPDATE)
+	private LocalDateTime payTime;
 
+	@ApiModelProperty(value = "取消时间")
+	@TableField(value = "cancel_time", fill = FieldFill.INSERT_UPDATE)
+	private LocalDateTime cancelTime;
+
+	@ApiModelProperty(value = "支付宝交易号")
+	@TableField("transaction_id")
+	private String transactionId;
 }

@@ -31,20 +31,24 @@ public class JwtTool {
 	public static class TokenPayload {
 		private Long userId;
 		private Integer version;
+		/** 是否管理员；老 Token 里没有这个 claim，解析出来是 null */
+		private Boolean admin;
 	}
 
 	/**
-	 * 创建JWT Token（包含版本号）
+	 * 创建JWT Token（包含版本号与管理员标记）
 	 *
 	 * @param userId  用户ID
 	 * @param version Token版本号
+	 * @param admin   是否管理员；网关据此判定 /api/admin/** 的访问权限
 	 * @param ttl     Token有效期
 	 * @return JWT Token字符串
 	 */
-	public String createToken(Long userId, Integer version, Duration ttl) {
+	public String createToken(Long userId, Integer version, Boolean admin, Duration ttl) {
 		return JWT.create()
 				.setPayload("user", userId)
 				.setPayload("version", version)
+				.setPayload("admin", Boolean.TRUE.equals(admin))
 				.setExpiresAt(new Date(System.currentTimeMillis() + ttl.toMillis()))
 				.setSigner(jwtSigner)
 				.sign();
@@ -92,6 +96,12 @@ public class JwtTool {
 			payload.setVersion(Integer.valueOf(versionPayload.toString()));
 		} catch (RuntimeException e) {
 			throw new UnauthorizedException("无效的token");
+		}
+
+		// admin claim 是后加的，老 Token 里没有，容忍缺失（留 null）
+		Object adminPayload = jwt.getPayload("admin");
+		if (adminPayload != null) {
+			payload.setAdmin(Boolean.valueOf(adminPayload.toString()));
 		}
 
 		return payload;

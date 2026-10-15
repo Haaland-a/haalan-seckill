@@ -79,7 +79,4 @@ public class SeckillOrderMessage implements Serializable {
 
 
 	private String alipayProductCode;
-
-
-	private String wechatProductCode;
 }

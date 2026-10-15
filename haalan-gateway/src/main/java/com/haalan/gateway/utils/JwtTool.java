@@ -31,6 +31,11 @@ public class JwtTool {
 	public static class TokenPayload {
 		private Long userId;
 		private Integer version;
+		/**
+		 * 是否管理员。旧 Token 里没有这个 claim，解析出来是 null，
+		 * 此时按「非管理员」处理（见 AuthGlobalFilter 的判定）。
+		 */
+		private Boolean admin;
 	}
 
 	/**
@@ -92,6 +97,13 @@ public class JwtTool {
 			payload.setVersion(Integer.valueOf(versionPayload.toString()));
 		} catch (RuntimeException e) {
 			throw new UnauthorizedException("无效的token");
+		}
+
+		// admin claim 是后加的，老 Token 里没有，这里必须容忍缺失：
+		// 缺失时留 null，由 AuthGlobalFilter 按「非管理员」处理，而不是直接判 Token 无效。
+		Object adminPayload = jwt.getPayload("admin");
+		if (adminPayload != null) {
+			payload.setAdmin(Boolean.valueOf(adminPayload.toString()));
 		}
 
 		return payload;

@@ -3,8 +3,10 @@ package com.haalan.order.service.impl;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.haalan.api.client.ItemServiceClient;
 import com.haalan.api.client.UserServiceClient;
 import com.haalan.api.domain.vo.SkuDetailVO;
@@ -19,6 +21,7 @@ import com.haalan.order.domain.po.TOrderItem;
 import com.haalan.order.domain.po.TSeckillOrder;
 import com.haalan.order.domain.vo.*;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
+import com.haalan.order.mapper.TSeckillOrder1Mapper;
 import com.haalan.order.service.IMessagePushService;
 import com.haalan.order.service.ITOrderItemService;
 import com.haalan.order.service.ITSeckillOrder0Service;
@@ -46,6 +49,7 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 	private final ItemServiceClient itemServiceClient;
 	private final UserServiceClient userServiceClient;
+	private final TSeckillOrder1Mapper seckillOrder1Mapper;
 
 	public static final String SECKILL_STOCK = "seckill:stock:";
 	public static final String SECKILL_USER_BUY_PREFIX = "seckill:buy:";
@@ -82,7 +86,6 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 				.activityId(message.getActivityId())
 				.seckillProductId(message.getSeckillProductId())
 				.skuId(message.getSkuId())
-				.wechatProductCode(message.getWechatProductCode())
 				.alipayProductCode(message.getAlipayProductCode())
 				.productName(skuDetail.getSkuName())
 				.seckillPrice(message.getSeckillPrice())
@@ -483,13 +486,28 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 	@Override
 	public PageResult<OrderListItemVO> getSeckillOrderList(Long userId, Integer pageNum, Integer pageSize, Integer status) {
-		// 设置userId到ThreadLocal，动态表名插件会自动选择正确的分表
+		// 保留 ThreadLocal：同类的 getAllByNo / cancelOrder / getOrderDetail 仍依赖动态表名插件，
+		// 它们走 getOne/updateById（beforeQuery/beforePrepare），插件生效。
 		UserContext.setUser(userId);
 		try {
-			// 1. 构建分页对象
-			Page<TSeckillOrder> page = new Page<>(pageNum, pageSize);
+			// 1. 按 userId % 2 手工选择分表 mapper。
+			//    不能直接用 this.page(...)：MybatisPlusConfig 先注册 PaginationInnerInterceptor、
+			//    后注册 DynamicTableNameInnerInterceptor，而 count 查询是 PaginationInnerInterceptor
+			//    内部用 executor.query(...) 直接发起的（不会再次进入插件链），
+			//    所以 DynamicTableNameInnerInterceptor.beforeQuery 永远拿不到 count 的 BoundSql，
+			//    count SQL 里的表名仍是基表 t_seckill_order → 报
+			//    Table 'order-db.t_seckill_order' doesn't exist。
+			//    TPaymentServiceImpl.selectOrder / TRefundServiceImpl 用的就是这个姿势。
+			int tableSuffix = (int) (userId % 2);
+			BaseMapper<TSeckillOrder> seckillOrderMapper =
+					tableSuffix == 0 ? getBaseMapper() : seckillOrder1Mapper;
 
-			// 2. 构建查询条件
+			// 2. 构建分页对象：先关掉 searchCount，避免 selectPage 内部自动发起 count 查询。
+			//    原因见下方「count 查询为什么必须绕开」注释。
+			Page<TSeckillOrder> page = new Page<>(pageNum, pageSize);
+			page.setSearchCount(false);
+
+			// 3. 构建查询条件
 			LambdaQueryWrapper<TSeckillOrder> queryWrapper = new LambdaQueryWrapper<>();
 			queryWrapper.eq(TSeckillOrder::getUserId, userId);
 			if (status != null) {
@@ -497,12 +515,27 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 			}
 			queryWrapper.orderByDesc(TSeckillOrder::getCreateTime);
 
-			// 3. 执行分页查询
-			Page<TSeckillOrder> orderPage = this.page(page, queryWrapper);
+			// 4. 先单独查总数，再执行数据查询。
+			//    count 查询为什么必须绕开：
+			//    MybatisPlusConfig 先注册 PaginationInnerInterceptor、后注册 DynamicTableNameInnerInterceptor。
+			//    PaginationInnerInterceptor.willDoQuery 在 page.searchCount() 为 true 时，会自己
+			//    buildAutoCountMappedStatement + autoCountSql 拼出 SELECT COUNT(*) ... 然后用
+			//    executor.query(...) 直接执行；MyBatis 的插件代理是按方法级别触发的，这次内部调用
+			//    不会再进入 MybatisPlusInterceptor.intercept，所以链上后注册的
+			//    DynamicTableNameInnerInterceptor.beforeQuery 拿不到这次调用的 BoundSql，
+			//    count SQL 的表名就停留在基表 t_seckill_order → 报
+			//    Table 'order-db.t_seckill_order' doesn't exist。
+			//    selectCount 不带 page 参数，PaginationInnerInterceptor.willDoQuery 直接 return true
+			//    不执行上面的 count 分支，于是会正常走到 DynamicTableNameInnerInterceptor.beforeQuery，
+			//    由它把表名替换成 t_seckill_order_0 / t_seckill_order_1。
+			Long total = SqlHelper.retCount(seckillOrderMapper.selectCount(queryWrapper));
+			page.setTotal(total == null ? 0L : total);
 
-			// 4. 转换为VO
-			List<OrderListItemVO> voList = orderPage.getRecords().stream()
-					.map(order -> {
+			// 5. 执行分页查询（searchCount 已关，不会再走上面的 count 分支）
+			Page<TSeckillOrder> orderPage = seckillOrderMapper.selectPage(page, queryWrapper);
+
+			// 6. 转换为VO
+			List<OrderListItemVO> voList = orderPage.getRecords().stream()					.map(order -> {
 						OrderListItemVO vo = new OrderListItemVO();
 
 						vo.setOrderNo(order.getOrderNo());
@@ -520,10 +553,15 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 
 
 						// 从订单商品明细中获取商品图片
-						TOrderItem orderItem = orderItemService.lambdaQuery()
+						// 与 TOrderServiceImpl 保持一致：一个订单可能有多条明细，
+						// 这里用 one() 时 MyBatis-Plus 的 selectOne 查出多条会抛
+						// TooManyResultsException: Expected one result (or null) to be returned by selectOne()
+						// 导致整个订单列表接口 500，所以统一改为取首条明细。
+						List<TOrderItem> seckillOrderItems = orderItemService.lambdaQuery()
 								.eq(TOrderItem::getOrderNo, order.getOrderNo())
-								.one();
-						if (orderItem != null) {
+								.list();
+						if (seckillOrderItems != null && !seckillOrderItems.isEmpty()) {
+							TOrderItem orderItem = seckillOrderItems.get(0);
 							vo.setProductImage(orderItem.getProductImage());
 						}
 
@@ -531,8 +569,10 @@ public class TSeckillOrder0ServiceImpl extends ServiceImpl<TSeckillOrder0Mapper,
 					})
 					.collect(Collectors.toList());
 
-			// 5. 构建分页结果
+			// 7. 构建分页结果
 			PageResult<OrderListItemVO> result = new PageResult<>();
+			// total 已在第 4 步由 selectCount 查得并 setTotal，这里直接取；
+			// searchCount=false 时 selectPage 不会覆盖它。
 			result.setTotal(orderPage.getTotal());
 			result.setPageNum((int) orderPage.getCurrent());
 			result.setPageSize((int) orderPage.getSize());

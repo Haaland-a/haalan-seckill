@@ -13,8 +13,11 @@ import com.haalan.api.domain.vo.SkuDetailVO;
 import com.haalan.api.domain.vo.UserAddressVO;
 import com.haalan.common.domain.PageResult;
 import com.haalan.common.exception.BizIllegalException;
+import com.haalan.common.utils.EncryptUtils;
+import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.dto.CreateOrderRequestDTO;
 import com.haalan.order.domain.dto.OrderItemDTO;
+import com.haalan.order.domain.mq.NormalOrderTimeoutMessage;
 import com.haalan.order.domain.po.TOrder;
 import com.haalan.order.domain.po.TOrderItem;
 import com.haalan.order.domain.vo.*;
@@ -24,6 +27,7 @@ import com.haalan.order.service.ITOrderService;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +56,7 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
     private final ITOrderItemService orderItemService;
     private final ItemServiceClient itemServiceClient;
     private final UserServiceClient userServiceClient;
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public PageResult<OrderListItemVO> getNormalOrderList(Long userId, Integer pageNum, Integer pageSize, Integer status) {
@@ -84,13 +89,26 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
                     vo.setCreateTime(order.getCreateTime());
 
                     // 从订单商品明细中获取商品信息
-                    TOrderItem orderItem = orderItemService.lambdaQuery()
+                    // 注意：一个订单可以有多条明细，这里必须用 list() 而不是 one()。
+                    // 用 one() 时 MyBatis-Plus 的 selectOne 查出多条会抛
+                    // TooManyResultsException: Expected one result (or null) to be returned by selectOne(), but found: 2
+                    // 导致「多商品下单后订单列表直接 500」。
+                    List<TOrderItem> orderItems = orderItemService.lambdaQuery()
                             .eq(TOrderItem::getOrderNo, order.getOrderNo())
-                            .one();
-                    if (orderItem != null) {
-                        vo.setProductImage(orderItem.getProductImage());
-                        vo.setProductName(orderItem.getProductName());
-                        vo.setQuantity(orderItem.getQuantity());
+                            .list();
+                    if (orderItems != null && !orderItems.isEmpty()) {
+                        TOrderItem firstItem = orderItems.get(0);
+                        vo.setProductImage(firstItem.getProductImage());
+                        // 多件商品时展示「首件商品 等N件商品」
+                        vo.setProductName(orderItems.size() > 1
+                                ? firstItem.getProductName() + " 等" + orderItems.size() + "件商品"
+                                : firstItem.getProductName());
+                        // 数量取明细合计，而不是首件的数量
+                        vo.setQuantity(orderItems.stream()
+                                .map(TOrderItem::getQuantity)
+                                .filter(java.util.Objects::nonNull)
+                                .mapToInt(Integer::intValue)
+                                .sum());
                     }
 
                     return vo;
@@ -112,12 +130,36 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
     public OrderDetailVO createOrder(Long userId, CreateOrderRequestDTO request) {
         log.info("开始创建普通订单, userId={}, request={}", userId, request);
 
+        // 0. 解析收货地址 ID。
+        // user-service 的地址接口对外返回的是 EncryptUtils 加密串，前端会原样回传；
+        // 因此这里必须先解密回 Long，并把解密结果贯穿到后面的 Feign 调用与落库。
+        // 兼容纯数字串（历史数据 / 直接调接口的场景）。
+        // user-service 的地址接口对外返回的是 EncryptUtils 加密串，前端会原样回传；
+        // 因此这里先把字符串还原成 Long。优先按加密串解密，失败则按纯数字回退。
+        Long addressId = null;
+        String rawAddressId = request.getAddressId();
+        if (rawAddressId != null && !rawAddressId.isEmpty()) {
+            try {
+                addressId = EncryptUtils.decryptToLong(rawAddressId);
+            } catch (IllegalArgumentException e) {
+                log.warn("收货地址ID不是加密串，尝试按纯数字解析, raw={}", rawAddressId);
+                try {
+                    addressId = Long.valueOf(rawAddressId.trim());
+                } catch (NumberFormatException nfe) {
+                    log.warn("收货地址ID无法解析为数字, raw={}", rawAddressId);
+                }
+            }
+        }
+        if (addressId == null) {
+            throw new BizIllegalException("收货地址无效");
+        }
+
         // 1. 验证地址
         UserAddressVO address;
         try {
-            address = userServiceClient.getUserAddressById(request.getAddressId(), userId);
+            address = userServiceClient.getUserAddressById(addressId, userId);
         } catch (Exception e) {
-            log.error("获取地址失败, addressId={}", request.getAddressId(), e);
+            log.error("获取地址失败, addressId={}", addressId, e);
             throw new BizIllegalException("收货地址无效");
         }
 
@@ -174,7 +216,7 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
         order.setActualAmount(totalAmount);
         order.setOrderType(1); // 普通订单
         order.setStatus(0); // 待支付
-        order.setAddressId(request.getAddressId());
+        order.setAddressId(addressId);
         order.setRemark(request.getRemark());
         order.setCreateTime(LocalDateTime.now());
         this.save(order);
@@ -192,7 +234,10 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
             orderItem.setSkuCode(sku.getSkuCode());
             orderItem.setProductName(sku.getSkuName());
             String images = sku.getImages();
-            orderItem.setProductImage(StrUtil.isNotBlank(images) ? images.split(",")[0] : null);
+            // sku.getImages() 是 JSON 数组字符串（如 ["https://...jpg"]）或逗号分隔的多个 URL。
+            // 之前直接 split(",")[0] 会把 "[\"https://...\"]" 原样存库，
+            // 前端 el-image 拿到 JSON 字符串当 URL 用 → 订单列表/详情图片裂图。
+            orderItem.setProductImage(extractFirstImage(images));
             orderItem.setPrice(sku.getPrice());
             orderItem.setQuantity(item.getQuantity());
             orderItem.setTotalPrice(sku.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
@@ -205,7 +250,18 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
 
         log.info("普通订单创建成功, orderNo={}, totalAmount={}", orderNo, totalAmount);
 
-        // 8. 构建返回VO
+        // 8. 发送普通订单超时消息（TTL延时队列，超时未支付自动取消并回滚库存）
+        List<NormalOrderTimeoutMessage.NormalOrderTimeoutItem> timeoutItems = items.stream()
+                .map(item -> new NormalOrderTimeoutMessage.NormalOrderTimeoutItem(item.getSkuId(), item.getQuantity()))
+                .collect(Collectors.toList());
+        NormalOrderTimeoutMessage timeoutMsg = new NormalOrderTimeoutMessage();
+        timeoutMsg.setOrderNo(orderNo);
+        timeoutMsg.setUserId(userId);
+        timeoutMsg.setItems(timeoutItems);
+        rabbitTemplate.convertAndSend(RabbitConstants.NORMAL_ORDER_TIMEOUT_QUEUE, timeoutMsg);
+        log.info("发送普通订单超时延时消息, orderNo={}, items={}", orderNo, timeoutItems);
+
+        // 9. 构建返回VO
         return buildOrderDetailVO(order, orderItems, address);
     }
 
@@ -234,6 +290,11 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
         }
 
         return buildOrderDetailVO(order, orderItems, address);
+    }
+
+    @Override
+    public TOrder getByOrderNo(String orderNo) {
+        return this.lambdaQuery().eq(TOrder::getOrderNo, orderNo).one();
     }
 
     @Override
@@ -307,6 +368,8 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
         vo.setStatus(order.getStatus());
         vo.setStatusName(getStatusName(order.getStatus()));
         vo.setCreateTime(order.getCreateTime());
+        vo.setPayTime(order.getPayTime());
+        vo.setCancelTime(order.getCancelTime());
 
         // 支付过期时间: 创建时间 + 15分钟
         if (order.getCreateTime() != null) {
@@ -355,6 +418,36 @@ public class TOrderServiceImpl extends ServiceImpl<TOrderMapper, TOrder> impleme
         String userIdSuffix = String.format("%04d", userId % 10000);
         String randomSuffix = String.format("%04d", new Random().nextInt(10000));
         return "N" + timestamp + userIdSuffix + randomSuffix;
+    }
+
+    /**
+     * 从商品图片字段中取出第一张可直接用于 &lt;img src&gt; 的 URL。
+     * 兼容两种存储形态：
+     *   1) JSON 数组字符串：["https://a.jpg","https://b.jpg"]
+     *   2) 逗号分隔：https://a.jpg,https://b.jpg
+     */
+    private String extractFirstImage(String images) {
+        if (StrUtil.isBlank(images)) {
+            return null;
+        }
+        String trimmed = images.trim();
+        if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            try {
+                List<String> list = JSONUtil.toList(trimmed, String.class);
+                return list.isEmpty() ? null : list.get(0);
+            } catch (Exception e) {
+                // JSON 解析失败就退回按逗号切分
+                log.warn("商品图片 JSON 解析失败，按逗号分隔处理, images={}", images);
+            }
+        }
+        String[] arr = trimmed.split(",");
+        for (String s : arr) {
+            String url = s.trim().replace("[", "").replace("]", "").replace("\"", "");
+            if (StrUtil.isNotBlank(url)) {
+                return url;
+            }
+        }
+        return null;
     }
 
     /**

@@ -105,6 +105,19 @@ services:
     image: root-seckill-service:latest
     container_name: seckill-service
 
+  cart-service:
+    <<: *backend-common
+    # 服务器实测可用内存只剩 ~600MB（17 个容器），cart-service 再按默认 512m 堆
+    # 会逼近 OOM Killer。购物车是纯 Redis + 单表场景，320m 足够。
+    environment:
+      - NACOS_HOST=nacos
+      - JAVA_TOOL_OPTIONS=-Xms160m -Xmx320m -XX:MaxMetaspaceSize=160m
+    build:
+      context: ..
+      dockerfile: cart-service/Dockerfile
+    image: root-cart-service:latest
+    container_name: cart-service
+
   frontend:
     build:
       context: ../../haalan_

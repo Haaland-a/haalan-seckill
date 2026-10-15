@@ -106,7 +106,4 @@ public class TSeckillOrder implements Serializable {
 
 	@TableField("alipay_product_code")
 	private String alipayProductCode;
-
-	@TableField("wechat_product_code")
-	private String wechatProductCode;
 }

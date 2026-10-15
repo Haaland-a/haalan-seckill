@@ -68,4 +68,24 @@ public class RabbitConstants {
 	public static final String SECKILL_REFUND_SUCCESS_EXCHANGE = "seckill.refund.success.exchange";
 	// 退款成功路由
 	public static final String SECKILL_REFUND_SUCCESS_ROUTING_KEY = "seckill.refund.success";
+
+	// ==================== 普通订单超时取消相关 ====================
+	// 普通订单超时延时队列（消息在这里等待TTL，过期后转死信）
+	public static final String NORMAL_ORDER_TIMEOUT_QUEUE = "normal.order.timeout.queue";
+	// 普通订单超时死信交换机
+	public static final String NORMAL_ORDER_TIMEOUT_DLX_EXCHANGE = "normal.order.timeout.dlx.exchange";
+	// 普通订单超时死信队列
+	public static final String NORMAL_ORDER_TIMEOUT_DLX_QUEUE = "normal.order.timeout.dlx.queue";
+	// 普通订单超时死信路由
+	public static final String NORMAL_ORDER_TIMEOUT_DLX_ROUTING_KEY = "normal.order.timeout.dlx";
+	// 普通订单超时备用死信（人工处理/告警）
+	public static final String NORMAL_ORDER_TIMEOUT_BACKUP_DLX_EXCHANGE = "normal.order.timeout.backup.dlx.exchange";
+	public static final String NORMAL_ORDER_TIMEOUT_BACKUP_DLX_QUEUE = "normal.order.timeout.backup.dlx.queue";
+	public static final String NORMAL_ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY = "normal.order.timeout.backup.dlx";
+
+	// ==================== 普通订单支付成功相关 ====================
+	// 普通订单支付成功交换机（供后续统计/消息推送扩展）
+	public static final String NORMAL_PAY_SUCCESS_EXCHANGE = "normal.pay.success.exchange";
+	// 普通订单支付成功路由
+	public static final String NORMAL_PAY_SUCCESS_ROUTING_KEY = "normal.pay.success";
 }

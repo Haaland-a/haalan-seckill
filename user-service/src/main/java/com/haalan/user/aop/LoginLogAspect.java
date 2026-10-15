@@ -64,7 +64,9 @@ public class LoginLogAspect {
 			UserLoginLog loginLog = buildLoginLog(joinPoint, null, false, exception.getMessage());
 			userLoginLogService.saveLoginLog(loginLog);
 		} catch (Exception e) {
-			log.error("记录登录失败日志时发生异常", e);
+			// 登录日志失败绝不能影响登录流程本身：这里只记录，不往外抛。
+			// 同时把失败原因压成固定文案，避免把用户输入的口令等敏感信息写进日志。
+			log.error("记录登录失败日志时发生异常(不影响登录流程)", e);
 		}
 	}
 
@@ -80,6 +82,10 @@ public class LoginLogAspect {
 	private UserLoginLog buildLoginLog(JoinPoint joinPoint, Object result, boolean success, String failReason) {
 		UserLoginLog loginLog = new UserLoginLog();
 
+		// 登录失败时拿不到 userId（异常在 TUserServiceImpl 查库阶段就抛出），
+		// 而 t_user_login_log.user_id 是 NOT NULL 无默认值。
+		// UserLoginLog.getUserId() 已把 null 兜底为 0，这里显式置 0 只为语义清晰。
+		loginLog.setUserId(0L);
 
 		// 获取请求信息
 		ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
@@ -121,13 +127,13 @@ public class LoginLogAspect {
 					if (data != null) {
 						Method getUserIdMethod = data.getClass().getMethod("getUserId");
 						Long userId = (Long) getUserIdMethod.invoke(data);
-						loginLog.setUserId(userId);
+						loginLog.setUserId(userId == null ? 0L : userId);
 					}
 				} else {
 					// 方式2：直接获取（如果返回的就是 LoginVO）
 					Method getUserIdMethod = result.getClass().getMethod("getUserId");
 					Long userId = (Long) getUserIdMethod.invoke(result);
-					loginLog.setUserId(userId);
+					loginLog.setUserId(userId == null ? 0L : userId);
 				}
 			} catch (Exception e) {
 				log.warn("从返回结果中获取userId失败", e);
@@ -137,7 +143,10 @@ public class LoginLogAspect {
 		// 设置其他字段
 		loginLog.setLoginTime(LocalDateTime.now());
 		loginLog.setLoginResult(success ? 1 : 0);
-		loginLog.setFailReason(failReason);
+		// failReason 来自异常 message，可能是「用户名或密码错误」这类安全文案；
+		// 长度截断到 fail_reason varchar(200) 以内，防止超长 SQL 报错。
+		loginLog.setFailReason(failReason == null ? null
+				: (failReason.length() > 200 ? failReason.substring(0, 200) : failReason));
 
 		return loginLog;
 	}

@@ -86,8 +86,4 @@ public class TSku implements Serializable {
 	@TableField("alipay_product_code")
 	private String alipayProductCode;
 
-	@ApiModelProperty(value = "微信产品编码")
-	@TableField("wechat_product_code")
-	private String wechatProductCode;
-
 }

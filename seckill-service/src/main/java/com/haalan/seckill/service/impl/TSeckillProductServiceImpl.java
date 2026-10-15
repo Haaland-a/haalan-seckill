@@ -159,7 +159,6 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 		);
 		//
 		tSeckillProduct.setAlipayProductCode(value.getAlipayProductCode());
-		tSeckillProduct.setWechatProductCode(value.getWechatProductCode());
 
 		//从sku中扣取库存到秒杀商品表中  先减再加
 		itemServiceClient.deductStock(dto.getSkuId(), dto.getStock());
@@ -267,7 +266,6 @@ public class TSeckillProductServiceImpl extends ServiceImpl<TSeckillProductMappe
 			product.setSkuCode(productInfo.getSkuCode());
 			product.setProductName(productInfo.getProductName());
 			product.setAlipayProductCode(productInfo.getAlipayProductCode());
-			product.setWechatProductCode(productInfo.getWechatProductCode());
 			product.setOriginalPrice(
 					productInfo.getOriginalPrice() != null ? productInfo.getOriginalPrice() : dto.getSeckillPrice()
 			);

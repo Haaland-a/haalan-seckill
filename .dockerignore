@@ -1,0 +1,10 @@
+target/
+.git/
+.gitattributes
+.gitignore
+logs/
+*.md
+Dockerfile
+mvnw
+mvnw.cmd
+.DS_Store

@@ -183,4 +183,69 @@ public class RabbitMQConfig {
 	public DirectExchange seckillRefundSuccessExchange() {
 		return new DirectExchange(RabbitConstants.SECKILL_REFUND_SUCCESS_EXCHANGE, true, false);
 	}
+
+	// ==================== 普通订单超时取消相关 ====================
+
+	// 普通订单超时死信交换机
+	@Bean
+	public DirectExchange normalOrderTimeoutDlxExchange() {
+		return new DirectExchange(RabbitConstants.NORMAL_ORDER_TIMEOUT_DLX_EXCHANGE, true, false);
+	}
+
+	// 普通订单超时死信队列（处理失败转备用死信）
+	@Bean
+	public Queue normalOrderTimeoutDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.NORMAL_ORDER_TIMEOUT_DLX_QUEUE)
+				.deadLetterExchange(RabbitConstants.NORMAL_ORDER_TIMEOUT_BACKUP_DLX_EXCHANGE)
+				.deadLetterRoutingKey(RabbitConstants.NORMAL_ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY)
+				.build();
+	}
+
+	// 普通订单超时死信绑定
+	@Bean
+	public Binding normalOrderTimeoutDlxBinding() {
+		return BindingBuilder.bind(normalOrderTimeoutDlxQueue())
+				.to(normalOrderTimeoutDlxExchange())
+				.with(RabbitConstants.NORMAL_ORDER_TIMEOUT_DLX_ROUTING_KEY);
+	}
+
+	/**
+	 * 普通订单延时队列（消息在这里等待TTL，过期后自动转到死信队列触发取消）
+	 */
+	@Bean
+	public Queue normalOrderTimeoutQueue() {
+		Map<String, Object> args = new HashMap<>();
+		args.put("x-dead-letter-exchange", RabbitConstants.NORMAL_ORDER_TIMEOUT_DLX_EXCHANGE);
+		args.put("x-dead-letter-routing-key", RabbitConstants.NORMAL_ORDER_TIMEOUT_DLX_ROUTING_KEY);
+		args.put("x-message-ttl", mqProperties.getTimeOut());
+		return new Queue(RabbitConstants.NORMAL_ORDER_TIMEOUT_QUEUE, true, false, false, args);
+	}
+
+	// 普通订单超时备用死信交换机（人工处理/告警）
+	@Bean
+	public DirectExchange normalOrderTimeoutBackupDlxExchange() {
+		return new DirectExchange(RabbitConstants.NORMAL_ORDER_TIMEOUT_BACKUP_DLX_EXCHANGE, true, false);
+	}
+
+	// 普通订单超时备用死信队列
+	@Bean
+	public Queue normalOrderTimeoutBackupDlxQueue() {
+		return QueueBuilder.durable(RabbitConstants.NORMAL_ORDER_TIMEOUT_BACKUP_DLX_QUEUE).build();
+	}
+
+	// 普通订单超时备用死信绑定
+	@Bean
+	public Binding normalOrderTimeoutBackupDlxBinding() {
+		return BindingBuilder.bind(normalOrderTimeoutBackupDlxQueue())
+				.to(normalOrderTimeoutBackupDlxExchange())
+				.with(RabbitConstants.NORMAL_ORDER_TIMEOUT_BACKUP_DLX_ROUTING_KEY);
+	}
+
+	// ==================== 普通订单支付成功相关 ====================
+
+	// 普通订单支付成功交换机
+	@Bean
+	public DirectExchange normalPaySuccessExchange() {
+		return new DirectExchange(RabbitConstants.NORMAL_PAY_SUCCESS_EXCHANGE, true, false);
+	}
 }

@@ -37,7 +37,15 @@ public interface TProductService {
 	SkuDetailVO getSkuDetail(Long skuId);
 
 	/**
-	 * 批量扣减库存
+	 * 批量查询SKU详情（购物车结算用，避免 N 次远程调用）
+	 *
+	 * @param skuIds SKU ID 列表
+	 * @return SKU 详情列表（不存在的 SKU 会被跳过）
+	 */
+	List<SkuDetailVO> getSkuDetailBatch(List<Long> skuIds);
+
+	/**
+	 * 批量扣减库存（乐观锁，任一失败整体回滚）
 	 *
 	 * @param stockList 扣减库存列表
 	 * @return 扣减结果列表

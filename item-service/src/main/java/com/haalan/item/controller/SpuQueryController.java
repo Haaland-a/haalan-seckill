@@ -82,6 +82,12 @@ public class SpuQueryController {
 		return productService.getSkuDetail(skuId);
 	}
 
+	@PostMapping("/inner/getSkuDetailBatch")
+	@ApiOperation("批量获取SKU详细信息（购物车结算用）")
+	public List<SkuDetailVO> getSkuDetailBatch(@RequestBody List<Long> skuIds) {
+		return productService.getSkuDetailBatch(skuIds);
+	}
+
 	@GetMapping("/inner/addStock")
 	@ApiOperation("恢复库存（取消订单时使用）")
 	public Boolean addStock(@RequestParam Long skuId, @RequestParam Integer stock) {

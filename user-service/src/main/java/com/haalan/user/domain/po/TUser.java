@@ -52,6 +52,10 @@ public class TUser implements Serializable {
 	@TableField("member_level")
 	private Integer memberLevel;
 
+	@ApiModelProperty(value = "是否管理员: 0-普通用户 1-管理员")
+	@TableField("is_admin")
+	private Integer isAdmin;
+
 	@ApiModelProperty(value = "Token版本号")
 	@TableField("token_version")
 	private Integer tokenVersion;

@@ -106,8 +106,7 @@
                create_time,
                address_id,
                update_time,
-               alipay_product_code,
-               wechat_product_code
+               alipay_product_code
         FROM (SELECT id,
                      order_no,
                      user_id,
@@ -126,8 +125,7 @@
                      create_time,
                      address_id,
                      update_time,
-                     alipay_product_code,
-                     wechat_product_code
+                     alipay_product_code
               FROM t_seckill_order_0
               WHERE order_no = #{orderNo}
               UNION ALL
@@ -149,8 +147,7 @@
                      create_time,
                      address_id,
                      update_time,
-                     alipay_product_code,
-                     wechat_product_code
+                     alipay_product_code
               FROM t_seckill_order_1
               WHERE order_no = #{orderNo}) t
         LIMIT 1
@@ -192,12 +189,12 @@
         SELECT id, order_no, user_id, activity_id, seckill_product_id, sku_id,
         product_name, seckill_price, quantity, total_amount, status,
         order_time, pay_time, cancel_time, cancel_reason,
-        create_time, address_id, update_time, alipay_product_code, wechat_product_code
+        create_time, address_id, update_time, alipay_product_code
         FROM (
         SELECT id, order_no, user_id, activity_id, seckill_product_id, sku_id,
         product_name, seckill_price, quantity, total_amount, status,
         order_time, pay_time, cancel_time, cancel_reason,
-        create_time, address_id, update_time, alipay_product_code, wechat_product_code
+        create_time, address_id, update_time, alipay_product_code
         FROM t_seckill_order_0 WHERE 1=1
         <if test="orderNo != null and orderNo != ''">
             AND order_no LIKE CONCAT('%', #{orderNo}, '%')
@@ -215,7 +212,7 @@
         SELECT id, order_no, user_id, activity_id, seckill_product_id, sku_id,
         product_name, seckill_price, quantity, total_amount, status,
         order_time, pay_time, cancel_time, cancel_reason,
-        create_time, address_id, update_time, alipay_product_code, wechat_product_code
+        create_time, address_id, update_time, alipay_product_code
         FROM t_seckill_order_1 WHERE 1=1
         <if test="orderNo != null and orderNo != ''">
             AND order_no LIKE CONCAT('%', #{orderNo}, '%')

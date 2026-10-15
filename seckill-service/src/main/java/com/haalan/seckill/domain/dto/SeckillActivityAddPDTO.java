@@ -61,8 +61,4 @@ public class SeckillActivityAddPDTO implements Serializable {
 	@JsonProperty("alipayProductCode")
 	@TableField("alipay_product_code")
 	private String alipayProductCode;
-
-	@JsonProperty("wechatProductCode")
-	@TableField("wechat_product_code")
-	private String wechatProductCode;
 }

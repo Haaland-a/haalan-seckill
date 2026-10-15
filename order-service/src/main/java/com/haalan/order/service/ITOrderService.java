@@ -56,4 +56,12 @@ public interface ITOrderService extends IService<TOrder> {
 	 * @return 取消结果
 	 */
 	CancelOrderResponseVO cancelOrder(String orderNo, Long userId, String cancelReason);
+
+	/**
+	 * 按订单号查询普通订单（不校验归属，供支付链路使用）
+	 *
+	 * @param orderNo 订单号
+	 * @return 订单
+	 */
+	TOrder getByOrderNo(String orderNo);
 }

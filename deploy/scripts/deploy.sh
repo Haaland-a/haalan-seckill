@@ -2,11 +2,11 @@
 # =============================================================================
 #  haalan 应用层部署（在服务器上执行）
 #  ---------------------------------------------------------------------------
-#  只操作 6 个微服务 + 2 个前端，绝不碰 mysql8 / redis / nacos / es / kibana /
+#  只操作 7 个微服务 + 2 个前端，绝不碰 mysql8 / redis / nacos / es / kibana /
 #  mq / seata / xxl-job-admin 这 8 个中间件容器，也不碰任何数据卷。
 #
 #  用法：
-#     bash deploy.sh                       # 编译 jar → 重建全部 8 个应用
+#     bash deploy.sh                       # 编译 jar → 重建全部 9 个应用
 #     bash deploy.sh gateway               # 只重建 gateway
 #     bash deploy.sh gateway user-service  # 重建指定的几个
 #     bash deploy.sh frontend admin        # 只重建前端
@@ -30,7 +30,7 @@ DEPLOY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REPO_ROOT="$(cd "$DEPLOY_DIR/.." && pwd)"
 COMPOSE_FILE="$DEPLOY_DIR/docker-compose.apps.yml"
 
-ALL_SERVICES=(gateway user-service item-service order-service search-service seckill-service frontend admin)
+ALL_SERVICES=(gateway user-service item-service order-service search-service seckill-service cart-service frontend admin)
 
 # 服务器上 JDK/Maven 只写在 /etc/profile 里，ssh 非登录 shell 读不到，必须显式设置
 export JAVA_HOME="${JAVA_HOME:-/usr/local/jdk17}"
@@ -80,7 +80,7 @@ if [ "$DO_BUILD" = "1" ] && [ "$needs_backend" = "1" ]; then
   }
   echo
   echo "==> jar 产物"
-  for svc in haalan-gateway user-service item-service order-service search-service seckill-service; do
+  for svc in haalan-gateway user-service item-service order-service search-service seckill-service cart-service; do
     jar="$REPO_ROOT/$svc/target/$svc-0.0.1-SNAPSHOT.jar"
     [ -f "$jar" ] && printf '  %-18s %s\n' "$svc" "$(du -h "$jar" | cut -f1)" \
                   || { printf '  %-18s [缺失]\n' "$svc"; exit 1; }
@@ -155,7 +155,7 @@ echo "==> 等待服务注册到 Nacos（最多 150 秒）"
 for i in $(seq 1 50); do
   n=$(curl -s --max-time 5 "http://127.0.0.1:8848/nacos/v1/ns/service/list?pageNo=1&pageSize=100" 2>/dev/null \
       | grep -o '"count":[0-9]*' | cut -d: -f2 || echo 0)
-  if [ "${n:-0}" -ge 7 ]; then echo "  已注册 ${n} 个服务"; break; fi
+  if [ "${n:-0}" -ge 8 ]; then echo "  已注册 ${n} 个服务"; break; fi
   sleep 3
 done
 

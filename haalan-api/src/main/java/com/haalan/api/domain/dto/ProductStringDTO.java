@@ -49,8 +49,4 @@ public class ProductStringDTO {
 	@ApiModelProperty(value = "支付宝产品编码")
 	private String alipayProductCode;
 
-	@JsonProperty("wechatProductCode")
-	@ApiModelProperty(value = "微信产品编码")
-	private String wechatProductCode;
-
 }

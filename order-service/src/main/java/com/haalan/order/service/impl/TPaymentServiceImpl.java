@@ -19,6 +19,8 @@ import com.haalan.order.config.AlipayProperties;
 import com.haalan.order.config.MQProperties;
 import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.dto.PayRequestDTO;
+import com.haalan.order.domain.po.TOrder;
+import com.haalan.order.domain.po.TOrderItem;
 import com.haalan.order.domain.po.TPayment;
 import com.haalan.order.domain.po.TSeckillOrder;
 import com.haalan.order.domain.vo.PayResponseVO;
@@ -27,9 +29,13 @@ import com.haalan.order.mapper.TPaymentMapper;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.mapper.TSeckillOrder1Mapper;
 import com.haalan.order.service.IMessagePushService;
+import com.haalan.order.service.ITOrderItemService;
+import com.haalan.order.service.ITOrderService;
 import com.haalan.order.service.ITPaymentService;
 import com.haalan.order.service.ITSeckillOrder0Service;
 import io.seata.spring.annotation.GlobalTransactional;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -40,6 +46,7 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * <p>
@@ -64,6 +71,8 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	private final ITSeckillOrder0Service seckillOrderService;
 	private final TSeckillOrder0Mapper seckillOrder0Mapper;
 	private final TSeckillOrder1Mapper seckillOrder1Mapper;
+	private final ITOrderService orderService;
+	private final ITOrderItemService orderItemService;
 
 	@Resource
 	private AlipayProperties alipayProperties;
@@ -85,20 +94,19 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 
 		log.info("开始创建支付订单, userId={}, orderNo={}, payType={}", userId, orderNo, payType);
 
-		// 1. 查询订单信息（根据userId确定分表）
-		TSeckillOrder order = selectOrder(userId, orderNo);
+		// 1. 查询订单信息（普通订单优先，未命中再查秒杀分表）
+		PayableOrder payableOrder = selectPayableOrder(userId, orderNo);
 
-		// 2. 验证订单状态
-		if (order.getStatus() != 0) {
-			throw new BizIllegalException("订单状态异常，无法支付");
-		}
-
-		// 3. 验证用户权限
-		if (!order.getUserId().equals(userId)) {
+		if (!payableOrder.getUserId().equals(userId)) {
 			throw new BizIllegalException("无权操作此订单");
 		}
 
-		// 4. 检查是否已存在支付记录
+		// 2. 验证订单状态
+		if (payableOrder.getStatus() != 0) {
+			throw new BizIllegalException("订单状态异常，无法支付");
+		}
+
+		// 3. 检查是否已存在支付记录
 		TPayment existingPayment = this.lambdaQuery()
 				.eq(TPayment::getOrderNo, orderNo)
 				.one();
@@ -107,8 +115,8 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			throw new BizIllegalException("订单已支付");
 		}
 
-		// 5. 创建或更新支付记录
-		BigDecimal payAmount = order.getTotalAmount();
+		// 4. 创建或更新支付记录
+		BigDecimal payAmount = payableOrder.getTotalAmount();
 		TPayment payment;
 		if (existingPayment == null) {
 			payment = new TPayment();
@@ -124,12 +132,12 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			this.updateById(payment);
 		}
 
-		// 6. 生成支付URL（根据支付方式调用不同的支付接口）
+		// 5. 生成支付URL（根据支付方式调用不同的支付接口）
 		String payUrl;
 		String qrCode = null;
 		if (payType == 2) {
 			// 支付宝支付
-			payUrl = generateAlipayPayUrl(userId, orderNo, order.getProductName(), payAmount);
+			payUrl = generateAlipayPayUrl(userId, orderNo, payableOrder.getProductName(), payAmount);
 		} else if (payType == 1) {
 			// 微信支付（暂时使用模拟URL）
 			payUrl = generateWechatPayUrl(orderNo);
@@ -139,12 +147,12 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			payUrl = generateBankPayUrl(orderNo);
 		}
 
-		// 7. 计算支付过期时间
+		// 6. 计算支付过期时间
 		LocalDateTime expireTime = LocalDateTime.now().plusMinutes(15);
 
 		log.info("支付订单创建成功, orderNo={}, payAmount={}, payUrl={}", orderNo, payAmount, payUrl);
 
-		// 8. 构建响应
+		// 7. 构建响应
 		return PayResponseVO.builder()
 				.orderNo(orderNo)
 				.payAmount(payAmount)
@@ -154,6 +162,67 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 				.qrCode(qrCode)
 				.expireTime(expireTime)
 				.build();
+	}
+
+	/**
+	 * 统一订单查询：先查普通订单表 t_order，未命中再按 userId%2 查秒杀分表。
+	 * 让支付/回调/退款链路同时支持普通订单与秒杀订单。
+	 */
+	private PayableOrder selectPayableOrder(Long userId, String orderNo) {
+		TOrder normalOrder = orderService.getByOrderNo(orderNo);
+		if (normalOrder != null) {
+			if (!normalOrder.getUserId().equals(userId)) {
+				throw new BizIllegalException("无权操作此订单");
+			}
+			if (normalOrder.getStatus() == 2 || normalOrder.getStatus() == 3) {
+				throw new BizIllegalException("订单状态异常，无法支付");
+			}
+			// 普通订单标题取首条明细商品名
+			String productName = null;
+			List<TOrderItem> items = orderItemService.getByOrderNo(orderNo);
+			if (!items.isEmpty()) {
+				productName = items.get(0).getProductName();
+			}
+			return new PayableOrder(normalOrder.getOrderNo(), normalOrder.getUserId(),
+					normalOrder.getTotalAmount(), normalOrder.getStatus(),
+					normalOrder.getPayTime(), NormalOrderType.NORMAL, productName, null, null);
+		}
+
+		TSeckillOrder seckillOrder = selectOrder(userId, orderNo);
+		if (!seckillOrder.getUserId().equals(userId)) {
+			throw new BizIllegalException("无权操作此订单");
+		}
+		return new PayableOrder(seckillOrder.getOrderNo(), seckillOrder.getUserId(),
+				seckillOrder.getTotalAmount(), seckillOrder.getStatus(),
+				seckillOrder.getPayTime(), NormalOrderType.SECKILL,
+				seckillOrder.getProductName(), seckillOrder.getSeckillProductId(), seckillOrder.getQuantity());
+	}
+
+	/**
+	 * 统一订单类型的枚举
+	 */
+	public enum NormalOrderType {
+		NORMAL, SECKILL
+	}
+
+	/**
+	 * 统一「可支付订单」视图：屏蔽普通订单(t_order)与秒杀订单(t_seckill_order_x)的差异
+	 */
+	@Data
+	@AllArgsConstructor
+	public static class PayableOrder {
+		private String orderNo;
+		private Long userId;
+		private BigDecimal totalAmount;
+		private Integer status;
+		private LocalDateTime payTime;
+		private NormalOrderType orderType;
+		/** 商品标题（普通订单取明细首条） */
+		private String productName;
+		/** 秒杀商品ID（仅秒杀订单） */
+		private Long seckillProductId;
+		/** 购买数量（仅秒杀订单） */
+		private Integer quantity;
 	}
 
 	private TSeckillOrder selectOrder(Long userId, String orderNo) {
@@ -183,13 +252,7 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	private String generateAlipayPayUrl(Long userId, String orderNo, String productName, BigDecimal payAmount) {
 		try {
 			// 1. 初始化支付宝客户端
-
 			AlipayClient alipayClient = initAlipayClient();
-
-
-			System.out.println(alipayProperties.getPrivateKey());
-			System.out.println(alipayProperties.getAlipayPublicKey());
-
 
 			// 2. 创建请求对象
 			AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
@@ -202,18 +265,11 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			payAmount = payAmount.setScale(2, RoundingMode.HALF_UP);
 			model.setTotalAmount(payAmount.toString()); // 订单金额
 
-			String productNameResult = productName.replaceAll("[^a-zA-Z0-9_]", "");
-
-			model.setSubject(productNameResult); // 订单标题
-			//从数据库获取
-			TSeckillOrder allByNo = seckillOrderService.getAllByNo(orderNo, userId);
-			String alipayProductCode = allByNo.getAlipayProductCode();
+			String subject = productName != null ? productName.replaceAll("[^a-zA-Z0-9_\\u4e00-\\u9fa5]", "") : "haalan商品";
+			model.setSubject(subject); // 订单标题
 			// 销售产品码：支付宝 page.pay 必须传 FAST_INSTANT_TRADE_PAY，
-			// 空串/空白串同样会导致收银台报「订单信息无法识别」，所以这里一并兜底
-			if (alipayProductCode == null || alipayProductCode.isBlank()) {
-				alipayProductCode = DEFAULT_ALIPAY_PRODUCT_CODE;
-			}
-			model.setProductCode(alipayProductCode);
+			// 空串/空白串同样会导致收银台报「订单信息无法识别」，所以这里兜底
+			model.setProductCode(DEFAULT_ALIPAY_PRODUCT_CODE);
 			model.setQrPayMode("1"); // PC扫码支付模式
 			Integer timeOut = mqProperties.getTimeOut();
 			// 超时时间
@@ -328,36 +384,11 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 
 			Long userId = payment.getUserId();
 
-			// 2. 根据userId确定分表，查询订单
-			int tableSuffix = (int) (userId % 2);
-			TSeckillOrder order;
-			if (tableSuffix == 0) {
-				order = seckillOrder0Mapper.selectOne(
-						new LambdaQueryWrapper<TSeckillOrder>()
-								.eq(TSeckillOrder::getOrderNo, outTradeNo)
-				);
-			} else {
-				order = seckillOrder1Mapper.selectOne(
-						new LambdaQueryWrapper<TSeckillOrder>()
-								.eq(TSeckillOrder::getOrderNo, outTradeNo)
-				);
-			}
+			// 2. 查询订单（普通订单优先，秒杀表兜底）
+			PayableOrder payableOrder = selectPayableOrder(userId, outTradeNo);
 
-			if (order == null) {
-				log.error("订单不存在: {}", outTradeNo);
-				return "fail";
-			}
-
-			// 3. 更新订单状态为已支付
-			order.setStatus(1); // 已支付
-			order.setPayTime(LocalDateTime.now());
-
-			boolean orderUpdated;
-			if (tableSuffix == 0) {
-				orderUpdated = seckillOrder0Mapper.updateById(order) > 0;
-			} else {
-				orderUpdated = seckillOrder1Mapper.updateById(order) > 0;
-			}
+			// 3. 更新订单状态为已支付（乐观锁：仅待支付订单才更新）
+			boolean orderUpdated = markOrderPaid(payableOrder, tradeNo);
 
 			if (!orderUpdated) {
 				log.error("更新订单状态失败: {}", outTradeNo);
@@ -375,8 +406,8 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			// 5. 推送WebSocket消息通知客户端
 			messagePushService.pushPaymentSuccess(userId, outTradeNo);
 
-			// 6. 发送MQ消息通知秒杀服务更新秒杀记录状态
-			sendPaySuccessMessage(order, userId);
+			// 6. 发送MQ消息通知秒杀服务更新秒杀记录状态（仅秒杀订单）
+			sendPaySuccessMessage(payableOrder, userId);
 
 			return "success";
 
@@ -384,6 +415,38 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 			log.error("处理支付宝回调时发生错误", e);
 			return "fail";
 		}
+	}
+
+	/**
+	 * 将订单置为已支付（乐观锁，仅 status=0 生效），返回是否更新成功
+	 */
+	private boolean markOrderPaid(PayableOrder order, String tradeNo) {
+		if (order.getOrderType() == NormalOrderType.NORMAL) {
+			boolean ok = orderService.lambdaUpdate()
+					.eq(TOrder::getOrderNo, order.getOrderNo())
+					.eq(TOrder::getStatus, 0)
+					.set(TOrder::getStatus, 1)
+					.set(TOrder::getPayTime, LocalDateTime.now())
+					.set(TOrder::getTransactionId, tradeNo)
+					.update();
+			log.info("普通订单置为已支付, orderNo={}, result={}", order.getOrderNo(), ok);
+			return ok;
+		}
+
+		int tableSuffix = (int) (order.getUserId() % 2);
+		TSeckillOrder seckillOrder = tableSuffix == 0
+				? seckillOrder0Mapper.selectOne(new LambdaQueryWrapper<TSeckillOrder>()
+						.eq(TSeckillOrder::getOrderNo, order.getOrderNo()))
+				: seckillOrder1Mapper.selectOne(new LambdaQueryWrapper<TSeckillOrder>()
+						.eq(TSeckillOrder::getOrderNo, order.getOrderNo()));
+
+		if (seckillOrder == null) {
+			log.error("订单不存在: {}", order.getOrderNo());
+			return false;
+		}
+		seckillOrder.setStatus(1);
+		seckillOrder.setPayTime(LocalDateTime.now());
+		return (tableSuffix == 0 ? seckillOrder0Mapper : seckillOrder1Mapper).updateById(seckillOrder) > 0;
 	}
 
 	@Override
@@ -484,38 +547,24 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 		payment.setPayTime(LocalDateTime.now());
 		this.updateById(payment);
 
-		// 2. 查询订单并更新订单状态
-		Long userId = payment.getUserId();
-		int tableSuffix = (int) (userId % 2);
-		TSeckillOrder order;
-		if (tableSuffix == 0) {
-			order = seckillOrder0Mapper.selectOne(
-					new LambdaQueryWrapper<TSeckillOrder>()
-							.eq(TSeckillOrder::getOrderNo, payment.getOrderNo())
-			);
-		} else {
-			order = seckillOrder1Mapper.selectOne(
-					new LambdaQueryWrapper<TSeckillOrder>()
-							.eq(TSeckillOrder::getOrderNo, payment.getOrderNo())
-			);
+		// 2. 查询订单并更新订单状态（普通订单 + 秒杀表统一处理）
+		PayableOrder payableOrder;
+		try {
+			payableOrder = selectPayableOrder(payment.getUserId(), payment.getOrderNo());
+		} catch (BizIllegalException e) {
+			log.warn("订单不存在或无权操作，跳过状态更新: orderNo={}", payment.getOrderNo());
+			return;
 		}
 
-		if (order != null && order.getStatus() == 0) {
-			// 只有待支付的订单才更新
-			order.setStatus(1); // 已支付
-			order.setPayTime(LocalDateTime.now());
-			if (tableSuffix == 0) {
-				seckillOrder0Mapper.updateById(order);
-			} else {
-				seckillOrder1Mapper.updateById(order);
-			}
+		boolean orderUpdated = markOrderPaid(payableOrder, tradeNo);
+		if (orderUpdated) {
 			log.info("订单状态更新为已支付, orderNo={}", payment.getOrderNo());
 
 			// 3. 推送WebSocket消息通知客户端
-			messagePushService.pushPaymentSuccess(userId, payment.getOrderNo());
+			messagePushService.pushPaymentSuccess(payableOrder.getUserId(), payment.getOrderNo());
 
-			// 4. 发送MQ消息通知秒杀服务更新秒杀记录状态
-			sendPaySuccessMessage(order, userId);
+			// 4. 发送MQ消息通知秒杀服务更新秒杀记录状态（仅秒杀订单）
+			sendPaySuccessMessage(payableOrder, payableOrder.getUserId());
 		}
 	}
 
@@ -547,10 +596,15 @@ public class TPaymentServiceImpl extends ServiceImpl<TPaymentMapper, TPayment> i
 	/**
 	 * 发送支付成功MQ消息，通知秒杀服务更新秒杀记录状态,以及库存状态
 	 *
-	 * @param order  订单信息
+	 * @param order  可支付订单
 	 * @param userId 用户ID
 	 */
-	private void sendPaySuccessMessage(TSeckillOrder order, Long userId) {
+	private void sendPaySuccessMessage(PayableOrder order, Long userId) {
+		if (order.getOrderType() != NormalOrderType.SECKILL) {
+			// 普通订单没有秒杀记录需要同步，直接返回
+			log.debug("非秒杀订单，不发送秒杀支付成功消息: orderNo={}", order.getOrderNo());
+			return;
+		}
 		try {
 			SeckillOrderPaySuccessMessage message = SeckillOrderPaySuccessMessage.builder()
 					.orderNo(order.getOrderNo())

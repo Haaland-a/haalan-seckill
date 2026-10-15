@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FallbackFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -50,8 +51,14 @@ public class ItemServiceClientFallback implements FallbackFactory<ItemServiceCli
 						.build();
 			}
 
-			// ========== 写操作：必须抛出异常，让 Seata 触发回滚 ==========
+			@Override
+			public List<SkuDetailVO> getSkuDetailBatch(List<Long> skuIds) {
+				log.error("调用 item-service 批量获取SKU详情失败, skuIds: {}", skuIds, cause);
+				// 查询类接口：返回空列表，由调用方降级处理（购物车会标记为"商品已失效"）
+				return Collections.emptyList();
+			}
 
+			// ========== 写操作：必须抛出异常，让 Seata 触发回滚 ==========
 			@Override
 			public Boolean deductStock(Long skuId, Integer stock) {
 				log.error("调用 item-service 扣减库存失败, skuId: {}, num: {}", skuId, stock, cause);

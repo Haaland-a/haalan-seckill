@@ -27,8 +27,22 @@ public class UserLoginLog implements Serializable {
 	private Long id;
 
 	@ApiModelProperty(value = "用户ID")
+	// 登录失败路径拿不到 userId（LoginLogAspect.doAfterThrowing 传 null），
+	// 而 t_user_login_log.user_id 是 bigint NOT NULL 且无默认值，
+	// 直接 insert 会报 Field 'user_id' doesn't have a default value /
+	// Column 'user_id' cannot be null。
+	// 这里不靠 updateStrategy（那只决定 null 是否拼进 SQL，解决不了 DB 层的 NOT NULL），
+	// 而是把 userId 兜底为 0，表示「登录失败/未知用户」。
 	@TableField("user_id")
 	private Long userId;
+
+	/**
+	 * 登录失败/用户不存在时统一写入 0，表示「未知用户」。
+	 * t_user_login_log.user_id 是 bigint NOT NULL 且无默认值，null 会直接被 MySQL 拒绝。
+	 */
+	public Long getUserId() {
+		return userId == null ? 0L : userId;
+	}
 
 	@ApiModelProperty(value = "用户名")
 	@TableField("username")

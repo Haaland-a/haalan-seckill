@@ -89,6 +89,21 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 			Long userId = tokenPayload.getUserId();
 			Integer tokenVersion = tokenPayload.getVersion();
 
+			// 管理员判定必须放在 Token 版本缓存命中与否的分支之外。
+			// 原来这段判定被包在 if (cachedVersion != null) 里，Redis 里没有
+			// user:token:version:{userId} 时（冷缓存、缓存被清、Redis 重启）会整段跳过，
+			// 任何登录用户都能访问 /api/admin/**。
+			//
+			// 判定依据也从 tokenVersion == 0 换成 Token 里的 admin claim：
+			// 原来那个写法把 token_version 当成角色用，而 token_version 是「改密/退出就 +1」的
+			// 踢人计数器 —— 管理员改一次密码就再也进不去后台了。
+			if (isAdminPath(requestPath) && !Boolean.TRUE.equals(tokenPayload.getAdmin())) {
+				log.warn("用户{} 尝试访问管理员路径 {} 但权限不足", userId, requestPath);
+				ServerHttpResponse response = exchange.getResponse();
+				response.setRawStatusCode(ResultCode.FORBIDDEN); // 使用403状态码更好区分
+				return response.setComplete();
+			}
+
 			String redisKey = "user:token:version:" + userId;
 			String cachedVersion = stringRedisTemplate.opsForValue().get(redisKey);
 
@@ -100,19 +115,12 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 					response.setRawStatusCode(ResultCode.UNAUTHORIZED);
 					return response.setComplete();
 				}
-				// 检查管理员权限：访问 api/admin/ 路径需要 token_version = 0
-				if (isAdminPath(requestPath) && tokenVersion != 0) {
-					log.warn("用户{} 尝试访问管理员路径 {} 但权限不足，token_version={}",
-							userId, requestPath, tokenVersion);
-					ServerHttpResponse response = exchange.getResponse();
-					response.setRawStatusCode(ResultCode.FORBIDDEN); // 使用403状态码更好区分
-					return response.setComplete();
-				}
 			} else {
 				stringRedisTemplate.opsForValue().set(redisKey, tokenVersion.toString(), 2, TimeUnit.HOURS);
 			}
 
-			log.info("用户{} Token校验通过，版本: {}", userId, tokenVersion);
+			log.info("用户{} Token校验通过，版本: {}, 管理员: {}",
+					userId, tokenVersion, Boolean.TRUE.equals(tokenPayload.getAdmin()));
 
 		} catch (UnauthorizedException e) {
 			ServerHttpResponse response = exchange.getResponse();
@@ -121,13 +129,16 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
 		}
 
 		// 5.传递用户信息（userId + version）
-		exchange.mutate()
+		// 注意：mutate() 返回的是一个新的 exchange（请求头被改写的那份），
+		// 必须把它赋回给 exchange 再交给 chain，否则下游微服务收到的请求里
+		// 没有 user-info / token-version 头，UserContext.getUser() 会永远读不到用户。
+		ServerWebExchange mutatedExchange = exchange.mutate()
 				.request(builder -> builder
 						.header("user-info", tokenPayload.getUserId().toString())
 						.header("token-version", tokenPayload.getVersion().toString()))
 				.build();
 
-		return chain.filter(exchange);
+		return chain.filter(mutatedExchange);
 	}
 
 	private boolean isAdminPath(String path) {

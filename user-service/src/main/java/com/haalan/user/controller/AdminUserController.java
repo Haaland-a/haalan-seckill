@@ -18,11 +18,13 @@ import com.haalan.user.service.TUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -33,6 +35,7 @@ public class AdminUserController {
 
 	private final TUserService userService;
 	private final UserLoginLogMapper loginLogMapper;
+	private final StringRedisTemplate stringRedisTemplate;
 
 	@PostMapping("/register")
 	@ApiOperation("管理端注册用户")
@@ -100,9 +103,17 @@ public class AdminUserController {
 			throw new BizIllegalException("用户不存在");
 		}
 		user.setStatus(dto.getStatus());
-		//禁用后防止继续操作 //管理员最高权限无视禁用规则
-		user.setTokenVersion(user.getTokenVersion());
-		//同步到redis,检查是在redis中检查的
+		// 禁用后让已签发的 Token 立即失效：token_version + 1 会让网关侧
+		// 的版本比对判定旧 Token 过期（网关 Redis 里缓存的是递增后的新版本）。
+		// 原来这里写的是 user.setTokenVersion(user.getTokenVersion()) 自赋值，
+		// 是个空操作 —— 禁用账号后旧 Token 依然能用到自然过期。
+		Integer currentVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
+		user.setTokenVersion(currentVersion + 1);
+		// 同步到 redis,检查是在redis中检查的
+		stringRedisTemplate.opsForValue().set(
+				"user:token:version:" + userId,
+				String.valueOf(currentVersion + 1),
+				2, java.util.concurrent.TimeUnit.HOURS);
 
 		userService.updateStatus(user);
 		return R.success("状态更新成功");

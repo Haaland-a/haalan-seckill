@@ -116,15 +116,24 @@ public class TUserServiceImpl extends ServiceImpl<TUserMapper, TUser> implements
 		}
 
 		Integer version = user.getTokenVersion() != null ? user.getTokenVersion() : 1;
-		String token = jwtTool.createToken(user.getId(), version, /*Duration.ofHours(2)*/ Duration.ofDays(50)/*TODO 这是测试时用的*/);
+		// 管理员身份写进 Token 的 admin claim，而不是靠 token_version == 0 猜：
+		// token_version 是「改密/退出就 +1」的踢人计数器，拿它当角色用会导致
+		// 管理员改一次密码就永久失去后台权限。
+		boolean isAdmin = user.getIsAdmin() != null && user.getIsAdmin() == 1;
+		// Token 有效期与网关 application.yaml 的 haalan.jwt.tokenTTL: 2h 保持一致。
+		// 这里原来是 Duration.ofDays(50)（自带的 TODO 注明「这是测试时用的」），
+		// 会让登录态存活 50 天：改密/退出踢人依赖 token_version 比对，
+		// 而 token 本身 50 天不过期，等于把「踢人」窗口拉到 50 天，风险面过大。
+		String token = jwtTool.createToken(user.getId(), version, isAdmin, Duration.ofHours(2));
 
 		LoginVO loginVO = new LoginVO();
-		log.info("用户{}登录成功，生成Token(version:{}):{}", user.getUsername(), version, token);
+		log.info("用户{}登录成功，生成Token(version:{}, admin:{})", user.getUsername(), version, isAdmin);
 		loginVO.setUserId(user.getId());
 		loginVO.setUsername(user.getUsername());
 		loginVO.setToken(token);
 		loginVO.setTokenExpire(System.currentTimeMillis() + Duration.ofHours(2).toMillis());
 		loginVO.setMemberLevel(user.getMemberLevel());
+		loginVO.setAdmin(isAdmin);
 
 		return loginVO;
 	}

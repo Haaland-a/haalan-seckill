@@ -19,6 +19,7 @@ import com.haalan.item.util.ItemCacheEmptyUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -179,7 +180,6 @@ public class TProductServiceImpl implements TProductService {
 				.stock(sku.getStock())
 				.originalPrice(sku.getPrice())
 				.alipayProductCode(sku.getAlipayProductCode())
-				.wechatProductCode(sku.getWechatProductCode())
 				.build();
 	}
 
@@ -266,6 +266,44 @@ public class TProductServiceImpl implements TProductService {
 		return vo;
 	}
 
+	@Override
+	public List<SkuDetailVO> getSkuDetailBatch(List<Long> skuIds) {
+		if (skuIds == null || skuIds.isEmpty()) {
+			return Collections.emptyList();
+		}
+		// 去重，避免重复 SKU 造成无效查询
+		List<Long> distinctIds = skuIds.stream().filter(Objects::nonNull).distinct().collect(Collectors.toList());
+		if (distinctIds.isEmpty()) {
+			return Collections.emptyList();
+		}
+		// 一次 SQL 批量查库，避免购物车结算时 N 次远程调用
+		List<TSku> skus = skuService.listByIds(distinctIds);
+		if (skus == null || skus.isEmpty()) {
+			return Collections.emptyList();
+		}
+		return skus.stream().map(this::toSkuDetailVO).collect(Collectors.toList());
+	}
+
+	/**
+	 * TSku -> SkuDetailVO 转换（避免类型转换问题，手动赋值）
+	 */
+	private SkuDetailVO toSkuDetailVO(TSku sku) {
+		SkuDetailVO vo = new SkuDetailVO();
+		vo.setSkuId(sku.getId());
+		vo.setSkuCode(sku.getSkuCode());
+		vo.setSkuName(sku.getName());
+		vo.setSpuId(sku.getSpuId());
+		vo.setSpecifications(sku.getSpecifications());
+		vo.setPrice(sku.getPrice());
+		vo.setStock(sku.getStock());
+		// 销量：搜索页的「销量」列和 sales_desc 排序都依赖这个字段，
+		// 漏了它 search-service 侧永远只能拿到 0。
+		vo.setSoldCount(sku.getSoldCount());
+		vo.setImages(sku.getImages());
+		vo.setStatus(sku.getStatus());
+		return vo;
+	}
+
 	/**
 	 * 从数据库查询SKU详情
 	 */
@@ -274,23 +312,55 @@ public class TProductServiceImpl implements TProductService {
 		if (sku == null) {
 			return null;
 		}
-		SkuDetailVO vo = new SkuDetailVO();
-		// 手动赋值，避免类型转换问题
-		vo.setSkuId(sku.getId());
-		vo.setSkuCode(sku.getSkuCode());
-		vo.setSkuName(sku.getName());
-		vo.setSpuId(sku.getSpuId());
-		vo.setSpecifications(sku.getSpecifications());
-		vo.setPrice(sku.getPrice());
-		vo.setStock(sku.getStock());
-		vo.setImages(sku.getImages());
-		vo.setStatus(sku.getStatus());
-		return vo;
+		return toSkuDetailVO(sku);
 	}
 
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public List<BatchDeductStockResultVO> batchDeductStock(List<BatchDeductStockDTO> stockList) {
-		return Collections.emptyList();
+		if (stockList == null || stockList.isEmpty()) {
+			return Collections.emptyList();
+		}
+
+		List<BatchDeductStockResultVO> results = new ArrayList<>(stockList.size());
+		for (BatchDeductStockDTO item : stockList) {
+			Long skuId = item.getSkuId();
+			Integer stock = item.getStock();
+			if (skuId == null) {
+				results.add(BatchDeductStockResultVO.builder()
+						.skuId(null).success(false).failReason("skuId不能为空").build());
+				continue;
+			}
+			if (stock == null || stock <= 0) {
+				results.add(BatchDeductStockResultVO.builder()
+						.skuId(skuId).success(false).failReason("扣减数量必须大于0").build());
+				continue;
+			}
+
+			try {
+				boolean ok = deductStock(skuId, stock);
+				if (ok) {
+					results.add(BatchDeductStockResultVO.builder()
+							.skuId(skuId).success(true).build());
+				} else {
+					// 乐观锁未命中：并发下库存被其他事务先行扣减
+					results.add(BatchDeductStockResultVO.builder()
+							.skuId(skuId).success(false).failReason("库存不足或并发冲突").build());
+				}
+			} catch (Exception e) {
+				log.error("批量扣减库存异常, skuId={}, stock={}", skuId, stock, e);
+				results.add(BatchDeductStockResultVO.builder()
+						.skuId(skuId).success(false).failReason(e.getMessage()).build());
+			}
+		}
+
+		// 任一条失败则整体回滚，保证普通下单「扣库存 + 落订单」原子性
+		boolean anyFail = results.stream().anyMatch(r -> !Boolean.TRUE.equals(r.getSuccess()));
+		if (anyFail) {
+			log.warn("批量扣减库存存在失败项，整体回滚: {}", results);
+			throw new RuntimeException("批量扣减库存失败");
+		}
+		return results;
 	}
 
 	@Override

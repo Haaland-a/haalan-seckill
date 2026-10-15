@@ -19,6 +19,7 @@ import com.haalan.order.config.AlipayProperties;
 import com.haalan.order.config.RabbitConstants;
 import com.haalan.order.domain.dto.RefundAuditRequestDTO;
 import com.haalan.order.domain.dto.RefundRequestDTO;
+import com.haalan.order.domain.po.TOrder;
 import com.haalan.order.domain.po.TPayment;
 import com.haalan.order.domain.po.TRefund;
 import com.haalan.order.domain.po.TSeckillOrder;
@@ -27,6 +28,8 @@ import com.haalan.order.domain.vo.RefundResponseVO;
 import com.haalan.order.mapper.TRefundMapper;
 import com.haalan.order.mapper.TSeckillOrder0Mapper;
 import com.haalan.order.mapper.TSeckillOrder1Mapper;
+import com.haalan.order.service.ITOrderService;
+import com.haalan.order.service.ITPaymentService;
 import com.haalan.order.service.ITRefundService;
 import io.seata.spring.annotation.GlobalTransactional;
 import lombok.RequiredArgsConstructor;
@@ -60,9 +63,10 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 
 	private final TSeckillOrder0Mapper seckillOrder0Mapper;
 	private final TSeckillOrder1Mapper seckillOrder1Mapper;
+	private final ITOrderService orderService;
+	private final ITPaymentService paymentService;
 	private final RabbitTemplate rabbitTemplate;
 	private final StringRedisTemplate stringRedisTemplate;
-
 	@Resource
 	private AlipayProperties alipayProperties;
 
@@ -74,9 +78,8 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 
 		log.info("用户申请退款, userId={}, orderNo={}, refundAmount={}", userId, orderNo, refundAmount);
 
-		// 1. 查询订单信息
-		TSeckillOrder order = selectOrder(userId, orderNo);
-
+		// 1. 查询订单信息（普通订单优先，秒杀分表兜底）
+		TPaymentServiceImpl.PayableOrder order = selectPayableOrder(userId, orderNo);
 
 		// 2. 验证订单状态（只有已支付的订单才能退款）
 		if (order.getStatus() != 1) {
@@ -103,8 +106,7 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 		}
 
 		// 6. 查询支付记录获取支付宝交易号
-		TPayment payment = new com.baomidou.mybatisplus.extension.service.impl.ServiceImpl<com.haalan.order.mapper.TPaymentMapper, TPayment>() {
-		}.lambdaQuery()
+		TPayment payment = paymentService.lambdaQuery()
 				.eq(TPayment::getOrderNo, orderNo)
 				.one();
 
@@ -135,6 +137,27 @@ public class TRefundServiceImpl extends ServiceImpl<TRefundMapper, TRefund> impl
 				.status(0)
 				.statusName("处理中")
 				.build();
+	}
+
+	private TPaymentServiceImpl.PayableOrder selectPayableOrder(Long userId, String orderNo) {
+		TOrder normalOrder = orderService.getByOrderNo(orderNo);
+		if (normalOrder != null) {
+			if (!normalOrder.getUserId().equals(userId)) {
+				throw new BizIllegalException("无权操作此订单");
+			}
+			return new TPaymentServiceImpl.PayableOrder(normalOrder.getOrderNo(), normalOrder.getUserId(),
+					normalOrder.getTotalAmount(), normalOrder.getStatus(),
+					normalOrder.getPayTime(), TPaymentServiceImpl.NormalOrderType.NORMAL, null, null, null);
+		}
+
+		TSeckillOrder seckillOrder = selectOrder(userId, orderNo);
+		if (!seckillOrder.getUserId().equals(userId)) {
+			throw new BizIllegalException("无权操作此订单");
+		}
+		return new TPaymentServiceImpl.PayableOrder(seckillOrder.getOrderNo(), seckillOrder.getUserId(),
+				seckillOrder.getTotalAmount(), seckillOrder.getStatus(),
+				seckillOrder.getPayTime(), TPaymentServiceImpl.NormalOrderType.SECKILL,
+				seckillOrder.getProductName(), seckillOrder.getSeckillProductId(), seckillOrder.getQuantity());
 	}
 
 	private TSeckillOrder selectOrder(Long userId, String orderNo) {

@@ -1,0 +1,19 @@
+server:
+  port: 8086
+feign:
+  okhttp:
+    enabled: true # 开启OKHttp连接池支持
+  sentinel:
+    enabled: true # 开启Feign对Sentinel的整合（fallbackFactory 生效前提）
+haalan:
+  swagger:
+    title: haalan购物车接口文档
+    description: 哈兰购物车服务
+    email: 417376585@qq.com
+    contact: lyc
+    package: com.haalan.cart.controller
+  db:
+    database: cart-db
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml

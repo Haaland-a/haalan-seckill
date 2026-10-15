@@ -48,9 +48,6 @@ public class SkuCreateDTO implements Serializable {
 	@TableField("alipay_product_code")
 	private String alipayProductCode;
 
-	@TableField("wechat_product_code")
-	private String wechatProductCode;
-
 	@ApiModelProperty(value = "商品图片列表")
 	private List<String> images;
 

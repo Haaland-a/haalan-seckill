@@ -29,4 +29,8 @@ public class LoginVO {
 	@ApiModelProperty(value = "会员等级：1-普通 2-VIP 3-SVIP", example = "1")
 	@JsonProperty("memberLevel")
 	private Integer memberLevel;
+
+	@ApiModelProperty(value = "是否管理员", example = "false")
+	@JsonProperty("admin")
+	private Boolean admin;
 }

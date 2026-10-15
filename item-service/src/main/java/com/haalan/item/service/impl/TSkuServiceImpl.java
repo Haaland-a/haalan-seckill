@@ -77,7 +77,6 @@ public class TSkuServiceImpl extends ServiceImpl<TSkuMapper, TSku> implements IT
 		sku.setSpuId(dto.getSpuId());
 		sku.setName(dto.getName());
 		sku.setAlipayProductCode(isBlank(dto.getAlipayProductCode()) ? "FAST_INSTANT_TRADE_PAY" : dto.getAlipayProductCode());
-		sku.setWechatProductCode(isBlank(dto.getWechatProductCode()) ? "FAST_INSTANT_TRADE_PAY" : dto.getWechatProductCode());
 		if (dto.getSpecifications() != null) {
 			sku.setSpecifications(JSONUtil.toJsonStr(dto.getSpecifications()));
 		}

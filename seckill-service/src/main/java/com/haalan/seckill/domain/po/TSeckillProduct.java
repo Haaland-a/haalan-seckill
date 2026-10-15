@@ -92,7 +92,4 @@ public class TSeckillProduct implements Serializable {
 	@TableField("alipay_product_code")
 	private String alipayProductCode;
 
-	@TableField("wechat_product_code")
-	private String wechatProductCode;
-
 }

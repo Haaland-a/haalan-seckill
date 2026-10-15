@@ -377,7 +377,6 @@ public class SeckillExecuteServiceImpl implements ISeckillExecuteService {
 				.seckillPrice(
 						new BigDecimal(product.get("seckillPrice"))
 				)
-				.wechatProductCode(product.get("wechatProductCode"))
 				.alipayProductCode(product.get("alipayProductCode"))
 				.quantity(request.getQuantity())
 				.totalAmount(totalAmount)

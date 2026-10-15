@@ -1,0 +1,1325 @@
+openapi: "3.0.3"
+info:
+  title: Haalan 电商平台 API
+  description: |
+    Haalan 电商平台 REST API 接口文档
+
+    认证方式：
+    - 请求头携带 JWT Token（`Authorization: Bearer <token>`）
+    - 登录后获取 Token
+    - 管理端接口需使用管理员账号登录
+
+    统一响应格式：
+    ```json
+    {
+      "code": 200,
+      "message": "success",
+      "data": {},
+      "timestamp": 1234567890
+    }
+    ```
+  version: "1.0.0"
+  contact:
+    name: lyc
+    email: 417376585@qq.com
+
+servers:
+  - url: http://localhost:8080
+    description: 网关入口（开发环境）
+
+paths:
+  # ==========================================
+  # 用户服务
+  # ==========================================
+  /api/user/register:
+    post:
+      tags:
+        - 用户服务
+      summary: 用户注册
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/TUserVO'
+
+  /api/user/login:
+    post:
+      tags:
+        - 用户服务
+      summary: 用户登录
+      description: 获取 JWT Token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+
+  /api/user/logout:
+    post:
+      tags:
+        - 用户服务
+      summary: 退出登录
+      operationId: logout
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 退出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/user/info:
+    get:
+      tags:
+        - 用户服务
+      summary: 获取当前用户信息
+      operationId: getUserInfo
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/UserInfoVO'
+    put:
+      tags:
+        - 用户服务
+      summary: 修改用户信息
+      operationId: updateUserInfo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInfoVO'
+      responses:
+        '200':
+          description: 修改成功
+
+  /api/user/oss/credential:
+    get:
+      tags:
+        - 用户服务
+        - OSS直传
+      summary: 获取OSS上传凭证（用户头像）
+      description: |
+        获取阿里云 OSS 前端直传凭证。
+        限制规则：
+        - 头像每天只能上传一次
+        - 获取凭证频率限制：每小时一次
+      operationId: getOssCredential
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/OssUploadCredentialVO'
+
+  /api/user/change-password:
+    post:
+      tags:
+        - 用户服务
+      summary: 修改密码
+      operationId: changePassword
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                oldPassword:
+                  type: string
+                  description: 旧密码
+                newPassword:
+                  type: string
+                  description: 新密码
+                confirmPassword:
+                  type: string
+                  description: 确认新密码
+              required:
+                - oldPassword
+                - newPassword
+                - confirmPassword
+      responses:
+        '200':
+          description: 密码修改成功
+
+  /api/user/address:
+    post:
+      tags:
+        - 用户服务-地址
+      summary: 添加收货地址
+      operationId: addAddress
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressRequest'
+      responses:
+        '200':
+          description: 添加成功
+    get:
+      tags:
+        - 用户服务-地址
+      summary: 获取收货地址列表
+      operationId: getAddresses
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/user/address/{addressId}:
+    get:
+      tags:
+        - 用户服务-地址
+      summary: 获取地址详情
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 地址ID（加密后）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+    put:
+      tags:
+        - 用户服务-地址
+      summary: 修改收货地址
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 修改成功
+    delete:
+      tags:
+        - 用户服务-地址
+      summary: 删除收货地址
+      parameters:
+        - name: addressId
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 删除成功
+
+  # ==========================================
+  # 商品服务
+  # ==========================================
+  /api/category/tree:
+    get:
+      tags:
+        - 商品服务-分类
+      summary: 获取分类树
+      parameters:
+        - name: id
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: 父分类ID
+        - name: level
+          in: query
+          schema:
+            type: integer
+            default: 3
+          description: 查询层级深度
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CategoryVO'
+
+  /api/product/detail/{spuId}:
+    get:
+      tags:
+        - 商品服务-查询
+      summary: 获取商品详情
+      parameters:
+        - name: spuId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功
+
+  /api/product/stock/{skuId}:
+    get:
+      tags:
+        - 商品服务-查询
+      summary: 查询SKU库存
+      parameters:
+        - name: skuId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 成功
+
+  # ==========================================
+  # 管理端 - 商品SPU管理
+  # ==========================================
+  /api/admin/spu:
+    post:
+      tags:
+        - 管理端-商品SPU
+      summary: 创建SPU
+      description: 创建商品 SPU，含主图URL和商品图册列表
+      operationId: createSpu
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SpuCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/SpuCreateResultVO'
+
+  /api/admin/spu/list:
+    get:
+      tags:
+        - 管理端-商品SPU
+      summary: 查询SPU列表（分页）
+      operationId: getSpuList
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: pageNo
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: integer
+          description: 状态：0-下架 1-上架
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+            format: int64
+        - name: keyword
+          in: query
+          schema:
+            type: string
+          description: 关键词搜索（商品名称或编码）
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/spu/{spuId}/status:
+    put:
+      tags:
+        - 管理端-商品SPU
+      summary: 更新SPU状态（上架/下架）
+      operationId: updateSpuStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: spuId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  description: 0-下架 1-上架
+              required:
+                - status
+      responses:
+        '200':
+          description: 操作成功
+
+  # ==========================================
+  # 管理端 - 商品SKU管理
+  # ==========================================
+  /api/admin/sku:
+    post:
+      tags:
+        - 管理端-商品SKU
+      summary: 创建SKU
+      operationId: createSku
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkuCreateRequest'
+      responses:
+        '200':
+          description: 创建成功
+
+  /api/admin/sku/{skuId}/stock:
+    put:
+      tags:
+        - 管理端-商品SKU
+      summary: 更新SKU库存
+      operationId: updateSkuStock
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: skuId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stock:
+                  type: integer
+                  description: 更新后的库存数量
+              required:
+                - stock
+      responses:
+        '200':
+          description: 更新成功
+
+  # ==========================================
+  # 管理端 - OSS直传（商品图片）
+  # ==========================================
+  /api/admin/oss/credential:
+    get:
+      tags:
+        - 管理端-OSS直传
+      summary: 获取OSS上传凭证（商品图片）
+      description: |
+        获取阿里云 OSS 前端直传凭证，用于管理端上传商品图片。
+        凭证限制：仅允许上传到 `item/` 目录下。
+        凭证有效期：默认 15 分钟。
+      operationId: getAdminOssCredential
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/OssUploadCredentialVO'
+
+  # ==========================================
+  # 订单服务
+  # ==========================================
+  /api/order/create:
+    post:
+      tags:
+        - 订单服务
+      summary: 创建普通订单
+      operationId: createOrder
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 创建成功
+
+  /api/order/detail/{orderNo}:
+    get:
+      tags:
+        - 订单服务
+      summary: 获取订单详情
+      parameters:
+        - name: orderNo
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/order/list:
+    get:
+      tags:
+        - 订单服务
+      summary: 获取订单列表（分页）
+      parameters:
+        - name: pageNum
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            type: integer
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/order/cancel/{orderNo}:
+    post:
+      tags:
+        - 订单服务
+      summary: 取消订单
+      parameters:
+        - name: orderNo
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 取消成功
+
+  # ==========================================
+  # 支付服务
+  # ==========================================
+  /api/payment/pay:
+    post:
+      tags:
+        - 支付服务
+      summary: 发起支付
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/payment/callback/alipay:
+    post:
+      tags:
+        - 支付服务
+      summary: 支付宝支付回调
+      responses:
+        '200':
+          description: 成功
+
+  /api/payment/result/{orderNo}:
+    get:
+      tags:
+        - 支付服务
+      summary: 查询支付结果
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/payment/refund:
+    post:
+      tags:
+        - 支付服务
+      summary: 申请退款
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  # ==========================================
+  # 秒杀服务
+  # ==========================================
+  /api/seckill/token:
+    post:
+      tags:
+        - 秒杀服务
+      summary: 生成秒杀令牌
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/seckill/execute:
+    post:
+      tags:
+        - 秒杀服务
+      summary: 执行秒杀
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/seckill/result/{requestId}:
+    get:
+      tags:
+        - 秒杀服务
+      summary: 查询秒杀结果
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/seckill/activities:
+    get:
+      tags:
+        - 秒杀服务
+      summary: 查询秒杀活动列表
+      responses:
+        '200':
+          description: 成功
+
+  /api/seckill/activity/{activityId}/products:
+    get:
+      tags:
+        - 秒杀服务
+      summary: 查询秒杀活动详情（含商品列表）
+      responses:
+        '200':
+          description: 成功
+
+  /api/seckill/user/records:
+    get:
+      tags:
+        - 秒杀服务
+      summary: 查询用户秒杀记录
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  # ==========================================
+  # 管理端 - 秒杀管理
+  # ==========================================
+  /api/admin/seckill/activity:
+    post:
+      tags:
+        - 管理端-秒杀
+      summary: 创建秒杀活动
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 创建成功
+
+  /api/admin/seckill/activity/{id}:
+    put:
+      tags:
+        - 管理端-秒杀
+      summary: 修改秒杀活动
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 修改成功
+    get:
+      tags:
+        - 管理端-秒杀
+      summary: 回显秒杀活动
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/seckill/activity/{activityId}/product:
+    post:
+      tags:
+        - 管理端-秒杀
+      summary: 添加秒杀商品
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 添加成功
+
+  /api/admin/seckill/activity/{activityId}/products/batch:
+    post:
+      tags:
+        - 管理端-秒杀
+      summary: 批量添加秒杀商品
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 添加成功
+
+  /api/admin/seckill/product/{seckillProductId}/stock:
+    put:
+      tags:
+        - 管理端-秒杀
+      summary: 更新秒杀商品库存
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 更新成功
+
+  /api/admin/seckill/activity/{activityId}/preheat:
+    post:
+      tags:
+        - 管理端-秒杀
+      summary: 活动缓存预热
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 预热成功
+
+  # ==========================================
+  # 管理端 - 订单管理
+  # ==========================================
+  /api/admin/orders:
+    get:
+      tags:
+        - 管理端-订单
+      summary: 普通订单列表（分页）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/orders/{orderNo}:
+    get:
+      tags:
+        - 管理端-订单
+      summary: 普通订单详情
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/orders/{orderNo}/status:
+    put:
+      tags:
+        - 管理端-订单
+      summary: 修改订单状态
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 修改成功
+
+  /api/admin/orders/seckill:
+    get:
+      tags:
+        - 管理端-订单
+      summary: 秒杀订单列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/orders/seckill/{orderNo}:
+    get:
+      tags:
+        - 管理端-订单
+      summary: 秒杀订单详情
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  # ==========================================
+  # 管理端 - 用户管理
+  # ==========================================
+  /api/admin/users:
+    get:
+      tags:
+        - 管理端-用户
+      summary: 用户列表（分页）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/users/{userId}:
+    get:
+      tags:
+        - 管理端-用户
+      summary: 用户详情
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/users/{userId}/status:
+    put:
+      tags:
+        - 管理端-用户
+      summary: 启用/禁用用户
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 修改成功
+
+  /api/admin/users/login-logs:
+    get:
+      tags:
+        - 管理端-用户
+      summary: 登录日志列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  # ==========================================
+  # 管理端 - 退款管理
+  # ==========================================
+  /api/admin/payment/refund:
+    post:
+      tags:
+        - 管理端-退款
+      summary: 审核退款
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 审核完成
+
+  /api/admin/payment/refund/list:
+    get:
+      tags:
+        - 管理端-退款
+      summary: 退款列表（分页）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  # ==========================================
+  # 管理端 - 统计
+  # ==========================================
+  /api/admin/statistics/overview:
+    get:
+      tags:
+        - 管理端-统计
+      summary: 平台总览统计
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/statistics/seckill/{activityId}:
+    get:
+      tags:
+        - 管理端-统计
+      summary: 单活动销售统计
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/statistics/seckill/list:
+    get:
+      tags:
+        - 管理端-统计
+      summary: 活动销售统计列表（分页）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/statistics/trends:
+    get:
+      tags:
+        - 管理端-统计
+      summary: 近N天销售趋势
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  # ==========================================
+  # 搜索服务
+  # ==========================================
+  /api/product/search:
+    get:
+      tags:
+        - 搜索服务
+      summary: 搜索商品（Elasticsearch）
+      parameters:
+        - name: keyword
+          in: query
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: price_asc / price_desc / sales_desc
+        - name: pageNo
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 成功
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 登录后获取的 JWT Token
+
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 状态码：200-成功, 500-服务器错误
+          example: 200
+        message:
+          type: string
+          description: 提示信息
+          example: "success"
+        data:
+          type: object
+          description: 响应数据
+        timestamp:
+          type: integer
+          description: 时间戳
+          example: 1718000000000
+
+    # 用户相关
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 用户名
+        password:
+          type: string
+          description: 密码
+        phone:
+          type: string
+          description: 手机号
+        email:
+          type: string
+          description: 邮箱
+      required:
+        - username
+        - password
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: 用户名
+        password:
+          type: string
+          description: 密码
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT Token
+        userId:
+          type: integer
+          format: int64
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+
+    TUserVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        phone:
+          type: string
+          description: 手机号
+        email:
+          type: string
+          description: 邮箱
+
+    UserInfoVO:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        phone:
+          type: string
+          description: 手机号
+        email:
+          type: string
+          description: 邮箱
+        avatar:
+          type: string
+          description: 头像URL
+        nickName:
+          type: string
+          description: 昵称
+        gender:
+          type: integer
+          description: 性别
+        birthday:
+          type: string
+          format: date-time
+          description: 生日
+
+    # 地址相关
+    AddressRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 收件人姓名
+        phone:
+          type: string
+          description: 收件人手机号
+        province:
+          type: string
+          description: 省
+        city:
+          type: string
+          description: 市
+        district:
+          type: string
+          description: 区
+        detailAddress:
+          type: string
+          description: 详细地址
+        isDefault:
+          type: boolean
+          description: 是否默认地址
+      required:
+        - name
+        - phone
+        - detailAddress
+
+    # OSS凭证
+    OssUploadCredentialVO:
+      type: object
+      properties:
+        accessKeyId:
+          type: string
+          description: 临时AccessKey ID
+        accessKeySecret:
+          type: string
+          description: 临时AccessKey Secret
+        securityToken:
+          type: string
+          description: 安全令牌（STS Token）
+        endpoint:
+          type: string
+          description: OSS 访问域名
+        bucketName:
+          type: string
+          description: Bucket 名称
+        filePrefix:
+          type: string
+          description: 文件存储路径前缀
+          example: "avatar" (用户头像) / "item" (商品图片)
+        expiration:
+          type: integer
+          format: int64
+          description: 凭证过期时间（秒），默认 900
+        regionId:
+          type: string
+          description: OSS Region ID
+
+    # SPU相关
+    SpuCreateRequest:
+      type: object
+      properties:
+        spuCode:
+          type: string
+          description: SPU编码
+        name:
+          type: string
+          description: 商品名称
+        categoryId:
+          type: integer
+          format: int64
+          description: 分类ID
+        brandId:
+          type: integer
+          format: int64
+          description: 品牌ID
+        description:
+          type: string
+          description: 商品描述
+        mainImage:
+          type: string
+          description: 主图URL（通过OSS直传后获取）
+        images:
+          type: array
+          items:
+            type: string
+          description: 商品图片列表（通过OSS直传后获取的URL数组）
+        status:
+          type: integer
+          description: 状态：0-下架 1-上架（默认1）
+          default: 1
+      required:
+        - spuCode
+        - name
+        - categoryId
+        - brandId
+        - mainImage
+
+    SpuCreateResultVO:
+      type: object
+      properties:
+        spuId:
+          type: integer
+          format: int64
+          description: SPU ID
+
+    SpuListVO:
+      type: object
+      properties:
+        spuId:
+          type: integer
+          format: int64
+          description: SPU ID
+        spuCode:
+          type: string
+          description: SPU编码
+        name:
+          type: string
+          description: 商品名称
+        categoryId:
+          type: integer
+          format: int64
+        categoryName:
+          type: string
+          description: 分类名称
+        brandName:
+          type: string
+          description: 品牌名称
+        mainImage:
+          type: string
+          description: 主图URL
+        status:
+          type: integer
+          description: 0-下架 1-上架
+        statusName:
+          type: string
+          description: 状态名称
+        createTime:
+          type: string
+          format: date-time
+          description: 创建时间
+
+    # SKU相关
+    SkuCreateRequest:
+      type: object
+      properties:
+        spuId:
+          type: integer
+          format: int64
+          description: 所属SPU ID
+        skuCode:
+          type: string
+          description: SKU编码
+        price:
+          type: number
+          format: double
+          description: 价格
+        stock:
+          type: integer
+          description: 库存数量
+        specifications:
+          type: object
+          description: 规格参数，如 {"颜色": "红色", "尺寸": "M"}
+        images:
+          type: array
+          items:
+            type: string
+          description: SKU图片
+      required:
+        - spuId
+        - skuCode
+        - price
+        - stock
+
+    CategoryVO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 分类ID
+        name:
+          type: string
+          description: 分类名称
+        parentId:
+          type: integer
+          format: int64
+          description: 父分类ID
+        level:
+          type: integer
+          description: 层级
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryVO'
+          description: 子分类列表
+
+    PageDTO:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int64
+          description: 总记录数
+        pages:
+          type: integer
+          format: int64
+          description: 总页数
+        list:
+          type: array
+          description: 数据列表
