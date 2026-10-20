@@ -4,6 +4,10 @@ server:
 haalan:
   jwt:
     location: classpath:haalan.jks
+    # ⚠️ 安全提示：这是 JKS 密钥库口令，已随 git 公开到 GitHub。
+    # 必须与 haalan-gateway/src/main/resources/application.yml 的 haalan.jwt.password 保持一致，
+    # 否则用户服务签发的 token 网关验签失败。改口令需同时重建两个服务 classpath 下的 haalan.jks 并重新部署。
+    # 用户 VM 未开，本轮只加注释不改值；建议 VM 开后用 keytool 重建密钥库并轮换。
     password: haalan123
     alias: haalan
     tokenTTL: 2h
